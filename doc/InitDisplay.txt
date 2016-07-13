@@ -1,0 +1,21 @@
+#include <Adafruit_GFX.h>    // Core graphics library
+#include <Adafruit_ST7735.h> // Hardware-specific library
+#include <SPI.h>
+// For the breakout, you can use any 2 or 3 pins
+// These pins will also work for the 1.8" TFT shield
+#define TFT_CS     10
+#define TFT_RST    8 
+#define TFT_DC     9
+// Option 1 (recommended): must use the hardware SPI pins
+// (for UNO thats sclk = 13 and sid = 11) and pin 10 must be
+// an output. This is much faster - also required if you want
+// to use the microSD card (see the image drawing example)
+Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS,  TFT_DC, TFT_RST);
+
+
+
+
+#include <UTFT.h>
+//          model,     SDA,SCL, CS, RST, RS=0
+UTFT myGLCD(TFT01_18SP, 11, 13, 10,  8, 9);
+

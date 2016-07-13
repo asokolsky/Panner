@@ -1,0 +1,31 @@
+	Features:
+ 
+1.Spi serial
+2.Driver: ST7735S
+3. Qvga 128x160 dots resolution
+4. Touch Panel Optional
+5. 8/16 bit color
+6. Input Voltage: 5V/3.3V
+Display Type :1.8 inch Color TFT LCD Panel
+ 
+Specification:
+1.It has PCB backplane with power IC, SD card socket and pcb adapter
+2.It need 5 IO port at least to drive.
+3.The module port is compatible with 1602 LCD and Nokia 5110/3310 LCD Display port.
+4.It can dive by 51//AVR/PIC/STM32/ARM…… 
+ 
+Note:
+1. JP1: 3.3V / 5V Power Converter.
+2. If you use 3.3V, please short JP1. If you use 5V, you must open JP1, or LCD will be broken.
+  
+
+Display works great with an Arduino Uno. Tested it with the TFT, Adafruit ST3375 and the ucglib libraries. To connect the display to an Arduino UNO: 
+LED - 3.3V
+SCL - pin 13 
+SDA - pin 11 
+A0/RS/DC - pin 9 
+RESET - pin 8 
+CS - pin 10 
+GND - GND 
+VCC - 5V
+
