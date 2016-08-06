@@ -1,5 +1,4 @@
 #include "Panner.h"
-#include "PannerCommandInterpreter.h"
 
 /**
  * execute serial command to move (slide/pan/tilt)
@@ -60,7 +59,7 @@ static void onSerialMoveCommand(schar_t iCmd) {
 static void onSerialPan()
 {
   DEBUG_PRINTLN("onSerialPan()"); 
-  onSerialMoveCommand(cmdPan);
+  onSerialMoveCommand(chPan);
 }
 
 /**

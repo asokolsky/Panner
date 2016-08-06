@@ -1,42 +1,57 @@
 #include "Panner.h"
-#include "PannerCommandInterpreter.h"
 
 //extern volatile byte g_byteSliderEndSwitch;
 
 /**
  * Generic CommandInterpreterChannel implementation 
  */
-CommandInterpreterChannel::CommandInterpreterChannel(byte pinDirection, byte pinStep) : 
-  m_motor(AccelStepper::DRIVER, pinStep, pinDirection) 
+CommandInterpreterChannel::CommandInterpreterChannel(uint8_t pinStep, uint8_t pinDirection, uint8_t pinEnable) : 
+  m_motor(pinStep, pinDirection, pinEnable) 
 {
 }
 
 void CommandInterpreterChannel::beginCommands() {
-  m_cSpeed = m_cCurrentSpeed = 0;
+  m_cSpeed = 0;
   m_ulNext = 0;
 }
 
-void CommandInterpreterChannel::beginCommand(schar_t cSpeed, unsigned long ulDuration, unsigned long now) {
-  DEBUG_PRINT("CommandInterpreterChannel::beginCommand cSpeed=");
-  DEBUG_PRINTDEC(cSpeed);
-  DEBUG_PRINT(", ulDuration=");
-  DEBUG_PRINTDEC(ulDuration);
+void CommandInterpreterChannel::beginCommand(Command *p, unsigned long now) {
+  schar_t channel = p->m_channel; 
+  schar_t command = p->m_command;
+  m_cSpeed = p->m_speed;
+  unsigned long ulDuration = p->m_uDuration; 
+  
+  DEBUG_PRINT("CommandInterpreterChannel::beginCommand channel=");
+  DEBUG_PRINTDEC(channel);
+  DEBUG_PRINT(" command=");
+  DEBUG_PRINTDEC(command);
+  DEBUG_PRINT(" m_cSpeed=");
+  DEBUG_PRINTDEC(m_cSpeed);
   DEBUG_PRINTLN("");
 
   m_ulNext = now + ulDuration;
-  m_cSpeed = cSpeed;
-  m_cCurrentSpeed = 0;
-  doSpeedStep(now);
+
+  switch(command)
+  {
+    case cmdGo:
+      m_motor.move(p->m_lPosition);
+      break;
+    case cmdGoTo:
+      m_motor.moveTo(p->m_lPosition);
+      break;
+    //default:
+      // melting core now!
+  }
 }
 
 boolean CommandInterpreterChannel::endCommand() {
-  DEBUG_PRINTLN("CommandInterpreterChannel::endCommand()");
+  //DEBUG_PRINTLN("CommandInterpreterChannel::endCommand()");
 
   // work with hardware here
   //m_motor.stop();
 
-  m_cSpeed = m_cCurrentSpeed = 0;
-  m_ulNext = m_ulNextSpeedUpdate = 0;
+  m_cSpeed = 0;
+  m_ulNext = 0;
   return true;
 }
 
@@ -57,20 +72,32 @@ void CommandInterpreterChannel::resumeCommand(unsigned long ulPauseDuration) {
     return;
   if(m_ulNext != 0)
     m_ulNext += ulPauseDuration;
-  if(m_ulNextSpeedUpdate != 0)
-    m_ulNextSpeedUpdate += ulPauseDuration;
 
-  //m_motor.setSpeed((m_cCurrentSpeed > 0), abs(m_cCurrentSpeed));
-  //m_motor.go();
 }
 
+
+boolean CommandInterpreterChannel::isBusy() {
+  //return (m_ulNext > 0);
+  return m_motor.run(); // (m_motor.speed() == 0) && (m_motor.distanceToGo() == 0);
+}
 
 /**
  * by default we are concerned about command expiration only, 
  * no end-switches are in the picture
  */
-boolean CommandInterpreterChannel::isReadyToEndCommand(unsigned long now) {
-  return (m_ulNext != 0) && (now >= m_ulNext);
+boolean CommandInterpreterChannel::isReadyToEndCommand(unsigned long now) 
+{
+  //return (m_ulNext != 0) && (now >= m_ulNext);
+  
+  boolean bRes = !m_motor.run(); // (m_motor.speed() == 0) && (m_motor.distanceToGo() == 0);
+/*
+  DEBUG_PRINT("CommandInterpreterChannel::isReadyToEndCommand(now=");
+  DEBUG_PRINTDEC(now);
+  DEBUG_PRINT(") =>");
+  DEBUG_PRINTDEC(bRes);
+  DEBUG_PRINTLN("");
+*/
+  return bRes;
 }
 
 void CommandInterpreterChannel::adjustCommandDuration(schar_t iSecs) {
@@ -118,14 +145,15 @@ void CommandInterpreterChannel::adjustCommandSpeed(schar_t cSpeedAdjustment) {
     return;
        
   m_cSpeed = cSpeed;
-  doSpeedStep(now);
+  //doSpeedStep(now);
 }
 
 
 void CommandInterpreterChannel::tick(unsigned long now) {
-  if((m_ulNext == 0) || (m_ulNextSpeedUpdate == 0) || (now < m_ulNextSpeedUpdate))
+  if(m_ulNext == 0)
     return;
-  doSpeedStep(now);  
+  //doSpeedStep(now);  
+  m_motor.run();
 }
 
 /** assume uCurrentSpeed > uSpeed */
@@ -142,65 +170,5 @@ static unsigned speedUp(unsigned uCurrentSpeed, unsigned uSpeed, unsigned uSpeed
    : uSpeed;
 }
 
-
-/**
- * implement a trapezoidal velocity profile
- * communicate with hardware
- *
- * we are now at m_cCurrentSpeed
- * we need to be at m_cSpeed
- * adjust speed by cSpeedUpdateStep
- * given that in m_ulNext-now we need to be at 0
- */
-void CommandInterpreterChannel::doSpeedStep(unsigned long now) { 
-  /*DEBUG_PRINT("doSpeedStep  m_cCurrentSpeed=");
-  DEBUG_PRINTDEC(m_cCurrentSpeed);
-  DEBUG_PRINT("  m_cSpeed=");
-  DEBUG_PRINTDEC(m_cSpeed);
-  DEBUG_PRINTLN("");*/
-
-  // say when next time
-  m_ulNextSpeedUpdate = now + ulSpeedUpdateTick;
-  
-  boolean bCW = (m_cCurrentSpeed == 0) 
-    ? (m_cSpeed > 0) 
-    : (m_cCurrentSpeed > 0);
-  
-  unsigned uCurrentSpeed = abs(m_cCurrentSpeed);
-  unsigned uSpeed = abs(m_cSpeed);
-  if(uSpeed < uCurrentSpeed) 
-  {
-    // slow down!
-    uCurrentSpeed = slowDown(uCurrentSpeed, uSpeed, bSpeedUpdateStep);
-  } 
-  else if (uCurrentSpeed >= (bSpeedUpdateStep * ((m_ulNext-now)/ulSpeedUpdateTick)))
-  {
-    // faget about it!
-    // start slowing down! the end is near!
-    uSpeed = m_cSpeed = 0;
-    uCurrentSpeed = slowDown(uCurrentSpeed, uSpeed, bSpeedUpdateStep);
-  } 
-  else if(uSpeed == uCurrentSpeed)
-  {
-    return;
-  }
-  else
-  {
-    // speed up!
-    uCurrentSpeed = speedUp(uCurrentSpeed, uSpeed, bSpeedUpdateStep);
-  }
-  m_cCurrentSpeed = bCW ? uCurrentSpeed : -uCurrentSpeed;
-
-
-  // work with the hardware here!
-  // this will start the motor spinning!
-  /*DEBUG_PRINT("m_motor.setSpeed ");
-  DEBUG_PRINTDEC(m_cCurrentSpeed);
-  DEBUG_PRINT(" now=");
-  DEBUG_PRINTDEC(now);
-  DEBUG_PRINTLN("");*/
-
-  //m_motor.setSpeed(bCW, uCurrentSpeed);
-}
 
 

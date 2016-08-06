@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include "Trace.h"
 #include "BatteryMonitor.h"
 
 BatteryMonitor::BatteryMonitor(uint8_t pin) : m_pin(pin), m_gauge(0), m_ulUpdated(0)
@@ -13,12 +14,26 @@ BatteryMonitor::BatteryMonitor(uint8_t pin) : m_pin(pin), m_gauge(0), m_ulUpdate
  *    Returns true if the state changed
  *    Returns false if the state did not change
  */
-bool BatteryMonitor::update(unsigned long now)
+bool BatteryMonitor::updateMaybe(unsigned long now)
 {
-  if(m_ulUpdated + uUpdatePeriod < now)
+  bool res = (m_ulUpdated + ulUpdatePeriod < now);
+  if(!res)
+  {
+    //DEBUG_PRINTLN("BatteryMonitor::update - too early!");
     return false;
+  }
+  res = update(now);
   m_ulUpdated = now;
-  
+  return res;
+}
+
+/** 
+ *  Updates the battery state.
+ *    Returns true if the state changed
+ *    Returns false if the state did not change
+ */
+bool BatteryMonitor::update(unsigned long now)
+{ 
   uint16_t uReading = 0; // accumulate samples here
   for(int i=0; i < 4; i++)
   {
@@ -29,6 +44,8 @@ bool BatteryMonitor::update(unsigned long now)
   }
   uReading = uReading >> 2; // averaged over 4 samples
 
+  //DEBUG_PRINT("BatteryMonitor::update uReading="); DEBUG_PRINTDEC(uReading); DEBUG_PRINTLN("");
+
   if(uReading < uReadingBatteryEmpty)
     uReading = uReadingBatteryEmpty;
   else if(uReading > uReadingBatteryFull)
@@ -36,6 +53,9 @@ bool BatteryMonitor::update(unsigned long now)
   uint8_t gauge = map(uReading, uReadingBatteryEmpty, uReadingBatteryFull, 0, 100);
   if(abs(gauge - m_gauge) > 4) { // ignore +-4%
     m_gauge = gauge;
+    DEBUG_PRINT("BatteryMonitor::update m_gauge=");
+    DEBUG_PRINTDEC(m_gauge);
+    DEBUG_PRINTLN("");
     return true;
   }
   return false;

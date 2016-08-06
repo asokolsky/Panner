@@ -1,0 +1,3 @@
+18V - 150mA motor move, 118mA motor rests
+5V  - 60mA USB unplugged, 2mA USB plugged
+3.3V from Teensy - 35mA USB unplugged, 19mA USB plugged

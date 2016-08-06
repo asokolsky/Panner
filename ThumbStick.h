@@ -32,7 +32,7 @@ public:
    *  It will call
    *         pView->onThumbDown();
    *         pView->onThumbUp();
-   *         pView->onLongThumbDown();
+   *         //pView->onLongThumbDown();
    *         pView->onThumbStickX(uint16_t x);
    *         pView->onThumbStickY(uint16_t y);
    */

@@ -1,0 +1,22 @@
+JKM JK42HS48-2504
+Nema 17 42mm Hybrid Stepper Motor 70oz-in 48mm 2.5A For CNC Router
+
+Step Angle     = 1.8°
+rated current  = 2.5A
+Shaft Radial Play 	0.02Max. (450g-load)
+Shaft Axial Play 	0.08Max. (450g-load)
+Max. radial force 	28N (20mm from the flange)
+Max. axial force 	10N
+
+
+Holding Torque = 5.0kg.cm 70oz.in
+Voltage        = 12..36V
+
+Shaft Diameter = 5mm
+Shaft length   = 24mm
+Weight         = 340g
+
+RED coil1.A
+GRN coil1.C
+YEL coil2.B
+BLU coil2.D

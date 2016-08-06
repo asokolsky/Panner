@@ -1,11 +1,12 @@
 	Features:
  
-1.Spi serial
-2.Driver: ST7735S
+1. SPI serial
+2. Driver: ST7735S
 3. Qvga 128x160 dots resolution
 4. Touch Panel Optional
 5. 8/16 bit color
 6. Input Voltage: 5V/3.3V
+
 Display Type :1.8 inch Color TFT LCD Panel
  
 Specification:

@@ -1,6 +1,6 @@
-#include <Arduino.h>
-#include "Views.h"
-#include "ThumbStick.h"
+#include "Panner.h"
+//#include "Views.h"
+//#include "ThumbStick.h"
 
 
 /** Just a public constructor */
@@ -33,7 +33,7 @@ bool ThumbStick::update()
  *  It will call
  *         pView->onThumbDown();
  *         pView->onThumbUp();
- *         pView->onLongThumbDown();
+ *         //pView->onLongThumbDown();
  *         pView->onThumbStickX(uint16_t x);
  *         pView->onThumbStickY(uint16_t y);
  */
@@ -46,19 +46,19 @@ bool ThumbStick::getAndDispatchThumb(unsigned long now)
   if(DeBouncedButton::update())
   {
     if(justPressed())
-      g_pView->onThumbDown();
+      View::g_pActiveView->onThumbDown();
     else
-      g_pView->onThumbUp();  
+      View::g_pActiveView->onThumbUp();  
     return true;
   }  
   if(abs(y - m_y) > 10) { // ignore +-10
     m_y = y;
-    g_pView->onThumbStickY(getYmapped());
+    View::g_pActiveView->onThumbStickY(getYmapped());
     return true;
   }
   if(abs(x - m_x) > 10) { // ignore +-10
     m_x = x;
-    g_pView->onThumbStickX(getXmapped());
+    View::g_pActiveView->onThumbStickX(getXmapped());
     return true;
   }
   return false;

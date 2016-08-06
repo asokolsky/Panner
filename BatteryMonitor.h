@@ -10,27 +10,36 @@
 
 class BatteryMonitor
 {
+public: 
+  /** customize this depending on your battery and divider */
+  static const uint16_t uReadingBatteryEmpty = 236; // 2.9V per cell - 11.6V total
+  /** customize this depending on your battery and divider */
+  static const uint16_t uReadingBatteryFull = 330;  // 4.2V per cell - 16.8V total
+  
+  /**  update period 10sec */
+  static const unsigned long ulUpdatePeriod = 10*1000;
+
+protected:  
   uint8_t m_pin;
   /** % of the battery full */
   uint8_t m_gauge;
   unsigned long m_ulUpdated;
-  
-public:
-  /** customize this depending on your battery and divider */
-  static const uint16_t uReadingBatteryEmpty = 100;
-  /** customize this depending on your battery and divider */
-  static const uint16_t uReadingBatteryFull = 356;
-  /**  update period 10sec */
-  static const unsigned int uUpdatePeriod = 10*1000;
-  
+
+public:  
   BatteryMonitor(uint8_t pin);
 
   /** 
-   *  Updates the battery state.
+   *  Updates the battery state  respecting uUpdatePeriod.
    *    Returns true if the state changed
    *    Returns false if the state did not change
    */
   bool update(unsigned long now);
+  /** 
+   *  Updates the battery state unconditionally
+   *    Returns true if the state changed
+   *    Returns false if the state did not change
+   */
+  bool updateMaybe(unsigned long now);
 
   /** get % of the battery charge */
   uint8_t getGauge() {
@@ -38,6 +47,8 @@ public:
   }
   
 };
+
+extern BatteryMonitor g_batteryMonitor;
 
 #endif
 

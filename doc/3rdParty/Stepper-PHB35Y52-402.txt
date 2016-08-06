@@ -1,0 +1,19 @@
+PHB35Y52-402
+
+Bipolar NEMA 14 hybrid stepper motor with 1.8° step angle (200 steps/revolution), made of high-quality cold rolled steel sheet and anti-high temperature permanent magnet. The rated current is 1.5A per phase, allowing for the holding torque of 30.0Ncm (42.4oz-in). This high-performance and high-reliability motor is terminated with 4 flying ended lead wires, and easily connected to the constant current or chopper drive controller.
+
+Step Angle     = 1.8° (200 steps/revolution)
+rated current  = 1.5A
+rated resitance= 3.5Ohm
+holding torque = 30.0Ncm (42.4oz-in)
+Voltage        = 12..24V
+
+Shaft diameter = 5mm
+Shaft length   = 24mm
+Weight         = 230g
+
+BLK coil1.A
+GRN coil1.C
+RED coil2.B
+BLU coil2.D
+

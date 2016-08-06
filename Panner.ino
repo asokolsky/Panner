@@ -1,5 +1,3 @@
-
-
 /********************************************************\
  *                                                      *
  * Simple automated video panner                        *
@@ -11,7 +9,7 @@
 \********************************************************/
 
 #include "Panner.h"
-#include "PannerCommandInterpreter.h"
+#include "BatteryMonitor.h"
 
 
 //#define NODEBUG 1
@@ -26,27 +24,48 @@
  */
 ThumbStick g_thumbStick(A9, A8, A7);
 
+/**
+ * Globals: reading battery voltage on A0 (through divider offcourse)
+ */
+BatteryMonitor g_batteryMonitor(A0);
 
-const uint8_t pinStep = 3;
-const uint8_t pinDirection = 6;
+const uint8_t pinPanStep = 3;
+const uint8_t pinPanEnable = 4;
+const uint8_t pinPanDirection = 6;
 
 /** 
  * Globals: stepper driver sits on these two pins.  
  */
-//AccelStepper g_panner(AccelStepper::DRIVER, pinStep, pinDirection);
+//Stepper g_panner(pinPanStep, pinPanDirection, pinPanEnable);
 
 /**
  * Globals: Main command interpreter
  */
-static PannerCommandInterpreter g_ci(pinDirection, pinStep);  // pan dir, step
+static PannerCommandInterpreter g_ci(pinPanStep, pinPanDirection, pinPanEnable);  // pan pinStep, pinDirection, pinEnable
 CommandInterpreter *g_pCommandInterpreter = &g_ci;
+
+/**
+ * Globals: commands to run at startup
+ */
+static Command cmds[] = {
+  {chControl, cmdControlBeginLoop, 0, 0},
+    {chControl, cmdControlRest,  0, 10000},  // rest for 10 sec
+    {chPan,     cmdGoTo, 0, -400},                // go left
+    {chControl, cmdControlWaitForCompletion,  0, 50000},  // wait for the movement to be completed for 50 sec
+    {chControl, cmdControlRest,  0, 10000},  // rest for 10 sec
+    {chPan,     cmdGoTo, 0, 400},                 // go right
+    {chControl, cmdControlWaitForCompletion,  0, 50000},  // wait for the movement to be completed for 50 sec
+  {chControl, cmdControlEndLoop, 0, 0},
+  {chControl, cmdControlNone,    0, 0}
+};
+
 
 
 /**
- * Globals: views and a pointer to a currently selected one.
+ * Globals: views
  */
-SimpleView g_simpleView;
-View *g_pView = &g_simpleView;
+RunView g_runView;
+EditView g_editView;
 
 /**
  * Globals: Serial Port object
@@ -62,36 +81,47 @@ void setup()
     ; // wait for serial port to connect. Needed for Leonardo only
   }   
   DEBUG_PRINTLN("Panner test!");
+
+  g_batteryMonitor.update(millis());
   
-  g_pView->setup();
+  View::setup();
+  View::activate(&g_runView);
 
   g_serialCommandInterpreter.begin();
-  
-  
-  //g_panner.setMaxSpeed(50);  
-  //g_panner.setSpeed(50);  
+    
+  g_ci.begin();
+  g_ci.beginRun(cmds);
 }
 
 void loop()
 {  
+
   unsigned long now = millis();
-  
+
+  bool bUpdateDisplay = false;
+
   if(g_ci.isRunning()) {
-  if(g_ci.continueRun(now)){
-    ;
-  } else {
-    g_ci.endRun();
+    if(g_ci.continueRun(now)){
+      ;
+    } else {
+      g_ci.endRun();
+    }
   }
-  }
+  
+  //g_panner.runSpeed(now);
+
   if(g_thumbStick.getAndDispatchThumb(now)) {
-    ;
+    bUpdateDisplay = true;
   } else if(g_serialCommandInterpreter.available()) {
     DEBUG_PRINTLN("Read a command from serial line!");   
     g_serialCommandInterpreter.readAndDispatch();
-    g_ci.updateDisplay(now);    
+    bUpdateDisplay = true;
+  } else {
+    bUpdateDisplay = g_batteryMonitor.updateMaybe(now);
   }
+  if(bUpdateDisplay)
+    g_ci.updateDisplay(now);    
   
-  //g_panner.runSpeed();
 }
 
 
