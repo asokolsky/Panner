@@ -2,7 +2,7 @@
 #include "Trace.h"
 #include "BatteryMonitor.h"
 
-BatteryMonitor::BatteryMonitor(uint8_t pin) : m_pin(pin), m_gauge(0), m_ulUpdated(0)
+BatteryMonitor::BatteryMonitor(uint8_t pin) : m_pin(pin), m_gauge(0), m_ulNextUpdate(0)
 {
   // Setup the input
   pinMode(m_pin, INPUT);
@@ -16,14 +16,14 @@ BatteryMonitor::BatteryMonitor(uint8_t pin) : m_pin(pin), m_gauge(0), m_ulUpdate
  */
 bool BatteryMonitor::updateMaybe(unsigned long now)
 {
-  bool res = (m_ulUpdated + ulUpdatePeriod < now);
+  bool res = (m_ulNextUpdate < now);
   if(!res)
   {
     //DEBUG_PRINTLN("BatteryMonitor::update - too early!");
     return false;
   }
   res = update(now);
-  m_ulUpdated = now;
+  m_ulNextUpdate = now + ulUpdatePeriod;
   return res;
 }
 
@@ -50,7 +50,8 @@ bool BatteryMonitor::update(unsigned long now)
     uReading = uReadingBatteryEmpty;
   else if(uReading > uReadingBatteryFull)
     uReading = uReadingBatteryFull;
-  uint8_t gauge = map(uReading, uReadingBatteryEmpty, uReadingBatteryFull, 0, 100);
+  //uint8_t gauge = map(uReading, uReadingBatteryEmpty, uReadingBatteryFull, 0, 100);
+  uint8_t gauge = (millis()/1000)%100;  
   if(abs(gauge - m_gauge) > 4) { // ignore +-4%
     m_gauge = gauge;
     DEBUG_PRINT("BatteryMonitor::update m_gauge=");

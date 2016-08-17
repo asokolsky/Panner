@@ -1,8 +1,7 @@
 #include "Panner.h"
-//#include "Keypad.h"
-//#include "Trace.h"
-//#include "Views.h"
 #include "BatteryMonitor.h"
+#include <font_LiberationSans.h>
+#include <font_AwesomeF200.h>
 
 /**
  *  +------------------------------
@@ -17,12 +16,16 @@
  *  +------------------------------
  */
 
-UTFT View::m_lcd(ST7735S, 11, 13, 10,  8, 9);
+const uint8_t pinCS = 10;
+const uint8_t pinDC = 9;
+
+ILI9341_t3 View::m_lcd(pinCS, pinDC /* uint8_t _RST = 255, uint8_t _MOSI=11, uint8_t _SCLK=13, uint8_t _MISO=12 */);
 
 View *View::g_pActiveView = 0;
 
 
-View::View(const char *szTitle) : m_szTitle(szTitle)
+View::View(const char *szTitle, const char *szSoftALabel, const char *szNavLabel, const char *szSoftBLabel) : 
+  m_szTitle(szTitle), m_szSoftALabel(szSoftALabel), m_szNavLabel(szNavLabel), m_szSoftBLabel(szSoftBLabel)
 {
   
 }
@@ -33,18 +36,19 @@ View::~View()
 }
 
 // Declare which fonts we will be using
-extern uint8_t SmallFont[];
-//extern uint8_t BigFont[];
-//extern uint8_t SevenSegNumFont[];
-extern uint8_t Retro8x16[];
+//extern uint8_t SmallFont[];
 
 void View::setup()
 {
-  m_lcd.InitLCD();
-  m_lcd.clrScr();  
-  m_lcd.setColor(255, 255, 255);
-  m_lcd.setBackColor(0, 0, 0);
-  m_lcd.setFont(Retro8x16 /* SmallFont */);
+  m_lcd.begin();
+  m_lcd.fillScreen(ILI9341_BLACK);
+  m_lcd.setRotation(1);
+}
+
+void View::activate(View *p) 
+{
+  g_pActiveView = p;
+  g_pActiveView->updateMaybe(millis());
 }
 
 void View::updateMaybe(unsigned long now)
@@ -61,167 +65,201 @@ void View::update(long lPanPos, float flPanSpeed, const char *pLabel, unsigned w
   DEBUG_PRINTLN("View::update() SHOULD BE OVERWRITTEN");
 }
 
+const int16_t iBatteryWidth = 36;
+//const int16_t iBatteryHeight = 16;
+
 /**
  *  draw views title bar
  */
 void View::drawTitleBar()
 {
-  uint8_t dX = m_lcd.getFontXsize();
-  //uint8_t dY = m_lcd.getFontYsize() + 2;
-
+  int16_t iScreenWidth = m_lcd.width();
+  //m_lcd.fillRect(0, 0, iScreenWidth, LiberationSans_20.line_space, ILI9341_BLACK);
+  
   //
   // draw title bar
   //
-  static const char szBefore[] = "==== ";
-  m_lcd.print(szBefore, 0, 0);
-  int x = dX*(sizeof(szBefore) - 1);
-  m_lcd.print(m_szTitle, x, 0);
-  x += dX*strlen(m_szTitle);
-  static const char szAfter[] = " ====";
-  m_lcd.print(szAfter, x, 0);
-  
-  //drawBattery(dX * 16, 4, (now/1000)%100);
-  drawBattery(dX * 17, 4, g_batteryMonitor.getGauge());
-}
+  m_lcd.setFont(LiberationSans_20);
+  m_lcd.setTextSize(1);
+  m_lcd.setTextColor(ILI9341_YELLOW,ILI9341_BLACK);
+  int16_t x = 2;
+  int16_t y = 2;
+  m_lcd.setCursor(x, y);
+  m_lcd.print(m_szTitle);
+  x += m_lcd.measureTextWidth(m_szTitle);
+  m_lcd.fillRect(x, y, iScreenWidth - x - iBatteryWidth, m_lcd.fontLineSpace(), ILI9341_BLACK);
 
-void View::drawBattery(int16_t x, int16_t y, uint8_t iPcentFull)
-{
-  word c = m_lcd.getColor();
-  {
-    m_lcd.setColor((iPcentFull < 10) ? VGA_RED : ((iPcentFull < 80) ? VGA_WHITE : VGA_LIME));
-    
-    const int16_t iBatteryWidth = 20;
-    const int16_t iBatteryHeight = 8;
-    
-    int16_t x2 = x + iBatteryWidth;
-    int16_t y2 = y + iBatteryHeight;
-  
-    m_lcd.drawRect(x2-1, y+2, x2, y2-2); // tip!
-    x2--;
-    x2--;
-  
-    m_lcd.drawRect(x++, y++, x2--, y2--);
-    x++; y++; x2--; y2--;
-  
-    int16_t fillWidth = x2-x;
-    if(iPcentFull < 100)
-      fillWidth = (fillWidth * iPcentFull)/100;
-  
-    m_lcd.fillRect(x, y, x + fillWidth, y2);
-    if(iPcentFull < 100) {
-      m_lcd.setColor(VGA_BLACK);
-      m_lcd.fillRect(x+fillWidth+1, y, x2, y2);
-    }
-  }
-  m_lcd.setColor(c);
+  drawBattery(g_batteryMonitor.getGauge());
 }
 
 /**
- *  Run View Class Implementation
+ *  draw the battery icon in the top right corner of the screen
  */
-
-RunView::RunView() : View("Run")
+void View::drawBattery(uint8_t iPcentFull)
 {
-}
-
-RunView::~RunView()
-{
-}
- 
-
-/*
-void RunView::onKeyDown(uint8_t vk)
-{
-  DEBUG_PRINT("RunView::onKeyDown ");
-  DEBUG_PRINTDEC(vk);
-  DEBUG_PRINTLN("");
-}
-
-void RunView::onKeyUp(uint8_t vk)
-{
-  DEBUG_PRINT("RunView::onKeyUp ");
-  DEBUG_PRINTDEC(vk);
-  DEBUG_PRINTLN("");
-}
-
-void RunView::onLongKeyDown(uint8_t vk)
-{
-  DEBUG_PRINT("RunView::onLongKeyDown ");
-  DEBUG_PRINTDEC(vk);
-  DEBUG_PRINTLN("");
-}
-*/
-
-/** ThumbStick APIs where vk is one of VK_xxx */
-void RunView::onThumbDown()
-{
-  DEBUG_PRINTLN("RunView::onThumbDown");
-}
-
-void RunView::onThumbUp()
-{
-  DEBUG_PRINTLN("RunView::onThumbUp");
-  activate(&g_editView);
-}
-
-/*void RunView::onLongThumbDown()
-{
-  DEBUG_PRINTLN("RunView::onLongThumbDown");
-}*/
-
-void RunView::onThumbStickX(int16_t x)
-{
-  DEBUG_PRINT("RunView::onThumbStickX(");
-  DEBUG_PRINTDEC(x);
-  DEBUG_PRINTLN(")");
-
-  if((-10 < x) && (x < 10)) 
-  {
-    ; // g_panner.setSpeed(0);
-  }
+  // map iPcentFull into '@', 'A', 'B', 'C', 'D'
+  char szText[] = "@";
+  if(iPcentFull > 80)
+    szText[0] = '@';
+  else if(iPcentFull > 60)
+    szText[0] = 'A';
+  else if(iPcentFull > 40)
+    szText[0] = 'B';
+  else if(iPcentFull > 20)
+    szText[0] = 'C';
   else
-  {
-    //float speed = g_panner.maxSpeed() * (float)x/100;
-    ; // g_panner.setSpeed(speed);
-  }
-}
+    szText[0] = 'D';
+  
+  m_lcd.setFont(AwesomeF200_20);
+  m_lcd.setTextSize(1);
+  m_lcd.setTextColor(ILI9341_YELLOW,ILI9341_BLACK);
 
-void RunView::onThumbStickY(int16_t y)
-{
-  DEBUG_PRINT("RunView::onThumbStickY ");
-  DEBUG_PRINTDEC(y);
-  DEBUG_PRINTLN("");
+  //DEBUG_PRINT("Battery width: ");
+  //DEBUG_PRINTDEC(m_lcd.measureTextWidth(szText));
+  //DEBUG_PRINTLN("");  
+  int16_t x = m_lcd.width() - m_lcd.measureTextWidth(szText) - 1;
+  int16_t y = 0;
+  
+  m_lcd.setCursor(x, y);
+  m_lcd.print(szText);
+  
+  // restore the original font
+  m_lcd.setFont(LiberationSans_20);
 }
 
 /**
- *  display Interpreter status
+ * Draw bottom row with labels for soft keys
  */
-void RunView::update(long lPanPos, float flPanSpeed, const char *pLabel, unsigned wSecs, unsigned long now)
+void View::drawSoftLabels()
 {
-  drawTitleBar();
-  
-  uint8_t dX = m_lcd.getFontXsize();
-  uint8_t dY = m_lcd.getFontYsize() + 2;
+  int16_t iScreenWidth = m_lcd.width();
+  int16_t iScreenHeight = m_lcd.height();
 
-  int y = 2*dY;
-  int x = dX * 7;
+  int16_t x = 0;
   
-  m_lcd.print("Pos:", 0, y);
-  m_lcd.printNumI(lPanPos, x, y, 5);
-  y += dY;
-  m_lcd.print("Speed:", 0, y);
-  //m_lcd.printNumF(flPanSpeed, x, y, '.', 5);
-  m_lcd.printNumI((long)flPanSpeed, x, y, 5);
-  y += dY;
-  m_lcd.print(pLabel, 0, y);
-  m_lcd.printNumI(wSecs, x, y, 5); 
+  int16_t y = iScreenHeight - m_lcd.fontLineSpace();
+  
+  //m_lcd.fillRect(x, y, iScreenWidth, m_lcd.fontLineSpace(), ILI9341_BLACK);
+
+  m_lcd.setTextColor(ILI9341_YELLOW,ILI9341_BLACK);
+  m_lcd.setCursor(x, y);
+  m_lcd.print(m_szSoftALabel);
+  int16_t x1 = m_lcd.measureTextWidth(m_szSoftALabel);
+  int16_t w = m_lcd.measureTextWidth(m_szNavLabel);
+  int16_t x2 = (iScreenWidth - w)/2;
+  m_lcd.fillRect(x1, y, x2-x1, m_lcd.fontLineSpace(), ILI9341_BLACK);
+  m_lcd.setCursor(x2, y);
+  m_lcd.print(m_szNavLabel);
+  int16_t x3 = x2 + w;
+  int16_t x4 = iScreenWidth - m_lcd.measureTextWidth(m_szSoftBLabel);
+  m_lcd.fillRect(x3, y, x4-x3, m_lcd.fontLineSpace(), ILI9341_BLACK);
+  m_lcd.setCursor(x4, y);
+  m_lcd.print(m_szSoftBLabel);
 }
+
+
+void View::printKeyVal(const char *szKey, long lVal, uint16_t y)
+{
+  uint16_t x = m_lcd.width() / 3;
+  uint16_t keyWidth = m_lcd.measureTextWidth(szKey);
+
+  m_lcd.setTextColor(ILI9341_DARKGREY, ILI9341_BLACK);
+  m_lcd.setCursor(x - keyWidth, y);
+  m_lcd.print(szKey);
+  m_lcd.setCursor(x, y);
+  static char szSeparator[] = ": ";
+  m_lcd.print(szSeparator);
+  x += m_lcd.measureTextWidth(szSeparator);
+  
+  m_lcd.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
+  m_lcd.setCursor(x, y);
+  m_lcd.print(lVal);
+}
+
+/**
+ *  Direct Control View Class Implementation
+ */
+
+
+ControlView::ControlView() : View("Direct Control", "[ ]", "[<- ->]", "[Edit]")
+{
+}
+
+ControlView::~ControlView()
+{
+}
+  
+/** analog keyboard APIs where vk is one of VK_xxx */
+void ControlView::onKeyDown(uint8_t vk)
+{
+  switch(vk) {
+    case VK_LEFT:
+      // start pan left
+      DEBUG_PRINTLN("ControlView::onKeyDown(VK_LEFT): start pan left");
+      break;
+    case VK_RIGHT:
+      // start pan right
+      DEBUG_PRINTLN("ControlView::onKeyDown(VK_RIGHT): start pan right");
+      break;
+  }
+}
+
+void ControlView::onLongKeyDown(uint8_t vk)
+{
+  switch(vk) {
+    case VK_LEFT:
+      // start fast pan left
+      DEBUG_PRINTLN("ControlView::onLongKeyDown(VK_LEFT): start fast pan left");
+      break;
+    case VK_RIGHT:
+      // start fast pan right
+      DEBUG_PRINTLN("ControlView::onLongKeyDown(VK_RIGHT): start fast pan right");
+      break;
+  }
+}
+
+void ControlView::onKeyUp(uint8_t vk)
+{
+  switch(vk) {
+    case VK_LEFT:
+      // stop pan left
+      DEBUG_PRINTLN("ControlView::onKeyUp(VK_LEFT): stop pan");
+      break;
+    case VK_RIGHT:
+      // stop pan right
+      DEBUG_PRINTLN("ControlView::onKeyUp(VK_RIGHT): stop pan");
+      break;
+    case VK_SOFTB:
+      // switch to Edit view
+      DEBUG_PRINTLN("ControlView::onKeyUp(VK_SOFTB): switch to Edit view");
+      activate(&g_editView);
+      break;
+  }  
+}
+
+void ControlView::update(long lPanPos, float flPanSpeed, const char *pLabel, unsigned wSecs, unsigned long now)
+{
+  DEBUG_PRINTLN("ControlView::update()");
+  drawTitleBar();
+ 
+  uint16_t dY = m_lcd.fontLineSpace() + 2;
+  uint16_t y = dY;
+  printKeyVal("Pos", lPanPos, y);
+  y += dY;
+  printKeyVal("Speed", (long)flPanSpeed, y);
+  y += dY;
+  /*if(pLabel != 0)  {
+    printKeyVal(pLabel, wSecs, y);    
+  }*/
+  drawSoftLabels();
+}
+
 
 /**
  * EditView class implementation
  */
  
-EditView::EditView() : View("Edit")
+EditView::EditView() : View("Edit", "[Sel]", "[<- ->]", "[Run]")
 {
   
 }
@@ -236,33 +274,241 @@ EditView::~EditView()
 //void EditView::onKeyUp(uint8_t vk);
 //void EditView::onLongKeyDown(uint8_t vk);
 
-/** ThumbStick APIs where vk is one of VK_xxx */
-void EditView::onThumbDown() {
-  
-}
-
-void EditView::onThumbUp() 
-{
-  activate(&g_runView); 
-}
-
-/*void EditView::onLongThumbDown() 
-{
-}*/
-
-void EditView::onThumbStickX(int16_t x) {
-  
-}
-
-void EditView::onThumbStickY(int16_t y) {
-  
-}
-
-
 void EditView::update(long lPanPos, float flPanSpeed, const char *pLabel, unsigned wSecs, unsigned long now) 
 {
+  DEBUG_PRINTLN("EditView::update()");
   drawTitleBar();
+  {
+    // draw the content of the program here...
+    uint16_t y = m_lcd.fontLineSpace() + 2;
+    m_lcd.fillRect(0, y, m_lcd.width(), m_lcd.height() - (2*y), ILI9341_BLACK);
+  }  
+  drawSoftLabels();
+}
+
+void EditView::onKeyDown(uint8_t vk)
+{
+  DEBUG_PRINT("EditView::onKeyDown ");
+  DEBUG_PRINTDEC(vk);
+  DEBUG_PRINTLN("");
+}
+
+void EditView::onKeyUp(uint8_t vk)
+{
+  switch(vk)
+  {
+    case VK_SEL:
+      DEBUG_PRINTLN("EditView::onKeyUp(VK_SEL): jump to the next editable field");
+      break;
+
+    case VK_LEFT:
+      // decrease the editable field value
+      DEBUG_PRINTLN("EditView::onKeyUp(VK_LEFT): --");
+      break;
+    case VK_RIGHT:
+      // increase the editable field value
+      DEBUG_PRINTLN("EditView::onKeyUp(VK_RIGHT): ++");
+      break;
+
+    case VK_UP:
+      // increase the editable field value
+      DEBUG_PRINTLN("EditView::onKeyUp(VK_UP): ++");
+      break;
+    case VK_DOWN:
+      // decrease the editable field value
+      DEBUG_PRINTLN("EditView::onKeyUp(VK_DOWN): --");
+      break;
+
+      
+    case VK_SOFTB:
+      DEBUG_PRINTLN("EditView::onKeyUp(VK_SOFTB): switch to Run view");
+      // switch to Edit view
+      activate(&g_runView);
+      // and start program execution here!
+      // ....
+      break;
+      
+    default:
+      DEBUG_PRINT("EditView::onKeyUp ");
+      DEBUG_PRINTDEC(vk);
+      DEBUG_PRINTLN("");
+  }
+}
+
+void EditView::onLongKeyDown(uint8_t vk)
+{
+  DEBUG_PRINT("EditView::onLongKeyDown ");
+  DEBUG_PRINTDEC(vk);
+  DEBUG_PRINTLN("");
+}
+
+/**
+ *  Run View Class Implementation
+ */
+
+RunView::RunView() : View("Run", "[ ]", "[ ]", "[Pause]")
+{
+}
+
+RunView::~RunView()
+{
+}
+ 
+
+void RunView::onKeyDown(uint8_t vk)
+{
+  DEBUG_PRINT("RunView::onKeyDown ");
+  DEBUG_PRINTDEC(vk);
+  DEBUG_PRINTLN("");
+}
+
+void RunView::onKeyUp(uint8_t vk)
+{
+  switch(vk)
+  {
+    case VK_SEL:
+      DEBUG_PRINTLN("RunView::onKeyUp(VK_SEL)");
+      break;
+    case VK_LEFT:
+      DEBUG_PRINTLN("RunView::onKeyUp(VK_LEFT)");
+      break;     
+    case VK_RIGHT:
+      DEBUG_PRINTLN("RunView::onKeyUp(VK_RIGHT)");
+      break;
+    case VK_UP:
+      DEBUG_PRINTLN("RunView::onKeyUp(VK_UP)");
+      break;      
+    case VK_DOWN:
+      DEBUG_PRINTLN("RunView::onKeyUp(VK_DOWN)");
+      break;
+    case VK_SOFTB:
+      DEBUG_PRINTLN("RunView::onKeyUp(VK_SOFTB): switch to Pause view");
+      // switch to Pause view
+      activate(&g_pausedRunView);
+      // and suspend program execution here!
+      // ....
+      break;
+      
+    default:
+      DEBUG_PRINT("RunView::onKeyUp ");
+      DEBUG_PRINTDEC(vk);
+      DEBUG_PRINTLN("");
+  }
+}
+
+void RunView::onLongKeyDown(uint8_t vk)
+{
+  DEBUG_PRINT("RunView::onLongKeyDown ");
+  DEBUG_PRINTDEC(vk);
+  DEBUG_PRINTLN("");
+
+}
+
+/**
+ *  display Interpreter status
+ */
+void RunView::update(long lPanPos, float flPanSpeed, const char *pLabel, unsigned wSecs, unsigned long now)
+{
+  DEBUG_PRINTLN("RunView::update()");
   
+  drawTitleBar();
+  {
+    uint16_t dY = m_lcd.fontLineSpace() + 2;
+    uint16_t y = 2*dY;
+    printKeyVal("Pos", lPanPos, y);
+    y += dY;
+    printKeyVal("Speed", (long)flPanSpeed, y);
+    y += dY;
+    if(pLabel != 0)  {
+      printKeyVal(pLabel, wSecs, y);    
+    }
+  }
+  drawSoftLabels();
+}
+
+/**
+ *  Run View Class Implementation
+ */
+
+PausedRunView::PausedRunView() : View("Paused", "[ ]", "[ ]", "[Run]")
+{
+}
+
+PausedRunView::~PausedRunView()
+{
+}
+ 
+
+void PausedRunView::onKeyDown(uint8_t vk)
+{
+  DEBUG_PRINT("PausedRunView::onKeyDown ");
+  DEBUG_PRINTDEC(vk);
+  DEBUG_PRINTLN("");
+}
+
+void PausedRunView::onKeyUp(uint8_t vk)
+{
+  switch(vk)
+  {
+    case VK_SEL:
+      DEBUG_PRINTLN("PausedRunView::onKeyUp(VK_SEL)");
+      break;
+    case VK_LEFT:
+      DEBUG_PRINTLN("PausedRunView::onKeyUp(VK_LEFT)");
+      break;
+    case VK_RIGHT:
+      DEBUG_PRINTLN("PausedRunView::onKeyUp(VK_RIGHT)");
+      break;
+    case VK_UP:
+      DEBUG_PRINTLN("PausedRunView::onKeyUp(VK_UP)");
+      break;
+    case VK_DOWN:
+      DEBUG_PRINTLN("PausedRunView::onKeyUp(VK_DOWN)");
+      break;
+      
+    case VK_SOFTB:
+      DEBUG_PRINTLN("PausedRunView::onKeyUp(VK_SOFTB): switch to Run view");
+      // switch to Edit view
+      activate(&g_runView);
+      // and resume program execution here!
+      // ....
+      break;
+      
+    default:
+      DEBUG_PRINT("PausedRunView::onKeyUp ");
+      DEBUG_PRINTDEC(vk);
+      DEBUG_PRINTLN("");
+  }
+}
+
+void PausedRunView::onLongKeyDown(uint8_t vk)
+{
+  DEBUG_PRINT("RunView::onLongKeyDown ");
+  DEBUG_PRINTDEC(vk);
+  DEBUG_PRINTLN("");
+
+}
+
+/**
+ *  display Interpreter status
+ */
+void PausedRunView::update(long lPanPos, float flPanSpeed, const char *pLabel, unsigned wSecs, unsigned long now)
+{
+  DEBUG_PRINTLN("PausedRunView::update()");
+  
+  drawTitleBar();
+  {
+    uint16_t dY = m_lcd.fontLineSpace() + 2;
+    uint16_t y = 2*dY;
+    printKeyVal("Pos", lPanPos, y);
+    y += dY;
+    printKeyVal("Speed", (long)flPanSpeed, y);
+    y += dY;
+    if(pLabel != 0)  {
+      printKeyVal(pLabel, wSecs, y);    
+    }
+  }
+  drawSoftLabels();
 }
 
 

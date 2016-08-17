@@ -1,4 +1,4 @@
-#define NODEBUG 1
+//#define NODEBUG 1
 
 #include "Panner.h"
 //#include "Trace.h"
@@ -13,7 +13,9 @@ static const char *getKeyName(uint8_t vk) {
     case VK_UP: return "VK_UP";
     case VK_DOWN: return "VK_DOWN";
     case VK_LEFT: return "VK_LEFT";
-    case VK_SEL: return "VK_SEL";  
+    case VK_SEL: return "VK_SEL";
+    case VK_SOFTA: return "VK_SOFTA";
+    case VK_SOFTB: return "VK_SOFTB";
   }
   return "VK_???";
 }
@@ -22,7 +24,7 @@ static const char *getKeyName(uint8_t vk) {
 Keypad::Keypad(uint8_t bPin) : m_bPin(bPin)
 {
   //analogReadResolution(10);
-  pinMode(bPin, INPUT_PULLUP);
+  //pinMode(bPin, INPUT_PULLUP); - done in hardware!
 }
 
 /**
@@ -38,32 +40,43 @@ uint8_t Keypad::getKey()
   DEBUG_PRINTDEC(adc_key_in);
   DEBUG_PRINTLN("");
 */
-  // buttons when read are centered at these valies: 0, 152, 342, 525, 756
+  // Standard shield buttons when read are centered at these valies: 0, 152, 342, 525, 756
   // we add approx 50 to those values and check to see if we are close
 
+  // My buttons are theoretically centered at these valies: 0, 146, 292, 438, 584, 730, 876
+  // My buttons are in practice centered at these valies: 0, 152, 295, 446, 606, 72, 873
+
   // 1st option for speed reasons since it will be the most likely result
-  if (adc_key_in > 900) {
+  if(adc_key_in > 950) {
     //DEBUG_PRINTLN("Keypad::getKey() => VK_NONE");
     return VK_NONE;
   }
-  if (adc_key_in < 80) {
+  if(adc_key_in < 76) {
     //DEBUG_PRINTLN("Keypad::getKey() => VK_RIGHT");
     return VK_RIGHT;  
-  }
-  if (adc_key_in < 250) {
-    //DEBUG_PRINTLN("Keypad::getKey() => VK_DOWN");
-    return VK_DOWN;
-  }
-  if (adc_key_in < 450) {
+  }  
+  if(adc_key_in < 224) {
     //DEBUG_PRINTLN("Keypad::getKey() => VK_UP");
     return VK_UP;
   }
-  if (adc_key_in < 650) {
+  if(adc_key_in < 371) {
+    //DEBUG_PRINTLN("Keypad::getKey() => VK_DOWN");
+    return VK_DOWN;
+  }
+  if(adc_key_in < 525) {
     //DEBUG_PRINTLN("Keypad::getKey() => VK_LEFT");
     return VK_LEFT;
   }
-  //DEBUG_PRINTLN("Keypad::getKey() => VK_SEL");
-  return VK_SEL;
+  if(adc_key_in < 675) {
+    //DEBUG_PRINTLN("Keypad::getKey() => VK_SEL");
+    return VK_SEL;
+  }
+  if(adc_key_in < 805) {
+    //DEBUG_PRINTLN("Keypad::getKey() => VK_SOFTA");
+    return VK_SOFTA;
+  }
+  DEBUG_PRINTLN("Keypad::getKey() => VK_SOFTB");
+  return VK_SOFTB;
 }
 
 bool Keypad::getAndDispatchKey(unsigned long ulNow)
@@ -83,7 +96,7 @@ bool Keypad::getAndDispatchKey(unsigned long ulNow)
     DEBUG_PRINT("onLongKeyDown vk=");
     DEBUG_PRINT(getKeyName(vk));
     DEBUG_PRINTLN("");
-    g_pView->onLongKeyDown(vk);
+    View::g_pActiveView->onLongKeyDown(vk);
     return true;
   }
   // vk != m_cOldKey
@@ -100,7 +113,7 @@ bool Keypad::getAndDispatchKey(unsigned long ulNow)
     DEBUG_PRINT(" m_bOldKey=");
     DEBUG_PRINT(getKeyName(m_bOldKey));
     DEBUG_PRINTLN("");
-    g_pView->onKeyDown(vk);
+    View::g_pActiveView->onKeyDown(vk);
   }
   else if(vk != VK_NONE)
   {
@@ -116,7 +129,7 @@ bool Keypad::getAndDispatchKey(unsigned long ulNow)
     DEBUG_PRINT(" m_bOldKey=");
     DEBUG_PRINT(getKeyName(m_bOldKey));
     DEBUG_PRINTLN("");
-    g_pView->onKeyUp(m_bOldKey);
+    View::g_pActiveView->onKeyUp(m_bOldKey);
   }
   m_bOldKey = vk;
   return true;

@@ -19,6 +19,9 @@ const uint8_t VK_UP = 2;
 const uint8_t VK_DOWN = 3;
 const uint8_t VK_LEFT = 4;
 const uint8_t VK_SEL = 5;
+/** Custom context specific soft buttons */
+const uint8_t VK_SOFTA = 6;
+const uint8_t VK_SOFTB = 7;
 
 /**
  * Main interface class for an analog keyboard as used in a common LCD & keypad Arduino shield.
@@ -31,7 +34,7 @@ class Keypad
   /** delay in ms before the long key is fired */
   static const int s_iLongKeyDelay = 2000;
   /** delay in ms to debounce */
-  static const int s_iDebounceDelay = 100;
+  static const int s_iDebounceDelay = 50;
 
 public:
   /** keypad is connected to this analog input pin */

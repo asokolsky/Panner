@@ -8,8 +8,7 @@
  *                                                      *
 \********************************************************/
 
-//#include <Arduino.h>
-#include <UTFT.h>
+#include <ILI9341_t3.h>
 #include <Wire.h>
 #include <AccelStepper.h>
 
@@ -17,11 +16,12 @@
 typedef signed char schar_t;
 
 #include "Trace.h"
-#include "ThumbStick.h"
+//#include "ThumbStick.h"
+#include "Keypad.h"
 #include "Stepper.h"
 #include "Views.h"
 #include "CommandInterpreter.h"
-#include "SerialCommand.h"
+//#include "SerialCommand.h"
 #include "Stepper.h"
 
 

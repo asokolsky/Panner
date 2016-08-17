@@ -14,20 +14,20 @@
 
 //#define NODEBUG 1
 
-/** 
- * Globals: simple analog keypad is connected to pin A0 
- */
-//Keypad g_keyPad(A0);
-
-/** 
- * Globals: analog ThumbStick pinX, pinY, pinButton 
- */
-ThumbStick g_thumbStick(A9, A8, A7);
-
 /**
  * Globals: reading battery voltage on A0 (through divider offcourse)
  */
 BatteryMonitor g_batteryMonitor(A0);
+/** 
+ * Globals: simple analog keypad is connected to pin A1
+ */
+Keypad g_keyPad(A1);
+
+/** 
+ * Globals: analog ThumbStick pinX, pinY, pinButton 
+ */
+//ThumbStick g_thumbStick(A9, A8, A7);
+
 
 const uint8_t pinPanStep = 3;
 const uint8_t pinPanEnable = 4;
@@ -59,38 +59,36 @@ static Command cmds[] = {
   {chControl, cmdControlNone,    0, 0}
 };
 
-
-
 /**
  * Globals: views
  */
-RunView g_runView;
+ControlView g_controlView;
 EditView g_editView;
+RunView g_runView;
+PausedRunView g_pausedRunView;
 
 /**
  * Globals: Serial Port object
  */
-MySerialCommand g_serialCommandInterpreter;
+//MySerialCommand g_serialCommandInterpreter;
 
 void setup()
 {  
   Serial.begin(9600);
   
-  delay(5000);   
-  while(!Serial) {
-    ; // wait for serial port to connect. Needed for Leonardo only
-  }   
+  delay(1000);   
+  while(!Serial)  ; // wait for serial port to connect. Needed for Leonardo only
   DEBUG_PRINTLN("Panner test!");
 
   g_batteryMonitor.update(millis());
   
   View::setup();
-  View::activate(&g_runView);
+  View::activate(&g_controlView);
 
-  g_serialCommandInterpreter.begin();
+  //g_serialCommandInterpreter.begin();
     
   g_ci.begin();
-  g_ci.beginRun(cmds);
+  //g_ci.beginRun(cmds);
 }
 
 void loop()
@@ -110,13 +108,22 @@ void loop()
   
   //g_panner.runSpeed(now);
 
-  if(g_thumbStick.getAndDispatchThumb(now)) {
+  if(g_keyPad.getAndDispatchKey(now)) 
+  {
     bUpdateDisplay = true;
-  } else if(g_serialCommandInterpreter.available()) {
+  } 
+  /*else if(g_thumbStick.getAndDispatchThumb(now)) 
+  {
+    bUpdateDisplay = true;
+  }*/
+  /*else if(g_serialCommandInterpreter.available()) 
+  {
     DEBUG_PRINTLN("Read a command from serial line!");   
     g_serialCommandInterpreter.readAndDispatch();
     bUpdateDisplay = true;
-  } else {
+  } */
+  else 
+  {
     bUpdateDisplay = g_batteryMonitor.updateMaybe(now);
   }
   if(bUpdateDisplay)

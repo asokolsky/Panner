@@ -4,7 +4,7 @@
 Stepper::Stepper(uint8_t pinStep, uint8_t pinDirection, uint8_t pinEnable) :
   AccelStepper(AccelStepper::DRIVER, pinStep, pinDirection)
 {
-  _enableInverted = true;
+  //_enableInverted = true;
   setEnablePin(pinEnable);
 
   setMaxSpeed(50);
@@ -17,7 +17,7 @@ void Stepper::enable(bool bEnable)
   DEBUG_PRINT("Stepper::enable(");
   DEBUG_PRINTDEC(bEnable);
   DEBUG_PRINTLN(")");
-  digitalWrite(_enablePin, bEnable ? (HIGH ^ _enableInverted) : (LOW ^ _enableInverted));
+  //digitalWrite(_enablePin, bEnable ? (HIGH ^ _enableInverted) : (LOW ^ _enableInverted));
   m_bEnabled = bEnable;
 }
 
@@ -95,11 +95,13 @@ void Stepper::DUMP()
   DEBUG_PRINT("Stepper@"); DEBUG_PRINTDEC((int)this); 
   DEBUG_PRINT(" m_bEnabled="); DEBUG_PRINTDEC((int)m_bEnabled);
   DEBUG_PRINT(" m_ulStoppedAt="); DEBUG_PRINTDEC((int)m_ulStoppedAt);
+  /*
   DEBUG_PRINT(" _currentPos="); DEBUG_PRINTDEC((int)_currentPos);   
   DEBUG_PRINT(" _targetPos="); DEBUG_PRINTDEC((int)_targetPos);   
   DEBUG_PRINT(" _speed="); DEBUG_PRINTDEC((int)_speed);
   DEBUG_PRINT(" _maxSpeed="); DEBUG_PRINTDEC((int)_maxSpeed);
   DEBUG_PRINT(" _acceleration="); DEBUG_PRINTDEC((int)_acceleration);
+  */
   DEBUG_PRINTLN("");
 }
 
