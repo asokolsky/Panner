@@ -60,14 +60,6 @@ static Command cmds[] = {
 };
 
 /**
- * Globals: views
- */
-ControlView g_controlView;
-EditView g_editView;
-RunView g_runView;
-PausedRunView g_pausedRunView;
-
-/**
  * Globals: Serial Port object
  */
 //MySerialCommand g_serialCommandInterpreter;
@@ -77,7 +69,7 @@ void setup()
   Serial.begin(9600);
   
   delay(1000);   
-  while(!Serial)  ; // wait for serial port to connect. Needed for Leonardo only
+  //while(!Serial)  ; // wait for serial port to connect. Needed for Leonardo only
   DEBUG_PRINTLN("Panner test!");
 
   g_batteryMonitor.update(millis());

@@ -16,6 +16,7 @@
 typedef signed char schar_t;
 
 #include "Trace.h"
+#include "Display.h"
 //#include "ThumbStick.h"
 #include "Keypad.h"
 #include "Stepper.h"
