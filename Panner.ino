@@ -33,31 +33,11 @@ const uint8_t pinPanStep = 3;
 const uint8_t pinPanEnable = 4;
 const uint8_t pinPanDirection = 6;
 
-/** 
- * Globals: stepper driver sits on these two pins.  
- */
-//Stepper g_panner(pinPanStep, pinPanDirection, pinPanEnable);
-
 /**
  * Globals: Main command interpreter
  */
-static PannerCommandInterpreter g_ci(pinPanStep, pinPanDirection, pinPanEnable);  // pan pinStep, pinDirection, pinEnable
+PannerCommandInterpreter g_ci(pinPanStep, pinPanDirection, pinPanEnable);  // pan pinStep, pinDirection, pinEnable
 CommandInterpreter *g_pCommandInterpreter = &g_ci;
-
-/**
- * Globals: commands to run at startup
- */
-static Command cmds[] = {
-  {chControl, cmdControlBeginLoop, 0, 0},
-    {chControl, cmdControlRest,  0, 10000},  // rest for 10 sec
-    {chPan,     cmdGoTo, 0, -400},                // go left
-    {chControl, cmdControlWaitForCompletion,  0, 50000},  // wait for the movement to be completed for 50 sec
-    {chControl, cmdControlRest,  0, 10000},  // rest for 10 sec
-    {chPan,     cmdGoTo, 0, 400},                 // go right
-    {chControl, cmdControlWaitForCompletion,  0, 50000},  // wait for the movement to be completed for 50 sec
-  {chControl, cmdControlEndLoop, 0, 0},
-  {chControl, cmdControlNone,    0, 0}
-};
 
 /**
  * Globals: Serial Port object
@@ -80,25 +60,13 @@ void setup()
   //g_serialCommandInterpreter.begin();
     
   g_ci.begin();
-  //g_ci.beginRun(cmds);
 }
 
 void loop()
 {  
-
   unsigned long now = millis();
 
-  bool bUpdateDisplay = false;
-
-  if(g_ci.isRunning()) {
-    if(g_ci.continueRun(now)){
-      ;
-    } else {
-      g_ci.endRun();
-    }
-  }
-  
-  //g_panner.runSpeed(now);
+  bool bUpdateDisplay = View::g_pActiveView->loop(now);
 
   if(g_keyPad.getAndDispatchKey(now)) 
   {
@@ -114,13 +82,13 @@ void loop()
     g_serialCommandInterpreter.readAndDispatch();
     bUpdateDisplay = true;
   } */
-  else 
-  {
-    bUpdateDisplay = g_batteryMonitor.updateMaybe(now);
+  else if(g_batteryMonitor.updateMaybe(now))
+  {    
+    bUpdateDisplay = true;
   }
+  //if(bUpdateDisplay) g_ci.updateDisplay(now);   
   if(bUpdateDisplay)
-    g_ci.updateDisplay(now);    
-  
+    View::g_pActiveView->update(now);
 }
 
 

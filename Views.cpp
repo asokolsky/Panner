@@ -59,36 +59,59 @@ View::~View()
   
 }
 
-// Declare which fonts we will be using
-//extern uint8_t SmallFont[];
+Stepper *View::g_pPanner = 0;
 
+/**
+ * Called once to set things up.
+ */
 void View::setup()
 {
-  m_lcd.begin();
-  m_lcd.fillScreen(ILI9341_BLACK);
-  m_lcd.setRotation(1);
-  m_lcd.setTextWrap(false);
+  m_lcd.setup();
+  g_pPanner = g_ci.getPanner();
+}
+
+/** 
+ * to be called from the main loop on the active view.  Do nothing by default. Return TRUE to update display
+ */
+boolean View::loop(unsigned long now)
+{
+  return false;
 }
 
 void View::activate(View *p) 
 {
+  if(g_pActiveView != 0)
+    g_pActiveView->onDeActivate();
   g_pActiveView = p;
-  g_pActiveView->update(0, 0, 0, 0, millis());
+  p->onActivate();
+  p->update(millis());
 }
+
+void View::onDeActivate()
+{
+  DEBUG_PRINTLN("View::onDeActivate");
+}
+
+void View::onActivate()
+{
+  DEBUG_PRINTLN("View::onActivate");
+}
+
 
 void View::updateMaybe(unsigned long now)
 {
   if(m_ulToUpdate > now)
   {
     m_ulToUpdate = now + ulUpdatePeriod;
-    update(0, 0, 0, 0, now);
+    update(now);
   }
 }
 
 /** 
- * entire screen redraw 
+ * Entire screen redraw
+ * Update non-clietn area and then call a virtual update of the client in a safe sandbox
  */
-void View::update(long lPanPos, float flPanSpeed, const char *pLabel, unsigned wSecs, unsigned long now)
+void View::update(/*long lPanPos, float flPanSpeed, const char *pLabel, unsigned wSecs,*/ unsigned long now)
 {
   g_rectClient.left = 0;
   g_rectClient.right = m_lcd.width();
@@ -106,7 +129,7 @@ void View::update(long lPanPos, float flPanSpeed, const char *pLabel, unsigned w
   m_lcd.setTextSize(1);
   m_lcd.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
   m_lcd.setCursor(g_rectClient.left, g_rectClient.top);
-  updateClient(lPanPos, flPanSpeed, pLabel, wSecs, now);
+  updateClient(now);
   //
   m_ulToUpdate = now + ulUpdatePeriod;
 }
@@ -114,7 +137,7 @@ void View::update(long lPanPos, float flPanSpeed, const char *pLabel, unsigned w
 /** 
  *  redraw client area only, not including title and bottom bar 
  */
-void View::updateClient(long lPanPos, float flPanSpeed, const char *pLabel, unsigned wSecs, unsigned long now)
+void View::updateClient(/*long lPanPos, float flPanSpeed, const char *pLabel, unsigned wSecs,*/ unsigned long now)
 {
   DEBUG_PRINTLN("View::updateClient() SHOULD BE OVERWRITTEN");
 }
@@ -313,11 +336,45 @@ void View::onLongKeyDown(uint8_t vk) {
 void View::onKeyUp(uint8_t vk) {
 }
 
+/** updateClient implementation for Run or Paused view */
+void View::updateClientRunOrPaused(unsigned long now, bool bExtendedInfo)
+{
+  uint16_t dY = m_lcd.fontLineSpace() + 2;
+  uint16_t y = 2*dY;
+  long lPanPos = g_pPanner->currentPosition();
+  printKeyVal("Pos", lPanPos, y);
+  y += dY;
+  float flPanSpeed = g_pPanner->speed();
+  printKeyVal("Speed", (long)flPanSpeed, y);
+  y += dY;
+
+  if(bExtendedInfo)
+  {   
+    const char *pLabel = 0;
+    unsigned wSecs = g_ci.getBusySeconds(now);
+    if(g_ci.isResting()) {
+      pLabel = "Rest";
+      unsigned long ulNext = g_ci.getNext();
+      wSecs = (now < ulNext) ? ((ulNext - now) / 1000) : 0;
+    } else if(g_ci.isWaitingForCompletion()) {
+      pLabel = "Wait";
+    } else if(g_ci.isPaused()) {
+      pLabel = "Paused";
+    } else {
+      pLabel = "Stopped";
+    }  
+    printKeyVal(pLabel, wSecs, y);
+    y += dY;
+  }
+  m_lcd.fillRect(0, y, m_lcd.width(), m_lcd.height(), ILI9341_BLACK);
+
+  g_pPanner->DUMP();
+}
+
+
 /**
  *  Direct Control View Class Implementation
  */
-
-
 ControlView::ControlView() : View("Direct Control", 
   AwesomeF000_16, "Z",  // i
   AwesomeF000_16, "\x7E", 
@@ -328,6 +385,18 @@ ControlView::ControlView() : View("Direct Control",
 ControlView::~ControlView()
 {
 }
+
+/** 
+ * to be called from the main loop on the active view.  Do nothing by default. Return TRUE to update display
+ */
+boolean ControlView::loop(unsigned long now)
+{
+  g_pPanner->runSpeed();
+  return (g_pPanner->speed() != 0.0);
+}
+
+const int iPannerSlowSpeed = 10;
+const int iPannerFastSpeed = 3*iPannerSlowSpeed;
   
 /** analog keyboard APIs where vk is one of VK_xxx */
 void ControlView::onKeyDown(uint8_t vk)
@@ -336,9 +405,11 @@ void ControlView::onKeyDown(uint8_t vk)
     case VK_LEFT:
       // start pan left
       DEBUG_PRINTLN("ControlView::onKeyDown(VK_LEFT): start pan left");
+      g_pPanner->setSpeed((float)iPannerSlowSpeed);
       break;
     case VK_RIGHT:
       // start pan right
+      g_pPanner->setSpeed((float) - iPannerSlowSpeed);
       DEBUG_PRINTLN("ControlView::onKeyDown(VK_RIGHT): start pan right");
       break;
   }
@@ -350,10 +421,12 @@ void ControlView::onLongKeyDown(uint8_t vk)
     case VK_LEFT:
       // start fast pan left
       DEBUG_PRINTLN("ControlView::onLongKeyDown(VK_LEFT): start fast pan left");
+      g_pPanner->setSpeed((float)iPannerFastSpeed);
       break;
     case VK_RIGHT:
       // start fast pan right
       DEBUG_PRINTLN("ControlView::onLongKeyDown(VK_RIGHT): start fast pan right");
+      g_pPanner->setSpeed((float) - iPannerFastSpeed);
       break;
   }
 }
@@ -362,12 +435,10 @@ void ControlView::onKeyUp(uint8_t vk)
 {
   switch(vk) {
     case VK_LEFT:
-      // stop pan left
-      DEBUG_PRINTLN("ControlView::onKeyUp(VK_LEFT): stop pan");
-      break;
     case VK_RIGHT:
-      // stop pan right
-      DEBUG_PRINTLN("ControlView::onKeyUp(VK_RIGHT): stop pan");
+      // stop pan
+      DEBUG_PRINTLN("ControlView::onKeyUp(VK_LEFT or VK_RIGHT): stop pan");
+      g_pPanner->setSpeed(0);
       break;
     case VK_SOFTA:
       // switch to About view
@@ -382,22 +453,15 @@ void ControlView::onKeyUp(uint8_t vk)
   }  
 }
 
-void ControlView::updateClient(long lPanPos, float flPanSpeed, const char *pLabel, unsigned wSecs, unsigned long now)
+void ControlView::updateClient(unsigned long now)
 {
   DEBUG_PRINTLN("ControlView::updateClient()");
- 
-  uint16_t y = m_lcd.getCursorY();
-  uint16_t dY = m_lcd.fontLineSpace();
-  m_lcd.fillRect(0, y, m_lcd.width(), dY, ILI9341_BLACK);
-  y += dY;
-  printKeyVal("Pos", lPanPos, y);
-  y += dY;
-  printKeyVal("Speed", (long)flPanSpeed, y);
-  y += dY;
-  /*if(pLabel != 0)  {
-    printKeyVal(pLabel, wSecs, y);    
-  }*/
-  m_lcd.fillRect(0, y, m_lcd.width(), m_lcd.height(), ILI9341_BLACK);
+  updateClientRunOrPaused(now, false);
+}
+
+void ControlView::onActivate()
+{
+  g_pPanner->enable(true);  
 }
 
 
@@ -418,7 +482,7 @@ EditView::~EditView()
 }
 
 /** analog keyboard APIs where vk is one of VK_xxx */
-void EditView::updateClient(long lPanPos, float flPanSpeed, const char *pLabel, unsigned wSecs, unsigned long now) 
+void EditView::updateClient(/*long lPanPos, float flPanSpeed, const char *pLabel, unsigned wSecs,*/ unsigned long now) 
 {
   DEBUG_PRINTLN("EditView::updateClient()");
   // draw the content of the program here...
@@ -496,6 +560,11 @@ void EditView::onLongKeyDown(uint8_t vk)
   }
 }
 
+void EditView::onActivate()
+{
+  g_pPanner->enable(false);  
+}
+
 /**
  *  Run View Class Implementation
  */
@@ -509,6 +578,22 @@ RunView::RunView() : View("Run",
 RunView::~RunView()
 {
 }
+
+/**
+ * Globals: commands to run at startup
+ */
+static Command cmds[] = {
+  {chControl, cmdControlBeginLoop, 0, 0},
+    {chControl, cmdControlRest,  0, 10000},  // rest for 10 sec
+    {chPan,     cmdGoTo, 0, -400},                // go left
+    {chControl, cmdControlWaitForCompletion,  0, 50000},  // wait for the movement to be completed for 50 sec
+    {chControl, cmdControlRest,  0, 10000},  // rest for 10 sec
+    {chPan,     cmdGoTo, 0, 400},                 // go right
+    {chControl, cmdControlWaitForCompletion,  0, 50000},  // wait for the movement to be completed for 50 sec
+  {chControl, cmdControlEndLoop, 0, 0},
+  {chControl, cmdControlNone,    0, 0}
+};
+
  
 void RunView::onKeyUp(uint8_t vk)
 {
@@ -551,31 +636,40 @@ void RunView::onKeyUp(uint8_t vk)
   }
 }
 
-/*void RunView::onLongKeyDown(uint8_t vk)
-{
-  DEBUG_PRINT("RunView::onLongKeyDown ");
-  DEBUG_PRINTDEC(vk);
-  DEBUG_PRINTLN("");
-
-}*/
-
 /**
  *  display Interpreter status
  */
-void RunView::updateClient(long lPanPos, float flPanSpeed, const char *pLabel, unsigned wSecs, unsigned long now)
+void RunView::updateClient(unsigned long now)
 {
   DEBUG_PRINTLN("RunView::updateClient()");
-  
-  uint16_t dY = m_lcd.fontLineSpace() + 2;
-  uint16_t y = 2*dY;
-  printKeyVal("Pos", lPanPos, y);
-  y += dY;
-  printKeyVal("Speed", (long)flPanSpeed, y);
-  y += dY;
-  if(pLabel != 0)  {
-    printKeyVal(pLabel, wSecs, y);    
-  }
+  updateClientRunOrPaused(now, true);
 }
+
+void RunView::onActivate()
+{
+  g_pPanner->enable(true);
+  // (re)start command interpreter
+  if(g_ci.isPaused())
+    g_ci.resumeRun();
+  else
+    g_ci.beginRun(cmds);
+}
+
+/** 
+ * to be called from the main loop on the active view.  Do nothing by default. Return TRUE to update display
+ */
+boolean RunView::loop(unsigned long now)
+{
+  if(!g_ci.isRunning())
+    ;
+  else if(g_ci.continueRun(now))
+    ;
+  else
+    g_ci.endRun();
+  return needsUpdate(now);
+}
+
+
 
 /**
  *  Run View Class Implementation
@@ -637,21 +731,18 @@ void PausedRunView::onKeyUp(uint8_t vk)
 /**
  *  display Interpreter status
  */
-void PausedRunView::updateClient(long lPanPos, float flPanSpeed, const char *pLabel, unsigned wSecs, unsigned long now)
+void PausedRunView::updateClient(/*long lPanPos, float flPanSpeed, const char *pLabel, unsigned wSecs,*/ unsigned long now)
 {
   DEBUG_PRINTLN("PausedRunView::updateClient()");
-  
-  uint16_t dY = m_lcd.fontLineSpace() + 2;
-  uint16_t y = 2*dY;
-  printKeyVal("Pos", lPanPos, y);
-  y += dY;
-  printKeyVal("Speed", (long)flPanSpeed, y);
-  y += dY;
-  if(pLabel != 0)  {
-    printKeyVal(pLabel, wSecs, y);    
-  }
+  updateClientRunOrPaused(now, true);
 }
 
+void PausedRunView::onActivate()
+{
+  if(g_ci.isRunning())
+    g_ci.pauseRun();
+  g_pPanner->enable(false);
+}
 
 /**
  *  About View Class Implementation
@@ -670,9 +761,9 @@ const char *AboutView::m_lines[] = {
   "This code is licensed under the terms",
   "of the GNU Public License, verison 2."
 };
+int16_t AboutView::m_iFirstDisplayedLine = 0;
 
-
-int16_t AboutView::m_iLines = sizeof(m_lines)/ sizeof(m_lines[0]);
+//int16_t AboutView::m_iLines = sizeof(m_lines)/ sizeof(m_lines[0]);
 
  
 AboutView::AboutView() : View("About", 
@@ -690,12 +781,14 @@ void AboutView::onKeyUp(uint8_t vk)
 {
   switch(vk)
   {
-    case VK_DOWN:
+    case VK_DOWN: {
       DEBUG_PRINTLN("AboutView::onKeyUp(VK_DOWN)");
+      uint16_t iLines = sizeof(m_lines)/ sizeof(m_lines[0]);
       m_iFirstDisplayedLine++;
-      if(m_iFirstDisplayedLine >= m_iLines)
-        m_iFirstDisplayedLine = m_iLines - 1;
+      if(m_iFirstDisplayedLine >= iLines)
+        m_iFirstDisplayedLine = iLines - 1;
       break;
+    }
     case VK_UP:
       DEBUG_PRINTLN("AboutView::onKeyUp(VK_UP)");
       m_iFirstDisplayedLine--;      
@@ -716,7 +809,7 @@ void AboutView::onKeyUp(uint8_t vk)
 /**
  *  display About info in a scrollable line list
  */
-void AboutView::updateClient(long lPanPos, float flPanSpeed, const char *pLabel, unsigned wSecs, unsigned long now)
+void AboutView::updateClient(/*long lPanPos, float flPanSpeed, const char *pLabel, unsigned wSecs,*/ unsigned long now)
 {
   DEBUG_PRINTLN("AboutView::updateClient()");
 
@@ -749,4 +842,9 @@ void AboutView::updateClient(long lPanPos, float flPanSpeed, const char *pLabel,
     m_lcd.fillRect(x, y, iClientWidth, g_rectClient.bottom - y, ILI9341_BLACK);    
 }
 
+void AboutView::onActivate()
+{
+  g_pPanner->enable(false);  
+  m_iFirstDisplayedLine = 0;
+}
 

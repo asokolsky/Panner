@@ -20,7 +20,6 @@
 class View 
 {
 protected:  
-  //static UTFT m_lcd;
   static Display m_lcd;
   
   const char *m_szTitle;
@@ -36,7 +35,13 @@ protected:
   /** when the view has to be updated */
   unsigned long m_ulToUpdate = 0;
 
+  bool needsUpdate(unsigned long now) {
+    return (now >= m_ulToUpdate);
+  }
+
   static RECT g_rectClient;
+
+  static Stepper *g_pPanner;
 
 public:  
   View(const char *szTitle, const ILI9341_t3_font_t &fontSoftA, const char *szSoftALabel, 
@@ -44,10 +49,18 @@ public:
                             const ILI9341_t3_font_t &fontSoftB, const char *szSoftBLabel);
   virtual ~View();
 
+  /** The Active View */
   static View *g_pActiveView;
   
+  /** once in application lifetime initialization */  
   static void setup();
+  
+  /** Activate the View.  Will call onDeActivate and onActivate */
   static void activate(View *p);
+  /** view DEactivation call-back */
+  virtual void onDeActivate();
+  /** view activation call-back */
+  virtual void onActivate();
 
   /** Derived class will overwrite these.  Do nothing by default */
   
@@ -62,16 +75,20 @@ public:
   //virtual void onLongThumbDown() = 0;
   //virtual void onThumbStickX(int16_t x) = 0;
   //virtual void onThumbStickY(int16_t y) = 0;
+  
+  /** to be called from the main loop on the active view.  Do nothing by default. return TRUE to update the display.  */
+  virtual bool loop(unsigned long now);
+
 
   /** might as well update GUI is its time*/
-  virtual void updateMaybe(unsigned long now);
+  void updateMaybe(unsigned long now);
   /** entire screen redraw */
-  virtual void update(long lPanPos, float flPanSpeed, const char *pLabel, unsigned wSecs, unsigned long now);
+  void update(unsigned long now);
   /** 
    *  redraw client area only, not including title and bottom bar 
    *  Refer to g_rectClient for dimensions - changing those in updateClient is not kosher!
    */
-  virtual void updateClient(long lPanPos, float flPanSpeed, const char *pLabel, unsigned wSecs, unsigned long now);
+  virtual void updateClient(unsigned long now);
 
 protected:
   /** draws the title bar. returns title bar height  */
@@ -89,6 +106,12 @@ protected:
    *  print text centered in the client area using current font
    */
   void printTextCenter(const char *szText, uint16_t y, const ILI9341_t3_font_t *pFont = 0, int16_t *pDY = 0);
+
+  /** 
+   * updateClient implementation for Run or Paused view 
+   */
+  void updateClientRunOrPaused(unsigned long now, bool bExtendedInfo);
+
 };
 
 class ControlView : public View
@@ -102,7 +125,14 @@ public:
   void onKeyUp(uint8_t vk);
   void onLongKeyDown(uint8_t vk);
 
-  void updateClient(long lPanPos, float flPanSpeed, const char *pLabel, unsigned wSecs, unsigned long now);
+  void updateClient(unsigned long now);
+
+  /** 
+   * to be called from the main loop on the active view.  Do nothing by default. Return TRUE to update display
+   */
+  boolean loop(unsigned long now);
+
+  void onActivate();
 };
 
 class EditView : public View
@@ -116,7 +146,9 @@ public:
   void onKeyUp(uint8_t vk);
   void onLongKeyDown(uint8_t vk);
 
-  void updateClient(long lPanPos, float flPanSpeed, const char *pLabel, unsigned wSecs, unsigned long now);
+  void updateClient(unsigned long now);
+
+  void onActivate();
 };
 
 
@@ -133,7 +165,13 @@ public:
   //void onLongKeyDown(uint8_t vk);
   void onKeyUp(uint8_t vk);
 
-  void updateClient(long lPanPos, float flPanSpeed, const char *pLabel, unsigned wSecs, unsigned long now);
+  void updateClient(unsigned long now);
+
+  void onActivate();
+  /** 
+   * to be called from the main loop on the active view.  Do nothing by default. Return TRUE to update display
+   */
+  boolean loop(unsigned long now);
 };
 
 class PausedRunView : public View
@@ -148,15 +186,15 @@ public:
   //void onLongKeyDown(uint8_t vk);
   void onKeyUp(uint8_t vk);
 
-  void updateClient(long lPanPos, float flPanSpeed, const char *pLabel, unsigned wSecs, unsigned long now);
+  void updateClient(unsigned long now);
+
+  void onActivate();
 };
 
 class AboutView : public View
 {
-  static const char *m_lines[];
-  static int16_t m_iLines;
-  
-  int16_t m_iFirstDisplayedLine = 0;
+  static const char *m_lines[];  
+  static int16_t m_iFirstDisplayedLine; // = 0;
   
 public:  
   AboutView();
@@ -167,7 +205,9 @@ public:
   //void onLongKeyDown(uint8_t vk);
   void onKeyUp(uint8_t vk);
 
-  void updateClient(long lPanPos, float flPanSpeed, const char *pLabel, unsigned wSecs, unsigned long now);
+  void onActivate();
+
+  void updateClient(unsigned long now);
 };
 
 extern ControlView g_controlView;

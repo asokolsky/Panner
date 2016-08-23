@@ -98,7 +98,7 @@ public:
   /** resume the run */
   virtual void resumeRun();
 
-  virtual void updateDisplay(unsigned long now);
+  //virtual void updateDisplay(unsigned long now);
 };
 
 extern CommandInterpreter *g_pCommandInterpreter;
@@ -192,6 +192,11 @@ public:
   * Handle a GUI request
   */
   void adjustCommandDuration(schar_t iChangeSecs);
+
+  Stepper *getMotor() {
+    return &m_motor;
+  }
+  
 };
 
 
@@ -243,13 +248,32 @@ public:
   /** Duration adjustment in seconds */
   void adjustCommandDuration(schar_t ch, schar_t cmd, int iDurationAdjustment);
 
-  void updateDisplay(unsigned long now);
+  //void updateDisplay(unsigned long now);
 
   /**
   * iCmd is actually a channel #
   * to be called from interrupt handler or in response to kb
   */
   void stopCommand(schar_t cCmd);
+
+  unsigned long getNext() {
+    return m_ulNext;
+  }
+  
+  unsigned getBusySeconds(unsigned long now);
+
+  boolean isResting() {
+    return (m_ulNext > 0);
+  }
+
+  boolean isWaitingForCompletion() {
+    return m_bWaitingForCompletion;
+  }
+
+  Stepper *getPanner() {
+    return m_channels[chPan]->getMotor();
+  }
+
 
 private:
   void beginCommand(Command *p, unsigned long now);
@@ -267,18 +291,11 @@ private:
   /** cmdEndLoop command handler */
   Command *endLoop();
 
-  boolean isResting() {
-    return (m_ulNext > 0);
-  }
   boolean isReadyToEndRest(unsigned long now) {
     return (m_ulNext > 0) && (now >= m_ulNext);
   }
-  boolean isWaitingForCompletion() {
-    return m_bWaitingForCompletion;
-  }
   /** get the total # of busy channels */
   char getBusyChannels();
-  unsigned getBusySeconds(unsigned long now);
 
   /** command currently being executed */
   Command *m_pCommand = 0;
@@ -288,14 +305,17 @@ private:
   CommandInterpreterChannel *m_channels[chMax];
   /** when to execute next command */
   unsigned long m_ulNext = 0;
-  /** when the display was last updated */
-  unsigned long m_ulLastDisplayUpdate;
+  /** Display update interval */
+  //const unsigned long ulDisplayUpdateInterval = 900;
+  /** when the display will be updated */
+  //unsigned long m_ulToUpdateDisplay = 0;
   /** when we were paused */
   unsigned long m_ulPaused = 0;
   /** we are waiting for command(s) to be completed. */
   boolean m_bWaitingForCompletion = false;
 };
 
+extern PannerCommandInterpreter g_ci;
 
 #endif
 

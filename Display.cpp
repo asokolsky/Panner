@@ -8,4 +8,15 @@ Display::Display() : ILI9341_t3(pinCS, pinDC /* uint8_t _RST = 255, uint8_t _MOS
   
 }
 
+/**
+ * Called once to set things up.
+ */
+void Display::setup()
+{
+  begin();
+  fillScreen(ILI9341_BLACK);
+  setRotation(1);
+  setTextWrap(false);
+}
+
 

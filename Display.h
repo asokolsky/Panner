@@ -6,7 +6,9 @@ public:
   const ILI9341_t3_font_t *getFont() {
     return font;
   }
-  
+
+  void setup();
+
 };
 
 

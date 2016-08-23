@@ -21,26 +21,39 @@ void CommandInterpreterChannel::beginCommand(Command *p, unsigned long now) {
   m_cSpeed = p->m_speed;
   unsigned long ulDuration = p->m_uDuration; 
   
-  DEBUG_PRINT("CommandInterpreterChannel::beginCommand channel=");
-  DEBUG_PRINTDEC(channel);
-  DEBUG_PRINT(" command=");
-  DEBUG_PRINTDEC(command);
-  DEBUG_PRINT(" m_cSpeed=");
-  DEBUG_PRINTDEC(m_cSpeed);
-  DEBUG_PRINTLN("");
-
   m_ulNext = now + ulDuration;
 
   switch(command)
   {
     case cmdGo:
+      DEBUG_PRINT("CommandInterpreterChannel::beginCommand channel=");
+      DEBUG_PRINTDEC(channel);
+      DEBUG_PRINT(" command=cmdGo m_cSpeed=");
+      DEBUG_PRINTDEC(m_cSpeed);
+      DEBUG_PRINT(" p->m_lPosition=");
+      DEBUG_PRINTDEC(p->m_lPosition);
+      DEBUG_PRINTLN("");
       m_motor.move(p->m_lPosition);
       break;
     case cmdGoTo:
+      DEBUG_PRINT("CommandInterpreterChannel::beginCommand channel=");
+      DEBUG_PRINTDEC(channel);
+      DEBUG_PRINT(" command=cmdGoTo m_cSpeed=");
+      DEBUG_PRINTDEC(m_cSpeed);
+      DEBUG_PRINT(" p->m_lPosition=");
+      DEBUG_PRINTDEC(p->m_lPosition);
+      DEBUG_PRINTLN("");
       m_motor.moveTo(p->m_lPosition);
       break;
-    //default:
+    default:
       // melting core now!
+      DEBUG_PRINT("CommandInterpreterChannel::beginCommand channel=");
+      DEBUG_PRINTDEC(channel);
+      DEBUG_PRINT(" command=");
+      DEBUG_PRINTDEC(command);
+      DEBUG_PRINT(" m_cSpeed=");
+      DEBUG_PRINTDEC(m_cSpeed);
+      DEBUG_PRINTLN("");
   }
 }
 
@@ -61,7 +74,7 @@ boolean CommandInterpreterChannel::endCommand() {
 void CommandInterpreterChannel::pauseCommand() {
   if(!isBusy())
     return;
-  //m_motor.stop();
+  m_motor.stop();
 }
 
 /** 
