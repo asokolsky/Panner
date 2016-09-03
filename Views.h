@@ -1,33 +1,31 @@
 #ifndef Views_h
 #define Views_h
 
+/**
+ * This is a NANO-sized windowing system for Arduino with TFT displays.
+ * Low level support provided by ILI9341_t3 or rather the fork of it by blackketter
+ * For sample of use see Views2.h
+ */
 
- struct RECT {
-  int16_t left;
-  int16_t top;
-  int16_t right;
-  int16_t bottom;
-
-  int16_t width() {
-    return right - left;
-  }
-  int16_t height() {
-    return bottom - top;
-  }
-};
+#include "Display.h"
+#include "Widgets.h"
 
 
-class View 
+/**
+ * View is a widget with a title and bottom bar.  
+ * Kinda like Application or Top Level window in Windows.
+ */
+class View : public Widget
 {
-protected:  
-  static Display m_lcd;
+protected:
+  static Stepper *g_pPanner;
   
   const char *m_szTitle;
-  const ILI9341_t3_font_t &m_fontSoftA;
+  const ILI9341_t3_font_t *m_fontSoftA;
   const char *m_szSoftALabel;
-  const ILI9341_t3_font_t &m_fontNav;
+  const ILI9341_t3_font_t *m_fontNav;
   const char *m_szNavLabel;
-  const ILI9341_t3_font_t &m_fontSoftB;
+  const ILI9341_t3_font_t *m_fontSoftB;
   const char *m_szSoftBLabel;
 
   /**  update period 1/2 sec */
@@ -39,16 +37,21 @@ protected:
     return (now >= m_ulToUpdate);
   }
 
-  static RECT g_rectClient;
+  View *m_zParent = 0;
+  View *m_zChild = 0;
 
-  static Stepper *g_pPanner;
+  /*View *getParent() {
+    return m_zParent;
+  }
+  void setParent(View *p) {
+    m_zParent = p;
+  }*/
 
 public:  
-  View(const char *szTitle, const ILI9341_t3_font_t &fontSoftA, const char *szSoftALabel, 
-                            const ILI9341_t3_font_t &fontNav, const char *szNavLabel, 
-                            const ILI9341_t3_font_t &fontSoftB, const char *szSoftBLabel);
-  virtual ~View();
-
+  View(const char *szTitle, const ILI9341_t3_font_t *fontSoftA, const char *szSoftALabel, 
+                            const ILI9341_t3_font_t *fontNav, const char *szNavLabel, 
+                            const ILI9341_t3_font_t *fontSoftB, const char *szSoftBLabel);
+  
   /** The Active View */
   static View *g_pActiveView;
   
@@ -58,12 +61,10 @@ public:
   /** Activate the View.  Will call onDeActivate and onActivate */
   static void activate(View *p);
   /** view DEactivation call-back */
-  virtual void onDeActivate();
+  virtual void onDeActivate(View *pAboutToBeActive);
   /** view activation call-back */
-  virtual void onActivate();
+  virtual void onActivate(View *pPrevActive);
 
-  /** Derived class will overwrite these.  Do nothing by default */
-  
   /** analog keyboard APIs where vk is one of VK_xxx */
   virtual void onKeyDown(uint8_t vk);
   virtual void onLongKeyDown(uint8_t vk);
@@ -79,142 +80,104 @@ public:
   /** to be called from the main loop on the active view.  Do nothing by default. return TRUE to update the display.  */
   virtual bool loop(unsigned long now);
 
+  /** recalc the client rect */
+  void onPosition();
+
 
   /** might as well update GUI is its time*/
   void updateMaybe(unsigned long now);
   /** entire screen redraw */
   void update(unsigned long now);
+
   /** 
    *  redraw client area only, not including title and bottom bar 
    *  Refer to g_rectClient for dimensions - changing those in updateClient is not kosher!
    */
   virtual void updateClient(unsigned long now);
 
+  void DUMP(const char *szText = 0);
+
 protected:
-  /** draws the title bar. returns title bar height  */
-  int16_t drawTitleBar();
+
+  /** draws the title bar. */
+  virtual void drawTitleBar();
   void drawBattery(uint8_t iPcentFull);
-  /** draws the soft labels. returns the bar height  */
-  int16_t drawSoftLabels();
-  void drawButton(int16_t x, int16_t y, int16_t w, int16_t h, const ILI9341_t3_font_t &font, const char *szLabel);
-  void printKeyVal(const char *szKey, long lVal, uint16_t y);
+  /** draws the soft labels. */
+  void drawSoftLabels();
+  void drawButton(int16_t x, int16_t y, int16_t w, int16_t h, const ILI9341_t3_font_t *pFont, const char *szLabel);
+  void printKeyVal(uint16_t y, const char *szKey1, long lVal1, const char *szKey2 = 0, long lVal2 = 0);
+
+  /** 
+   * updateClient implementation for Control, Run or Paused view 
+   */
+  void updateClientRunOrPaused(unsigned long now, bool bExtendedInfo, const char *pMsg = 0);
+
+};
+
+
+const uint16_t MB_OK               =0x0000;
+const uint16_t MB_OKCANCEL         =0x0001;
+/*
+const uint16_t MB_ABORTRETRYIGNORE =0x0002;
+const uint16_t MB_YESNOCANCEL      =0x0003;
+const uint16_t MB_YESNO            =0x0004;
+const uint16_t MB_RETRYCANCEL      =0x0005;
+const uint16_t MB_CANCELTRYCONTINUE=0x0006;
+const uint16_t MB_HELP             =0x4000;
+*/
+/** ModalDialog results */
+const int16_t IDUNKNOWN=0;
+const int16_t IDOK=1;
+const int16_t IDCANCEL=2;
+/*
+const int16_t IDABORT=3;
+const int16_t IDRETRY=4;
+const int16_t IDIGNORE=5;
+const int16_t IDYES=6;
+const int16_t IDNO=7;
+const int16_t IDTRYAGAIN=10;
+const int16_t IDCONTINUE=11;
+*/
+
+class ModalDialog : public View
+{
+  /**  one of MB_xxx */
+  uint16_t m_uType;
+  /**  one of IDxxx */
+  uint16_t m_iRes = IDUNKNOWN;
+    
+public:  
+  ModalDialog(const char *szTitle, 
+    const ILI9341_t3_font_t *fontSoftA, const char *szSoftALabel, 
+    const ILI9341_t3_font_t *fontNav, const char *szNavLabel, 
+    const ILI9341_t3_font_t *fontSoftB, const char *szSoftBLabel);
   /**
-   *  print text left-aligned in the client area using current font
+   * uType is one of MB_xxx
    */
-  void printTextLeft(const char *szText, uint16_t y, const ILI9341_t3_font_t *pFont = 0);
+  ModalDialog(const char *szTitle, uint16_t uType = MB_OK);
+  /** Modal Dialog has a different title bar style */
+  void drawTitleBar();
+
   /**
-   *  print text centered in the client area using current font
+   * VK_SOFTA - Cancels
+   * VK_SOFTB - Affirms
    */
-  void printTextCenter(const char *szText, uint16_t y, const ILI9341_t3_font_t *pFont = 0, int16_t *pDY = 0);
-
-  /** 
-   * updateClient implementation for Run or Paused view 
-   */
-  void updateClientRunOrPaused(unsigned long now, bool bExtendedInfo);
-
-};
-
-class ControlView : public View
-{
-public:  
-  ControlView();
-  ~ControlView();
-  
-  /** analog keyboard APIs where vk is one of VK_xxx */
-  void onKeyDown(uint8_t vk);
-  void onKeyUp(uint8_t vk);
-  void onLongKeyDown(uint8_t vk);
-
-  void updateClient(unsigned long now);
-
-  /** 
-   * to be called from the main loop on the active view.  Do nothing by default. Return TRUE to update display
-   */
-  boolean loop(unsigned long now);
-
-  void onActivate();
-};
-
-class EditView : public View
-{
-public:  
-  EditView();
-  ~EditView();
-  
-  /** analog keyboard APIs where vk is one of VK_xxx */
-  void onKeyDown(uint8_t vk);
-  void onKeyUp(uint8_t vk);
-  void onLongKeyDown(uint8_t vk);
-
-  void updateClient(unsigned long now);
-
-  void onActivate();
-};
-
-
-
-class RunView : public View
-{
-  
-public:  
-  RunView();
-  ~RunView();
-
-  /** analog keyboard APIs where vk is one of VK_xxx */
-  //void onKeyDown(uint8_t vk);
-  //void onLongKeyDown(uint8_t vk);
   void onKeyUp(uint8_t vk);
 
-  void updateClient(unsigned long now);
+  void onActivate(View *pPrevActive);
 
-  void onActivate();
-  /** 
-   * to be called from the main loop on the active view.  Do nothing by default. Return TRUE to update display
-   */
-  boolean loop(unsigned long now);
-};
-
-class PausedRunView : public View
-{
+  int16_t getResult() {
+    return m_iRes;
+  }
+  bool wasCancelled() {
+    return (m_iRes == IDCANCEL);
+  }
   
-public:  
-  PausedRunView();
-  ~PausedRunView();
-
-  /** analog keyboard APIs where vk is one of VK_xxx */
-  //void onKeyDown(uint8_t vk);
-  //void onLongKeyDown(uint8_t vk);
-  void onKeyUp(uint8_t vk);
-
-  void updateClient(unsigned long now);
-
-  void onActivate();
 };
 
-class AboutView : public View
-{
-  static const char *m_lines[];  
-  static int16_t m_iFirstDisplayedLine; // = 0;
-  
-public:  
-  AboutView();
-  ~AboutView();
+extern const char szCancel[];
+extern const char szOK[];
 
-  /** analog keyboard APIs where vk is one of VK_xxx */
-  //void onKeyDown(uint8_t vk);
-  //void onLongKeyDown(uint8_t vk);
-  void onKeyUp(uint8_t vk);
-
-  void onActivate();
-
-  void updateClient(unsigned long now);
-};
-
-extern ControlView g_controlView;
-extern EditView g_editView;
-extern RunView g_runView;
-extern PausedRunView g_pausedRunView;
-extern AboutView g_aboutView;
 
 #endif
 

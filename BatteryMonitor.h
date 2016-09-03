@@ -39,7 +39,17 @@ public:
    *    Returns true if the state changed
    *    Returns false if the state did not change
    */
-  bool updateMaybe(unsigned long now);
+  bool updateMaybe(unsigned long now)
+  {
+    if(now < m_ulNextUpdate)
+    {
+      //DEBUG_PRINTLN("BatteryMonitor::update - too early!");
+      return false;
+    }
+    bool res = update(now);
+    m_ulNextUpdate = now + ulUpdatePeriod;
+    return res;    
+  }
 
   /** get % of the battery charge */
   uint8_t getGauge() {

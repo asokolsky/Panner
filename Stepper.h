@@ -13,6 +13,14 @@ public:
 
   void DUMP();
 
+  //
+  std::map<std::string, long> m_wayPoints;
+
+  void moveToWayPoint(const std::string &s) {
+    long int lPos = m_wayPoints[s];
+    moveTo(lPos);
+  }
+
 private:
   bool m_bEnabled = false;
 };

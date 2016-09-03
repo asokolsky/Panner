@@ -75,7 +75,7 @@ uint8_t Keypad::getKey()
     //DEBUG_PRINTLN("Keypad::getKey() => VK_SOFTA");
     return VK_SOFTA;
   }
-  DEBUG_PRINTLN("Keypad::getKey() => VK_SOFTB");
+  //DEBUG_PRINTLN("Keypad::getKey() => VK_SOFTB");
   return VK_SOFTB;
 }
 

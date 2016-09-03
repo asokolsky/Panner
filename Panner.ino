@@ -14,6 +14,15 @@
 
 //#define NODEBUG 1
 
+/** 
+ *  Necessary for STL to link
+ */
+extern "C"{
+  int _getpid(){ return -1;}
+  int _kill(int pid, int sig){ return -1; }
+}
+
+
 /**
  * Globals: reading battery voltage on A0 (through divider offcourse)
  */
@@ -66,7 +75,9 @@ void loop()
 {  
   unsigned long now = millis();
 
-  bool bUpdateDisplay = View::g_pActiveView->loop(now);
+  bool bUpdateDisplay = false;
+  if(View::g_pActiveView != 0)
+    bUpdateDisplay = View::g_pActiveView->loop(now);
 
   if(g_keyPad.getAndDispatchKey(now)) 
   {
@@ -87,7 +98,7 @@ void loop()
     bUpdateDisplay = true;
   }
   //if(bUpdateDisplay) g_ci.updateDisplay(now);   
-  if(bUpdateDisplay)
+  if(bUpdateDisplay && View::g_pActiveView != 0)
     View::g_pActiveView->update(now);
 }
 

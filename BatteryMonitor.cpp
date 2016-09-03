@@ -5,26 +5,7 @@
 BatteryMonitor::BatteryMonitor(uint8_t pin) : m_pin(pin), m_gauge(0), m_ulNextUpdate(0)
 {
   // Setup the input
-  pinMode(m_pin, INPUT);
-  
-}
-
-/** 
- *  Updates the battery state.
- *    Returns true if the state changed
- *    Returns false if the state did not change
- */
-bool BatteryMonitor::updateMaybe(unsigned long now)
-{
-  bool res = (m_ulNextUpdate < now);
-  if(!res)
-  {
-    //DEBUG_PRINTLN("BatteryMonitor::update - too early!");
-    return false;
-  }
-  res = update(now);
-  m_ulNextUpdate = now + ulUpdatePeriod;
-  return res;
+  pinMode(m_pin, INPUT);  
 }
 
 /** 

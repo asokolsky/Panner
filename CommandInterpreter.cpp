@@ -1,8 +1,4 @@
 #include "Panner.h"
-//#include "CommandInterpreter.h"
-
-//extern LiquidCrystal g_lcd;
-
 
 /**
  * CommandInterpreter implementation

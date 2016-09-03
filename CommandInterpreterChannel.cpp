@@ -170,18 +170,18 @@ void CommandInterpreterChannel::tick(unsigned long now) {
 }
 
 /** assume uCurrentSpeed > uSpeed */
-static unsigned slowDown(unsigned uCurrentSpeed, unsigned uSpeed, unsigned uSpeedUpdateStep) {
+/*static unsigned slowDown(unsigned uCurrentSpeed, unsigned uSpeed, unsigned uSpeedUpdateStep) {
   return (uCurrentSpeed > (uSpeedUpdateStep + uSpeed))
    ? (uCurrentSpeed - uSpeedUpdateStep)
    : uSpeed;
-}
+}*/
 
 /** assume uCurrentSpeed < uSpeed */
-static unsigned speedUp(unsigned uCurrentSpeed, unsigned uSpeed, unsigned uSpeedUpdateStep) {
+/*static unsigned speedUp(unsigned uCurrentSpeed, unsigned uSpeed, unsigned uSpeedUpdateStep) {
   return ((uCurrentSpeed + uSpeedUpdateStep) < uSpeed)
    ? (uCurrentSpeed + uSpeedUpdateStep)
    : uSpeed;
-}
+}*/
 
 
 

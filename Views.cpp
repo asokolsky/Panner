@@ -1,65 +1,50 @@
 #include "Panner.h"
 #include "BatteryMonitor.h"
 #include <font_LiberationSans.h>
-#include <font_AwesomeF000.h>
-#include <font_AwesomeF100.h>
+//#include <font_AwesomeF000.h>
+//#include <font_AwesomeF100.h>
 #include <font_AwesomeF200.h>
 
 /**
- *  +------------------------------
- *  |CurPos:   -12345
- *  |CurSpeed: 123
- *  |MaxSpeed: 1234
- *  |
- *  |MaxLeft:  -123456*  
- *  |MaxRight: 1234
- *  |MaxSpeed: 123
- *  |
- *  +------------------------------
+ * Generic Views (Top Level Windows) Implementation
  */
+
 
 /**
  * Globals: views
  */
-Display View::m_lcd;
 View *View::g_pActiveView = 0;
-RECT View::g_rectClient;
+Stepper *View::g_pPanner = 0;
 
-ControlView g_controlView;
-EditView g_editView;
-RunView g_runView;
-PausedRunView g_pausedRunView;
-AboutView g_aboutView;
 
 const int16_t iBatteryWidth = 36;
 //const int16_t iBatteryHeight = 16;
 
-const int16_t iTitleBarHeight = 26;
+const int16_t iTitleBarHeight = 27;
 const int16_t iBottomBarHeight = 35;
 const int16_t iButtonCornerRadius = 4;
 const uint16_t uButtonBorderColor = ILI9341_DARKGREY;
+const uint16_t uButtonLabelColor = ILI9341_YELLOW;
+const uint16_t uButtonFaceColor = ILI9341_DARKGREEN;
+
+
+const char szCancel[] = "Cancel";
+const char szOK[] = "OK";
 
 /**
  * Class View
  */
 View::View(const char *szTitle, 
-           const ILI9341_t3_font_t &fontSoftA, const char *szSoftALabel, 
-           const ILI9341_t3_font_t &fontNav, const char *szNavLabel, 
-           const ILI9341_t3_font_t &fontSoftB, const char *szSoftBLabel) :
+           const ILI9341_t3_font_t *fontSoftA, const char *szSoftALabel, 
+           const ILI9341_t3_font_t *fontNav, const char *szNavLabel, 
+           const ILI9341_t3_font_t *fontSoftB, const char *szSoftBLabel) :
   m_szTitle(szTitle), 
   m_fontSoftA(fontSoftA), m_szSoftALabel(szSoftALabel), 
   m_fontNav(fontNav), m_szNavLabel(szNavLabel), 
   m_fontSoftB(fontSoftB), m_szSoftBLabel(szSoftBLabel)
 {
-  
+  setPosition(0, 0, m_lcd.height(), m_lcd.width());  // the order is important!
 }
-
-View::~View()
-{
-  
-}
-
-Stepper *View::g_pPanner = 0;
 
 /**
  * Called once to set things up.
@@ -81,54 +66,82 @@ boolean View::loop(unsigned long now)
 void View::activate(View *p) 
 {
   if(g_pActiveView != 0)
-    g_pActiveView->onDeActivate();
-  g_pActiveView = p;
-  p->onActivate();
-  p->update(millis());
+  {
+    g_pActiveView->onDeActivate(p);
+  }
+  if(p != 0)
+  {
+    p->onActivate(g_pActiveView);
+    g_pActiveView = p;
+    p->update(millis());
+  }
+  else
+  {
+    DEBUG_PRINTLN("BUMMER! View::activate(0!!!)");   
+  }
 }
 
-void View::onDeActivate()
+void View::onDeActivate(View *pNewActive)
 {
   DEBUG_PRINTLN("View::onDeActivate");
+  /*RECT rFill = m_position;
+  rFill.bottom -= iBottomBarHeight;
+  m_lcd.fillRect(rFill, ILI9341_BLACK);*/
 }
 
-void View::onActivate()
+void View::onActivate(View *pPrevActive)
 {
   DEBUG_PRINTLN("View::onActivate");
+  setPosition(0, 0, m_lcd.width(), m_lcd.height()); // done in the constructor but let's reiterate
+  // erase the entire background
+  RECT rFill = m_position;
+  rFill.bottom -= iBottomBarHeight;
+  m_lcd.fillRect(rFill, ILI9341_OLIVE); //ILI9341_BLACK
 }
 
 
 void View::updateMaybe(unsigned long now)
 {
-  if(m_ulToUpdate > now)
-  {
-    m_ulToUpdate = now + ulUpdatePeriod;
-    update(now);
-  }
+  if(now < m_ulToUpdate)
+    return;
+  m_ulToUpdate = now + ulUpdatePeriod;
+  update(now);
 }
+
+/** 
+ *  m_position was just changed.  Default implementation updates m_rectClient
+ */
+void View::onPosition()
+{
+  m_rectClient = m_position;
+  m_rectClient.top += iTitleBarHeight;
+  m_rectClient.bottom -= iBottomBarHeight;
+}
+
 
 /** 
  * Entire screen redraw
  * Update non-clietn area and then call a virtual update of the client in a safe sandbox
  */
-void View::update(/*long lPanPos, float flPanSpeed, const char *pLabel, unsigned wSecs,*/ unsigned long now)
+void View::update(unsigned long now)
 {
-  g_rectClient.left = 0;
-  g_rectClient.right = m_lcd.width();
-  g_rectClient.top = drawTitleBar();
-  g_rectClient.bottom = m_lcd.height() - drawSoftLabels();
-  
+  DUMP("View::update()");    
+
+  drawTitleBar();
+  drawSoftLabels(); 
   //
   // try to protect non-client area  
-  //
-  m_lcd.setClipRect(g_rectClient.left, g_rectClient.top, g_rectClient.right, g_rectClient.bottom);
+  // 
+  m_lcd.setClipRect(m_rectClient);
+  
   //
   // set defaults for use in the client area
   //
   m_lcd.setFont(LiberationSans_18);  
   m_lcd.setTextSize(1);
   m_lcd.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
-  m_lcd.setCursor(g_rectClient.left, g_rectClient.top);
+  m_lcd.setCursor(m_rectClient.left, m_rectClient.top);
+  
   updateClient(now);
   //
   m_ulToUpdate = now + ulUpdatePeriod;
@@ -137,38 +150,46 @@ void View::update(/*long lPanPos, float flPanSpeed, const char *pLabel, unsigned
 /** 
  *  redraw client area only, not including title and bottom bar 
  */
-void View::updateClient(/*long lPanPos, float flPanSpeed, const char *pLabel, unsigned wSecs,*/ unsigned long now)
+void View::updateClient(unsigned long now)
 {
   DEBUG_PRINTLN("View::updateClient() SHOULD BE OVERWRITTEN");
+  // entire background erase - does the job but blinks!
+  m_lcd.fillRect(m_rectClient, ILI9341_BLUE);
 }
 
 /**
  *  draws the title bar
- *  returns title bar height
  */
-int16_t View::drawTitleBar()
+void View::drawTitleBar()
 {
-  int16_t iScreenWidth = m_lcd.width(); 
+  /*DEBUG_PRINT("View::drawTitleBar(");
+  DEBUG_PRINT(m_szTitle);
+  DEBUG_PRINTLN(") => ");*/
   //
   // draw the title itself
   //
   m_lcd.setFont(LiberationSans_18);
-  m_lcd.setTextSize(1);
+  //m_lcd.setTextSize(1);
   m_lcd.setTextColor(ILI9341_YELLOW,ILI9341_BLACK);
-  int16_t x = 2;
-  int16_t y = 2;
+    
   int16_t w = m_lcd.measureTextWidth(m_szTitle);
-  m_lcd.setCursor(x, y);
-  m_lcd.setClipRect(x, y, x + w, y + m_lcd.fontLineSpace());
+  RECT r;
+  r.top = m_position.top + 2;
+  r.bottom = r.top + m_lcd.fontLineSpace();
+  r.left = m_position.left + 2;
+  r.right = r.left + w;
+  
+  m_lcd.setCursor(r.left, r.top);
+  m_lcd.setClipRect(r);
   m_lcd.print(m_szTitle);
-  m_lcd.setClipRect();
-  x += w;
+  m_lcd.ILI9341_t3::setClipRect();
   // clear the space between end of the title and the battery icon
-  m_lcd.fillRect(x, y, iScreenWidth - x - iBatteryWidth, m_lcd.fontLineSpace(), ILI9341_BLACK);
+  r.left = r.right;
+  r.right = m_position.right - iBatteryWidth;
+  if(r.left < r.right)
+    m_lcd.fillRect(r, ILI9341_BLACK);
 
-  drawBattery(g_batteryMonitor.getGauge());  
-
-  return y + m_lcd.fontLineSpace();
+  drawBattery(g_batteryMonitor.getGauge());
 }
 
 /**
@@ -204,8 +225,9 @@ void View::drawBattery(uint8_t iPcentFull)
   m_lcd.print(szText);
 }
 
-void View::drawButton(int16_t x, int16_t y, int16_t w, int16_t h, const ILI9341_t3_font_t &font, const char *szLabel)
+void View::drawButton(int16_t x, int16_t y, int16_t w, int16_t h, const ILI9341_t3_font_t *pFont, const char *szLabel)
 { 
+  RECT rFill;
   m_lcd.drawRoundRect(x, y, w, h, iButtonCornerRadius, uButtonBorderColor);
   x += iButtonCornerRadius;
   int16_t y0 = y;
@@ -213,122 +235,106 @@ void View::drawButton(int16_t x, int16_t y, int16_t w, int16_t h, const ILI9341_
   w -= 2*iButtonCornerRadius;
   int16_t h0 = h;
   h -= 2*iButtonCornerRadius;
-  m_lcd.setClipRect(x, y, x + w, y+h);
+  rFill.left = x;
+  rFill.right = x+w;
+  rFill.top = y;
+  rFill.bottom = y+h;
+  m_lcd.setClipRect(rFill);
   if(szLabel == 0)
   {
-    m_lcd.fillRect(x, y, w, h, ILI9341_BLACK); // clear the entire button face
+    m_lcd.fillRect(rFill, uButtonFaceColor); // clear the entire button face
   }
   else
   {
-    m_lcd.setFont(font);  
+    m_lcd.setFont(*pFont);  
     int16_t tw = m_lcd.measureTextWidth(szLabel);
     int16_t th = m_lcd.measureTextHeight(szLabel);
     int16_t gw = (w-tw)/2;
-    m_lcd.fillRect(x, y, gw, h, ILI9341_BLACK); // clear the entire button face
+    rFill.right = x+gw;
+    m_lcd.fillRect(rFill, uButtonFaceColor); // clear the entire button face
     x += gw;
     m_lcd.setCursor(x, y0 + ((h0 - th)/2));
     m_lcd.print(szLabel);
     x += tw;
-    m_lcd.fillRect(x, y, gw, h, ILI9341_BLACK); // clear the entire button face
+    rFill.left = x;
+    rFill.right = x+gw;
+    m_lcd.fillRect(rFill, uButtonFaceColor); // clear the entire button face
   }  
-  m_lcd.setClipRect();
+  m_lcd.ILI9341_t3::setClipRect();
 }
 
 /**
  * Draw bottom row with labels for soft keys
  * returns the bar height
  */
-int16_t View::drawSoftLabels()
+void View::drawSoftLabels()
 {
-  m_lcd.setTextColor(ILI9341_YELLOW, ILI9341_BLACK);
-  //m_lcd.setFont(m_fontSoftA);
+  m_lcd.setTextColor(uButtonLabelColor, uButtonFaceColor);
   int16_t iButtonWidth = (m_lcd.width() / 3) - 12;
   int16_t iButtonHeight = iBottomBarHeight; // m_lcd.fontLineSpace() + 2*iButtonCornerRadius;
   int16_t y = m_lcd.height() - iButtonHeight;
   drawButton(0, y, iButtonWidth, iButtonHeight, m_fontSoftA, m_szSoftALabel);
   drawButton((m_lcd.width() - iButtonWidth)/2, y, iButtonWidth, iButtonHeight, m_fontNav, m_szNavLabel);
   drawButton(m_lcd.width() - iButtonWidth, y, iButtonWidth, iButtonHeight, m_fontSoftB, m_szSoftBLabel);
-  return iButtonHeight;
 }
 
+static const char szSeparator[] = ": ";
+
 /**
- * Print Key: Val
+ * Print Key1: Val1   Key2: Val2
  * with Key in ILI9341_DARKGREY
  * and Val in ILI9341_WHITE
- * and centered around ':'
  */
-void View::printKeyVal(const char *szKey, long lVal, uint16_t y)
+void View::printKeyVal(uint16_t y, const char *szKey1, long lVal1, const char *szKey2, long lVal2)
 {
-  uint16_t x = m_lcd.width() / 3;
-  uint16_t w = m_lcd.measureTextWidth(szKey);
-  uint16_t iFontLineSpace = m_lcd.fontLineSpace();
-    
-  m_lcd.fillRect(0, y, x - w, iFontLineSpace, ILI9341_BLACK);
+  char szText[80];
+  uint16_t x = m_rectClient.width() / 4;             // position of the first ':'
+  uint16_t w = m_lcd.measureTextWidth(szKey1);       // key width
+  RECT rFill;
+  rFill.top = rFill.bottom = y;
+  rFill.bottom += m_lcd.fontLineSpace();
+  rFill.left = m_rectClient.left;
+  rFill.right = x - w;
+  m_lcd.fillRect(rFill, ILI9341_BLACK);              // wipe space between rClient.left and key1
   m_lcd.setTextColor(ILI9341_DARKGREY, ILI9341_BLACK);
-  m_lcd.setCursor(x - w, y);
-  m_lcd.print(szKey);
+  m_lcd.setCursor(rFill.right, y);
+  m_lcd.print(szKey1);                               // print key1
   m_lcd.setCursor(x, y);
-  static const char szSeparator[] = ": ";
   m_lcd.print(szSeparator);
   x += m_lcd.measureTextWidth(szSeparator);  
   m_lcd.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
   m_lcd.setCursor(x, y);
-  char szText[80];
-  sprintf(szText, "%ld", lVal);
+  sprintf(szText, "%ld", lVal1);                     // print val1
   m_lcd.print(szText);
   x += m_lcd.measureTextWidth(szText);
-  w = m_lcd.width();
-  if(x < w)
-    m_lcd.fillRect(x, y, w, iFontLineSpace, ILI9341_BLACK);
-}
-
-/**
- *  print text left-aligned in the client area using current font
- */
-void View::printTextLeft(const char *szText, uint16_t y, const ILI9341_t3_font_t *pFont)
-{
-  const ILI9341_t3_font_t *pOldFont = 0;
-  if(pFont != 0) {
-    pOldFont = m_lcd.getFont();
-    m_lcd.setFont(*pFont);
+  if(szKey2 != 0)
+  {
+    rFill.left = x;
+    x = (m_lcd.width() / 4) * 3;                       // position of second ':'
+    w = m_lcd.measureTextWidth(szKey2);
+    rFill.right = x - w;
+    m_lcd.fillRect(rFill, ILI9341_BLACK);              // wipe space between val1 and key2
+    m_lcd.setTextColor(ILI9341_DARKGREY, ILI9341_BLACK);
+    m_lcd.setCursor(rFill.right, y);
+    m_lcd.print(szKey2);                               // print key2
+    m_lcd.setCursor(x, y);
+    m_lcd.print(szSeparator);
+    x += m_lcd.measureTextWidth(szSeparator);  
+    m_lcd.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
+    m_lcd.setCursor(x, y);
+    sprintf(szText, "%ld", lVal2);
+    m_lcd.print(szText);                               // print val2
+    x += m_lcd.measureTextWidth(szText);
   }
-  int16_t x = g_rectClient.left;
-  m_lcd.setCursor(x, y);
-  m_lcd.print(szText);
-  int16_t x1 = x + m_lcd.measureTextWidth(szText);
-  if(x1 < g_rectClient.right)
-    m_lcd.fillRect(x1, y, g_rectClient.width() - x1, m_lcd.fontLineSpace(), ILI9341_BLACK);
-  if(pOldFont != 0)
-    m_lcd.setFont(*pOldFont);
-}
-
-/**
- *  print text centered in the client area using current font
- */
-void View::printTextCenter(const char *szText, uint16_t y, const ILI9341_t3_font_t *pFont, int16_t *pDY)
-{
-  const ILI9341_t3_font_t *pOldFont = 0;
-  if(pFont != 0) {
-    pOldFont = m_lcd.getFont();
-    m_lcd.setFont(*pFont);
+  if(x < m_rectClient.right)
+  {
+    rFill.left = x;
+    rFill.right = m_rectClient.right;
+    m_lcd.fillRect(rFill, ILI9341_BLACK);
   }
-  int16_t x = g_rectClient.left;
-  int16_t tw = m_lcd.measureTextWidth(szText);
-  int16_t x1 = x + (g_rectClient.width() - tw)/2;
-  int16_t dY = m_lcd.fontLineSpace();
-  m_lcd.fillRect(g_rectClient.left, y, x1-x, dY, ILI9341_BLACK);
-  m_lcd.setCursor(x1, y);
-  m_lcd.print(szText);
-  x1 += tw;
-  if(x1 < g_rectClient.right)
-    m_lcd.fillRect(x1, y, g_rectClient.right - x1, dY, ILI9341_BLACK);
-  if(pDY != 0)
-    *pDY = dY;    
-  if(pOldFont != 0)
-    m_lcd.setFont(*pOldFont);
 }
 
-
+/** dummy defaults, children to overwrite */
 void View::onKeyDown(uint8_t vk) {
 }
 void View::onLongKeyDown(uint8_t vk) {
@@ -337,19 +343,17 @@ void View::onKeyUp(uint8_t vk) {
 }
 
 /** updateClient implementation for Run or Paused view */
-void View::updateClientRunOrPaused(unsigned long now, bool bExtendedInfo)
+void View::updateClientRunOrPaused(unsigned long now, bool bExtendedInfo, const char *pMsg)
 {
-  uint16_t dY = m_lcd.fontLineSpace() + 2;
-  uint16_t y = 2*dY;
-  long lPanPos = g_pPanner->currentPosition();
-  printKeyVal("Pos", lPanPos, y);
-  y += dY;
-  float flPanSpeed = g_pPanner->speed();
-  printKeyVal("Speed", (long)flPanSpeed, y);
-  y += dY;
+  uint16_t y = m_rectClient.top;
+  y += m_lcd.fontLineSpace(); 
+  
+  printKeyVal(y, "Pos", g_pPanner->currentPosition(), "Speed", (long)g_pPanner->speed());
+  y += m_lcd.fontLineSpace();
 
   if(bExtendedInfo)
   {   
+    y += 2;  
     const char *pLabel = 0;
     unsigned wSecs = g_ci.getBusySeconds(now);
     if(g_ci.isResting()) {
@@ -363,488 +367,126 @@ void View::updateClientRunOrPaused(unsigned long now, bool bExtendedInfo)
     } else {
       pLabel = "Stopped";
     }  
-    printKeyVal(pLabel, wSecs, y);
-    y += dY;
+    printKeyVal(y, pLabel, wSecs);
+    y += m_lcd.fontLineSpace();
   }
-  m_lcd.fillRect(0, y, m_lcd.width(), m_lcd.height(), ILI9341_BLACK);
+  if((pMsg != 0) && (pMsg[0] != '\0'))
+  {
+    y = m_rectClient.bottom - m_lcd.fontLineSpace();
+    m_lcd.setTextColor(ILI9341_DARKGREY, ILI9341_BLACK);
+    printTextLeft(pMsg, y, /*const ILI9341_t3_font_t *pFont =*/ 0);
+    //y += m_lcd.fontLineSpace();
+  } 
+  //g_pPanner->DUMP();
+}
 
-  g_pPanner->DUMP();
+void View::DUMP(const char *szText /*= 0*/)
+{
+  Widget::DUMP(szText);
+  DEBUG_PRINT("View@"); DEBUG_PRINTDEC((int)this); 
+  DEBUG_PRINT(" m_szTitle="); DEBUG_PRINTLN(m_szTitle); 
 }
 
 
 /**
- *  Direct Control View Class Implementation
+ *  ModalDialog Class Implementation
  */
-ControlView::ControlView() : View("Direct Control", 
-  AwesomeF000_16, "Z",  // i
-  AwesomeF000_16, "\x7E", 
-  LiberationSans_18, "Edit")
+ModalDialog::ModalDialog(const char *szTitle, 
+  const ILI9341_t3_font_t *fontSoftA, const char *szSoftALabel, 
+  const ILI9341_t3_font_t *fontNav, const char *szNavLabel, 
+  const ILI9341_t3_font_t *fontSoftB, const char *szSoftBLabel) :
+  View(szTitle, fontSoftA, szSoftALabel, fontNav, szNavLabel, fontSoftB, szSoftBLabel),
+  m_uType(MB_OKCANCEL)  
 {
-}
-
-ControlView::~ControlView()
-{
-}
-
-/** 
- * to be called from the main loop on the active view.  Do nothing by default. Return TRUE to update display
- */
-boolean ControlView::loop(unsigned long now)
-{
-  g_pPanner->runSpeed();
-  return (g_pPanner->speed() != 0.0);
-}
-
-const int iPannerSlowSpeed = 10;
-const int iPannerFastSpeed = 3*iPannerSlowSpeed;
   
-/** analog keyboard APIs where vk is one of VK_xxx */
-void ControlView::onKeyDown(uint8_t vk)
-{
-  switch(vk) {
-    case VK_LEFT:
-      // start pan left
-      DEBUG_PRINTLN("ControlView::onKeyDown(VK_LEFT): start pan left");
-      g_pPanner->setSpeed((float)iPannerSlowSpeed);
-      break;
-    case VK_RIGHT:
-      // start pan right
-      g_pPanner->setSpeed((float) - iPannerSlowSpeed);
-      DEBUG_PRINTLN("ControlView::onKeyDown(VK_RIGHT): start pan right");
-      break;
-  }
 }
 
-void ControlView::onLongKeyDown(uint8_t vk)
+ModalDialog::ModalDialog(const char *szTitle, uint16_t uType) :
+  View(szTitle, &LiberationSans_18, szCancel, &LiberationSans_18, 0, &LiberationSans_18, szOK),
+  m_uType(uType)
 {
-  switch(vk) {
-    case VK_LEFT:
-      // start fast pan left
-      DEBUG_PRINTLN("ControlView::onLongKeyDown(VK_LEFT): start fast pan left");
-      g_pPanner->setSpeed((float)iPannerFastSpeed);
+  switch(uType) 
+  {
+    case MB_OK:
+      m_szSoftALabel = 0;
       break;
-    case VK_RIGHT:
-      // start fast pan right
-      DEBUG_PRINTLN("ControlView::onLongKeyDown(VK_RIGHT): start fast pan right");
-      g_pPanner->setSpeed((float) - iPannerFastSpeed);
+    case MB_OKCANCEL:
       break;
-  }
-}
-
-void ControlView::onKeyUp(uint8_t vk)
-{
-  switch(vk) {
-    case VK_LEFT:
-    case VK_RIGHT:
-      // stop pan
-      DEBUG_PRINTLN("ControlView::onKeyUp(VK_LEFT or VK_RIGHT): stop pan");
-      g_pPanner->setSpeed(0);
-      break;
-    case VK_SOFTA:
-      // switch to About view
-      DEBUG_PRINTLN("ControlView::onKeyUp(VK_SOFTA): switch to About view");
-      activate(&g_aboutView);
-      break;
-    case VK_SOFTB:
-      // switch to Edit view
-      DEBUG_PRINTLN("ControlView::onKeyUp(VK_SOFTB): switch to Edit view");
-      activate(&g_editView);
-      break;
+    /*
+case MB_ABORTRETRYIGNORE
+case MB_YESNOCANCEL
+case MB_YESNO      
+case case MB_RETRYCANCEL
+case MB_CANCELTRYCONTINUE
+case MB_HELP
+    */
   }  
 }
 
-void ControlView::updateClient(unsigned long now)
-{
-  DEBUG_PRINTLN("ControlView::updateClient()");
-  updateClientRunOrPaused(now, false);
-}
-
-void ControlView::onActivate()
-{
-  g_pPanner->enable(true);  
-}
-
-
 /**
- * EditView class implementation
+ *  draws the title bar
  */
-EditView::EditView() : View("Edit", 
-  LiberationSans_18, "Sel/Ctrl", 
-  AwesomeF000_16, "\x7D", // up/down
-  AwesomeF000_16, "K")  // Run
+void ModalDialog::drawTitleBar()
 {
+  /*DEBUG_PRINT("ModalDialog::drawTitleBar(");
+  DEBUG_PRINT(m_szTitle);
+  DEBUG_PRINTLN(") => ");*/
   
-}
-
-EditView::~EditView() 
-{
+  m_lcd.drawLine(m_position.left, m_position.top, m_position.right, m_position.top, ILI9341_DARKGREY);
+  //
+  // draw the title itself
+  //
+  m_lcd.setFont(LiberationSans_18);
+  //m_lcd.setTextSize(1);
+  m_lcd.setTextColor(ILI9341_YELLOW,ILI9341_BLACK);
   
+  int16_t w = m_lcd.measureTextWidth(m_szTitle);
+  int16_t x = m_position.left + ((m_position.width()-w)/2);
+  int16_t y = m_position.top + 3;
+  
+  RECT rFill;
+  rFill.top = y;
+  rFill.bottom = rFill.top + m_lcd.fontLineSpace();
+  rFill.left = m_position.left;
+  rFill.right = x;
+  m_lcd.fillRect(rFill, ILI9341_BLACK); 
+  m_lcd.setCursor(x, y);
+  m_lcd.print(m_szTitle);
+  rFill.left = x + w;
+  rFill.right = m_position.right;
+  m_lcd.fillRect(rFill, ILI9341_BLACK);
 }
 
-/** analog keyboard APIs where vk is one of VK_xxx */
-void EditView::updateClient(/*long lPanPos, float flPanSpeed, const char *pLabel, unsigned wSecs,*/ unsigned long now) 
+void ModalDialog::onKeyUp(uint8_t vk)
 {
-  DEBUG_PRINTLN("EditView::updateClient()");
-  // draw the content of the program here...
-  uint16_t y = m_lcd.fontLineSpace() + 2;
-  m_lcd.fillRect(0, y, m_lcd.width(), m_lcd.height() - (2*y), ILI9341_BLACK);
-}
-
-void EditView::onKeyDown(uint8_t vk)
-{
-  DEBUG_PRINT("EditView::onKeyDown ");
-  DEBUG_PRINTDEC(vk);
-  DEBUG_PRINTLN("");
-}
-
-void EditView::onKeyUp(uint8_t vk)
-{
-  switch(vk)
-  {
-
-    /*case VK_LEFT:
-      // decrease the editable field value
-      DEBUG_PRINTLN("EditView::onKeyUp(VK_LEFT): --");
-      break;
-    case VK_RIGHT:
-      // increase the editable field value
-      DEBUG_PRINTLN("EditView::onKeyUp(VK_RIGHT): ++");
-      break;*/
-
-    case VK_UP:
-      // increase the editable field value
-      DEBUG_PRINTLN("EditView::onKeyUp(VK_UP): ++");
-      break;
-    case VK_DOWN:
-      // decrease the editable field value
-      DEBUG_PRINTLN("EditView::onKeyUp(VK_DOWN): --");
-      break;
-
-      
-    case VK_SEL:
-      DEBUG_PRINTLN("EditView::onKeyUp(VK_SEL): jump to the next editable field");
-      break;
+  DEBUG_PRINTLN("ModalDialog::onKeyUp");
+  switch(vk) {
     case VK_SOFTA:
-      DEBUG_PRINTLN("EditView::onKeyUp(VK_SOFTA): jump to the next editable field");
-      break;
-      
-    case VK_SOFTB:
-      DEBUG_PRINTLN("EditView::onKeyUp(VK_SOFTB): switch to Run view");
-      // switch to Edit view
-      activate(&g_runView);
-      // and start program execution here!
-      // ....
-      break;
-      
-    /*default:
-      DEBUG_PRINT("EditView::onKeyUp ");
-      DEBUG_PRINTDEC(vk);
-      DEBUG_PRINTLN("");*/
-  }
-}
-
-void EditView::onLongKeyDown(uint8_t vk)
-{
-  switch(vk)
-  {
-    case VK_SOFTA:
-      DEBUG_PRINTLN("EditView::onLongKeyDown(VK_SOFTA): back to direct control");
-      activate(&g_controlView);
-      // and start direct control here!
-      // ....
-      break;
-    /*default:
-      DEBUG_PRINT("EditView::onLongKeyDown ");
-      DEBUG_PRINTDEC(vk);
-      DEBUG_PRINTLN("");*/
-  }
-}
-
-void EditView::onActivate()
-{
-  g_pPanner->enable(false);  
-}
-
-/**
- *  Run View Class Implementation
- */
-RunView::RunView() : View("Run", 
-  AwesomeF000_16, "L", // Pause
-  LiberationSans_18, 0, 
-  AwesomeF000_16, "M") // Stop
-{
-}
-
-RunView::~RunView()
-{
-}
-
-/**
- * Globals: commands to run at startup
- */
-static Command cmds[] = {
-  {chControl, cmdControlBeginLoop, 0, 0},
-    {chControl, cmdControlRest,  0, 10000},  // rest for 10 sec
-    {chPan,     cmdGoTo, 0, -400},                // go left
-    {chControl, cmdControlWaitForCompletion,  0, 50000},  // wait for the movement to be completed for 50 sec
-    {chControl, cmdControlRest,  0, 10000},  // rest for 10 sec
-    {chPan,     cmdGoTo, 0, 400},                 // go right
-    {chControl, cmdControlWaitForCompletion,  0, 50000},  // wait for the movement to be completed for 50 sec
-  {chControl, cmdControlEndLoop, 0, 0},
-  {chControl, cmdControlNone,    0, 0}
-};
-
- 
-void RunView::onKeyUp(uint8_t vk)
-{
-  switch(vk)
-  {
-    /*case VK_SEL:
-      DEBUG_PRINTLN("RunView::onKeyUp(VK_SEL)");
-      break;
-    case VK_LEFT:
-      DEBUG_PRINTLN("RunView::onKeyUp(VK_LEFT)");
-      break;     
-    case VK_RIGHT:
-      DEBUG_PRINTLN("RunView::onKeyUp(VK_RIGHT)");
-      break;
-    case VK_UP:
-      DEBUG_PRINTLN("RunView::onKeyUp(VK_UP)");
-      break;      
-    case VK_DOWN:
-      DEBUG_PRINTLN("RunView::onKeyUp(VK_DOWN)");
-      break;*/
-    case VK_SOFTA:
-      DEBUG_PRINTLN("RunView::onKeyUp(VK_SOFTA): switch to Pause view");
-      // switch to Pause view
-      activate(&g_pausedRunView);
-      // and suspend program execution here!
-      // ....
+      m_iRes = IDCANCEL;
       break;
     case VK_SOFTB:
-      DEBUG_PRINTLN("RunView::onKeyUp(VK_SOFTB): stop and back to edit");
-      // stop execution here!
-      // switch to Edit view
-      activate(&g_editView);
-      // ....
+      // Affirms!
+      m_iRes = IDOK;
       break;
-      
-    /*default:
-      DEBUG_PRINT("RunView::onKeyUp ");
-      DEBUG_PRINTDEC(vk);
-      DEBUG_PRINTLN("");*/
-  }
+    default:
+      return;
+  }  
+  // Close thge dialog and activate parent
+  activate(m_zParent);
 }
 
 /**
- *  display Interpreter status
+ *  Position the modal dialog so that it does NOT obscure its parent
  */
-void RunView::updateClient(unsigned long now)
+void ModalDialog::onActivate(View *pPrevActive)
 {
-  DEBUG_PRINTLN("RunView::updateClient()");
-  updateClientRunOrPaused(now, true);
-}
-
-void RunView::onActivate()
-{
-  g_pPanner->enable(true);
-  // (re)start command interpreter
-  if(g_ci.isPaused())
-    g_ci.resumeRun();
-  else
-    g_ci.beginRun(cmds);
-}
-
-/** 
- * to be called from the main loop on the active view.  Do nothing by default. Return TRUE to update display
- */
-boolean RunView::loop(unsigned long now)
-{
-  if(!g_ci.isRunning())
-    ;
-  else if(g_ci.continueRun(now))
-    ;
-  else
-    g_ci.endRun();
-  return needsUpdate(now);
-}
-
-
-
-/**
- *  Run View Class Implementation
- */
-PausedRunView::PausedRunView() : View("Paused", 
-  AwesomeF000_16, "K",  // Run
-  LiberationSans_18, 0, 
-  AwesomeF000_16, "M") // Stop
-{
-}
-
-PausedRunView::~PausedRunView()
-{
-}
- 
-void PausedRunView::onKeyUp(uint8_t vk)
-{
-  switch(vk)
-  {
-    /*case VK_SEL:
-      DEBUG_PRINTLN("PausedRunView::onKeyUp(VK_SEL)");
-      break;
-    case VK_LEFT:
-      DEBUG_PRINTLN("PausedRunView::onKeyUp(VK_LEFT)");
-      break;
-    case VK_RIGHT:
-      DEBUG_PRINTLN("PausedRunView::onKeyUp(VK_RIGHT)");
-      break;
-    case VK_UP:
-      DEBUG_PRINTLN("PausedRunView::onKeyUp(VK_UP)");
-      break;
-    case VK_DOWN:
-      DEBUG_PRINTLN("PausedRunView::onKeyUp(VK_DOWN)");
-      break;*/
-      
-    case VK_SOFTA:
-      DEBUG_PRINTLN("PausedRunView::onKeyUp(VK_SOFTA): switch to Run view");
-      // resume program execution here!
-      // switch to Run view
-      activate(&g_runView);
-      // ....
-      break;
-    case VK_SOFTB:
-      DEBUG_PRINTLN("PausedRunView::onKeyUp(VK_SOFTB): stop and switch to Run view");
-      // stop program execution here!
-      // switch to Edit view
-      activate(&g_editView);
-      // ....
-      break;
-      
-    /*default:
-      DEBUG_PRINT("PausedRunView::onKeyUp ");
-      DEBUG_PRINTDEC(vk);
-      DEBUG_PRINTLN("");*/
-  }
-}
-
-
-/**
- *  display Interpreter status
- */
-void PausedRunView::updateClient(/*long lPanPos, float flPanSpeed, const char *pLabel, unsigned wSecs,*/ unsigned long now)
-{
-  DEBUG_PRINTLN("PausedRunView::updateClient()");
-  updateClientRunOrPaused(now, true);
-}
-
-void PausedRunView::onActivate()
-{
-  if(g_ci.isRunning())
-    g_ci.pauseRun();
-  g_pPanner->enable(false);
-}
-
-/**
- *  About View Class Implementation
- */
-const char *AboutView::m_lines[] = {
-  "",
-  "Panner v0.1",
-  "(c) 2015-2016 Alex Sokolsky",
-  "",
-  "Thank you to:",
-  "Dean Blackketter for a fork of ILI9341_t3",
-  "Paul Stoffregen for ILI9341_t3",
-  "Paul Stoffregen for Teensy 3.x",
-  "Mike McCauley for AccelStepper",
-  "",
-  "This code is licensed under the terms",
-  "of the GNU Public License, verison 2."
-};
-int16_t AboutView::m_iFirstDisplayedLine = 0;
-
-//int16_t AboutView::m_iLines = sizeof(m_lines)/ sizeof(m_lines[0]);
-
- 
-AboutView::AboutView() : View("About", 
-  AwesomeF100_16, "d",
-  AwesomeF000_16, "\x7D", // up/down
-  AwesomeF100_16, "e")
-{
-}
-
-AboutView::~AboutView()
-{
-}
- 
-void AboutView::onKeyUp(uint8_t vk)
-{
-  switch(vk)
-  {
-    case VK_DOWN: {
-      DEBUG_PRINTLN("AboutView::onKeyUp(VK_DOWN)");
-      uint16_t iLines = sizeof(m_lines)/ sizeof(m_lines[0]);
-      m_iFirstDisplayedLine++;
-      if(m_iFirstDisplayedLine >= iLines)
-        m_iFirstDisplayedLine = iLines - 1;
-      break;
-    }
-    case VK_UP:
-      DEBUG_PRINTLN("AboutView::onKeyUp(VK_UP)");
-      m_iFirstDisplayedLine--;      
-      if(m_iFirstDisplayedLine < 0)
-        m_iFirstDisplayedLine = 0;
-      break;
-      
-    case VK_SOFTA:
-    case VK_SOFTB:
-      DEBUG_PRINTLN("AboutView::onKeyUp(VK_SOFTB): back to control view");
-      activate(&g_controlView);
-      // ....
-      break;      
-  }
-}
-
-
-/**
- *  display About info in a scrollable line list
- */
-void AboutView::updateClient(/*long lPanPos, float flPanSpeed, const char *pLabel, unsigned wSecs,*/ unsigned long now)
-{
-  DEBUG_PRINTLN("AboutView::updateClient()");
-
-  int16_t x = g_rectClient.left;
-  int16_t y = g_rectClient.top;
-  int16_t iClientWidth = g_rectClient.width();
-  if(m_iFirstDisplayedLine > 0)
-  {
-    int16_t dY = 0;
-    printTextCenter("\x06", y, &AwesomeF100_14, &dY);
-    y += dY;
-  }
-  m_lcd.setFont(LiberationSans_14);
-  int16_t iFontLineSpace = m_lcd.fontLineSpace();
-  for(int i = m_iFirstDisplayedLine; i <  (sizeof(m_lines)/ sizeof(m_lines[0])); i++)
-  {
-    if(m_lines[i] == 0)
-      break;
-    if(y + iFontLineSpace > g_rectClient.bottom)
-    {
-      int16_t dY = 0;
-      printTextCenter("\x07", y, &AwesomeF100_14, &dY);
-      y += dY;
-      break;
-    }
-    printTextLeft(m_lines[i], y);
-    y += iFontLineSpace;
-  }
-  if(y < g_rectClient.bottom)
-    m_lcd.fillRect(x, y, iClientWidth, g_rectClient.bottom - y, ILI9341_BLACK);    
-}
-
-void AboutView::onActivate()
-{
-  g_pPanner->enable(false);  
-  m_iFirstDisplayedLine = 0;
+  m_iRes = IDUNKNOWN;
+  m_zParent = pPrevActive;
+  if(pPrevActive != 0)
+    setPosition(pPrevActive->m_position.left, pPrevActive->m_position.top + iTitleBarHeight, pPrevActive->m_position.right, pPrevActive->m_position.bottom);
+  // erase the entire background
+  RECT rFill = m_position;
+  rFill.bottom -= iBottomBarHeight;
+  m_lcd.fillRect(rFill, ILI9341_DARKCYAN); // ILI9341_BLACK
 }
 

@@ -8,6 +8,10 @@
  *                                                      *
 \********************************************************/
 
+#include <vector>
+#include <string>
+#include <map>
+
 #include <ILI9341_t3.h>
 #include <Wire.h>
 #include <AccelStepper.h>
@@ -16,11 +20,11 @@
 typedef signed char schar_t;
 
 #include "Trace.h"
-#include "Display.h"
 //#include "ThumbStick.h"
 #include "Keypad.h"
 #include "Stepper.h"
 #include "Views.h"
+#include "Views2.h"
 #include "CommandInterpreter.h"
 //#include "SerialCommand.h"
 #include "Stepper.h"
