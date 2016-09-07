@@ -15,12 +15,125 @@
 const int iPannerSlowSpeed = 15;
 const int iPannerFastSpeed = 3*iPannerSlowSpeed;
 
+SettingsView g_settingsView;
 ControlView g_controlView;
 WaypointsView g_waypointsView;
 EditView g_editView;
 RunView g_runView;
 PausedRunView g_pausedRunView;
 AboutView g_aboutView;
+
+/**
+ * 
+ */
+ 
+SettingsView::SettingsView() : View("Settings", 
+  &AwesomeF000_16, "Z",  // i
+  &AwesomeF000_16, "\x7D", // up/down
+  0, szOK),
+  m_settings(smSingleSelection),
+  m_resetConfirmation(szConfirmation, MB_OKCANCEL)
+{
+  m_settings.hasBorder(false);
+  m_resetConfirmation.m_strMessage = "Reset all settings?";
+}
+  
+/** analog keyboard APIs where vk is one of VK_xxx */
+/*void SettingsView::onKeyDown(uint8_t vk)
+{
+}*/
+
+/** Long press on central click pops up a Reset confirmation dialog */
+void SettingsView::onLongKeyDown(uint8_t vk)
+{
+  if(vk == VK_SEL) {
+    DEBUG_PRINTLN("SettingsView::onKeyDown(VK_SEL): reset settings!");
+    activate(&m_resetConfirmation);
+  }
+}
+void SettingsView::onKeyUp(uint8_t vk)
+{
+  switch(vk) {
+    case VK_LEFT:
+    case VK_RIGHT:
+      // stop pan
+      DEBUG_PRINTLN("SettingsView::onKeyUp(VK_LEFT or VK_RIGHT): stop pan");
+      break;
+    case VK_SOFTA:
+      // switch to About view
+      DEBUG_PRINTLN("SettingsView::onKeyUp(VK_SOFTA): switch to About view");
+      activate(&g_aboutView);
+      break;
+    case VK_SOFTB:
+      activate((g_pPreviousView == &g_aboutView) ? &g_controlView : g_pPreviousView);
+      break;
+    case VK_SEL: {
+      DEBUG_PRINTLN("SettingsView::onKeyUp(VK_SEL):");
+      // move focus to the next editable item
+      int16_t iSel = m_settings.getCurSel();
+      m_settings.advanceSelection();
+      if(iSel == m_settings.getCurSel())
+        m_settings.setCurSel(0);
+      break;
+    }
+  }  
+}
+/** needed to arrange children */
+void SettingsView::onPosition()
+{
+  // support the default behaviour
+  View::onPosition();
+  DEBUG_PRINTLN("SettingsView::onPosition()");
+  // stretch the list box over the entire client area!
+  m_settings.setPosition(m_rectClient);
+}
+/** repaint client area */
+void SettingsView::updateClient(unsigned long now)
+{
+  DEBUG_PRINTLN("SettingsView::updateClient()");
+  m_settings.draw();
+}
+
+/** also handles m_resetConfirmation results */
+void SettingsView::onActivate(View *pPrevActive)
+{
+  // support the default behaviour
+  View::onActivate(pPrevActive);
+  DEBUG_PRINTLN("SettingsView::onActivate()");
+  if((pPrevActive == &m_resetConfirmation) && (m_resetConfirmation.getResult() == IDOK))
+  {
+    // the Reset Confirmation MessageBox was just closed.  Reset confirmed!
+    
+  }
+  // clear the listBox
+  m_settings.clear();
+  // fill m_settings
+  {
+    char s[80];
+    std::string ss;
+    m_settings.m_items.push_back(ss); // empty line
+    ss = "Direct Control";
+    m_settings.m_items.push_back(ss);
+    sprintf(s, "  Pan Speed: %i", iPannerSlowSpeed);
+    ss = s;
+    m_settings.m_items.push_back(ss);
+    
+    ss = "Runtime";
+    m_settings.m_items.push_back(ss);
+
+    sprintf(s, "  Pan Max Speed: %i", (int)g_pPanner->maxSpeed());
+    ss = s;
+    m_settings.m_items.push_back(ss);
+    sprintf(s, "  Pan Acceleration: %i", (int)g_pPanner->getAcceleration());
+    ss = s;
+    m_settings.m_items.push_back(ss);
+    
+    m_settings.setCurSel(1);
+  }
+  g_pPanner->enable(false);
+}
+
+
 
 /**
  * Waypoint confirmation dialog
@@ -38,7 +151,6 @@ void WaypointDefinitionDialog::onPosition()
 {
   // support the default behaviour
   ModalDialog::onPosition();
-
   DEBUG_PRINTLN("WaypointDefinitionDialog::onPosition()");
 
   // stretch the list box over the entire client area - 1/2 of it!
@@ -112,14 +224,11 @@ void WaypointDefinitionDialog::onKeyUp(uint8_t vk)
   }
 }
 
-
 /**
  *  Direct Control View Class Implementation
  */
-ControlView::ControlView() : View("Direct Control", 
-  &AwesomeF000_16, "Z",  // i
-  &AwesomeF000_16, "S[T", // 7E
-  &LiberationSans_18, "WPnts")
+ControlView::ControlView() : 
+  View("Direct Control", &AwesomeF000_16, "\x13",  /* settings icon */  &AwesomeF000_16, "SAT", /* S[T */ 0, "WPoints")
 {
 }
 
@@ -176,8 +285,8 @@ void ControlView::onKeyUp(uint8_t vk)
       break;
     case VK_SOFTA:
       // switch to About view
-      DEBUG_PRINTLN("ControlView::onKeyUp(VK_SOFTA): switch to About view");
-      activate(&g_aboutView);
+      DEBUG_PRINTLN("ControlView::onKeyUp(VK_SOFTA): switch to Settings view");
+      activate(&g_settingsView);
       break;
     case VK_SOFTB:
       // switch to WayPoints view
@@ -236,32 +345,16 @@ void ControlView::onActivate(View *pPrevActive)
 }
 
 /**
- *  WaypointDeleteConfirmationDialog Class Implementation
+ *  WaypointsView Class Implementation
  */
-
-WaypointDeleteConfirmationDialog::WaypointDeleteConfirmationDialog() : 
-  ModalDialog("Confirmation", MB_OKCANCEL)
+WaypointsView::WaypointsView() : 
+  View("WayPoints", 0, "Control", &AwesomeF000_16, "w[x" /* "\x7D"*/ , 0, "Program"),
+  m_wpoints(smSingleSelection),
+  m_deleteConfirmation(szConfirmation, MB_OKCANCEL)
 {
-  
-}
-void WaypointDeleteConfirmationDialog::updateClient(unsigned long now)
-{
-  printTextCenter(m_strMessage.c_str(), m_rectClient.top + (m_rectClient.height()/2));
 }
 
 /**
- *  WaypointsView Class Implementation
- */
-WaypointsView::WaypointsView() : View("WayPoints", 
-  &LiberationSans_18, "Control",
-  &AwesomeF000_16, "w[x", // "\x7D", 
-  &LiberationSans_18, "Edit"),
-  m_wpoints(smSingleSelection)
-{
-  
-}
-
-/** 
  * analog keyboard APIs where vk is one of VK_xxx 
  */
 void WaypointsView::onKeyDown(uint8_t vk)
@@ -279,6 +372,7 @@ void WaypointsView::onKeyDown(uint8_t vk)
     }
   }
 }
+
 void WaypointsView::onLongKeyDown(uint8_t vk)
 {
   switch(vk) {
@@ -328,7 +422,6 @@ void WaypointsView::onPosition()
 {
   // support the default behaviour
   View::onPosition();
-
   DEBUG_PRINTLN("WaypointsView::onPosition()");
 
   // stretch the list box over the entire client area - 1/2 of it!
@@ -359,7 +452,6 @@ void WaypointsView::updateClient(unsigned long now)
 void WaypointsView::onActivate(View *pPrevActive)
 {
   View::onActivate(pPrevActive);
-  
   DEBUG_PRINTLN("WaypointsView::onActivate()");
 
   if((pPrevActive == &m_deleteConfirmation) && (m_deleteConfirmation.getResult() == IDOK))
@@ -398,21 +490,19 @@ boolean WaypointsView::loop(unsigned long now)
 /**
  * EditView class implementation
  */
-EditView::EditView() : View("Edit", 
-  &LiberationSans_18, "Sel/Ctrl", 
-  &AwesomeF000_16, "\x7D", // up/down
-  &AwesomeF000_16, "K")  // Run
+EditView::EditView() : 
+  View("Program", 0, "WPoints", &AwesomeF000_16, "\x7D" /* up/down */, &AwesomeF000_16, "K"/* Run */),
+  m_steps(smSingleSelection)
 {
-  
+  m_steps.hasBorder(false);
 }
 
 /** analog keyboard APIs where vk is one of VK_xxx */
 void EditView::updateClient(unsigned long now) 
 {
   DEBUG_PRINTLN("EditView::updateClient()");
-  // draw the content of the program here...
-  //uint16_t y = m_lcd.fontLineSpace() + 2;
-  //m_lcd.fillRect(0, y, m_lcd.width(), m_lcd.height() - (2*y), ILI9341_BLACK);
+  // draw the content of the program here
+  m_steps.draw();
 }
 
 void EditView::onKeyDown(uint8_t vk)
@@ -422,11 +512,29 @@ void EditView::onKeyDown(uint8_t vk)
   DEBUG_PRINTLN("");
 }
 
+void EditView::onLongKeyDown(uint8_t vk)
+{
+  switch(vk)
+  {
+    case VK_SEL:
+      DEBUG_PRINTLN("EditView::onLongKeyDown(VK_SEL): back to settings");
+      activate(&g_settingsView);
+      break;
+    case VK_SOFTA:
+      DEBUG_PRINTLN("EditView::onLongKeyDown(VK_SOFTA): back to control");
+      activate(&g_controlView);
+      break;
+    /*default:
+      DEBUG_PRINT("EditView::onLongKeyDown ");
+      DEBUG_PRINTDEC(vk);
+      DEBUG_PRINTLN("");*/
+  }
+}
+
 void EditView::onKeyUp(uint8_t vk)
 {
   switch(vk)
   {
-
     /*case VK_LEFT:
       // decrease the editable field value
       DEBUG_PRINTLN("EditView::onKeyUp(VK_LEFT): --");
@@ -448,17 +556,15 @@ void EditView::onKeyUp(uint8_t vk)
       
     case VK_SEL:
       DEBUG_PRINTLN("EditView::onKeyUp(VK_SEL): jump to the next editable field");
+      m_steps.advanceSelection();
       break;
     case VK_SOFTA:
-      DEBUG_PRINTLN("EditView::onKeyUp(VK_SOFTA): jump to the next editable field");
-      break;
-      
+      DEBUG_PRINTLN("EditView::onKeyUp(VK_SOFTA): jump to the waypoints view");
+      activate(&g_waypointsView);
+      break;      
     case VK_SOFTB:
       DEBUG_PRINTLN("EditView::onKeyUp(VK_SOFTB): switch to Run view");
-      // switch to Edit view
       activate(&g_runView);
-      // and start program execution here!
-      // ....
       break;
       
     /*default:
@@ -468,35 +574,30 @@ void EditView::onKeyUp(uint8_t vk)
   }
 }
 
-void EditView::onLongKeyDown(uint8_t vk)
+/** needed to arrange children */
+void EditView::onPosition()
 {
-  switch(vk)
-  {
-    case VK_SOFTA:
-      DEBUG_PRINTLN("EditView::onLongKeyDown(VK_SOFTA): back to direct control");
-      activate(&g_controlView);
-      // and start direct control here!
-      // ....
-      break;
-    /*default:
-      DEBUG_PRINT("EditView::onLongKeyDown ");
-      DEBUG_PRINTDEC(vk);
-      DEBUG_PRINTLN("");*/
-  }
+  // support the default behaviour
+  View::onPosition();
+  DEBUG_PRINTLN("EditView::onPosition()");
+  // stretch the list box over the entire client area!
+  m_steps.setPosition(m_rectClient);
 }
 
 void EditView::onActivate(View *pPrevActive)
 {
+  // support the default behaviour
+  View::onActivate(pPrevActive);
+  DEBUG_PRINTLN("EditView::onActivate()");
+
   g_pPanner->enable(false);  
 }
 
 /**
  *  Run View Class Implementation
  */
-RunView::RunView() : View("Run", 
-  &AwesomeF000_16, "L", // Pause
-  &LiberationSans_18, 0, 
-  &AwesomeF000_16, "M") // Stop
+RunView::RunView() : 
+  View("Run", &AwesomeF000_16, "L"/* Pause */, 0, 0, &AwesomeF000_16, "M" /* Stop */)
 {
 }
 
@@ -595,10 +696,8 @@ boolean RunView::loop(unsigned long now)
 /**
  *  Run View Class Implementation
  */
-PausedRunView::PausedRunView() : View("Paused", 
-  &AwesomeF000_16, "K",  // Run
-  &LiberationSans_18, 0, 
-  &AwesomeF000_16, "M") // Stop
+PausedRunView::PausedRunView() : 
+  View("Paused", &AwesomeF000_16, "K"/* Run*/, 0, 0, &AwesomeF000_16, "M"/* Stop*/)
 {
 }
 
@@ -664,7 +763,7 @@ void PausedRunView::onActivate(View *pPrevActive)
 /**
  *  About View Class Implementation
  */
-const char *AboutView::m_lines[] = {
+const char *aboutViewLines[] = {
   "",
   "Panner v0.1",
   "(c) 2015-2016 Alex Sokolsky",
@@ -678,13 +777,16 @@ const char *AboutView::m_lines[] = {
   "This software is licensed under the terms",
   "of the GNU Public License, V2."
 };
-int16_t AboutView::m_iFirstDisplayedLine = 0;
 
-AboutView::AboutView() : View("About", 
-  &LiberationSans_18, 0,
-  &AwesomeF000_16, "\x7D", // up/down
-  &LiberationSans_18, szOK)
+AboutView::AboutView() : 
+  View("About", 0, 0, &AwesomeF000_16, "\x7D" /* up/down */, 0, szOK),
+  m_text(smNoSelection, &LiberationSans_12)
 {
+  m_text.hasBorder(false);
+  for(size_t i = 0; i <  (sizeof(aboutViewLines)/ sizeof(aboutViewLines[0])); i++) {
+    std::string ss(aboutViewLines[i]);
+    m_text.m_items.push_back(ss);
+  }
 }
 
 void AboutView::onKeyUp(uint8_t vk)
@@ -693,23 +795,18 @@ void AboutView::onKeyUp(uint8_t vk)
   {
     case VK_DOWN: {
       DEBUG_PRINTLN("AboutView::onKeyUp(VK_DOWN)");
-      uint16_t iLines = sizeof(m_lines)/ sizeof(m_lines[0]);
-      m_iFirstDisplayedLine++;
-      if(m_iFirstDisplayedLine >= iLines)
-        m_iFirstDisplayedLine = iLines - 1;
+      m_text.scroll(1);
       break;
     }
     case VK_UP:
       DEBUG_PRINTLN("AboutView::onKeyUp(VK_UP)");
-      m_iFirstDisplayedLine--;      
-      if(m_iFirstDisplayedLine < 0)
-        m_iFirstDisplayedLine = 0;
+      m_text.scroll(-1);
       break;
       
     case VK_SOFTA:
     case VK_SOFTB:
       DEBUG_PRINTLN("AboutView::onKeyUp(VK_SOFTB): back to control view");
-      activate(&g_controlView);
+      activate(g_pPreviousView);
       break;      
   }
 }
@@ -718,47 +815,30 @@ void AboutView::onKeyUp(uint8_t vk)
 /**
  *  display About info in a scrollable line list
  */
-void AboutView::updateClient(/*long lPanPos, float flPanSpeed, const char *pLabel, unsigned wSecs,*/ unsigned long now)
+void AboutView::updateClient(unsigned long now)
 {
-  DEBUG_PRINTLN("AboutView::updateClient()");
-  m_rectClient.DUMP("m_rectClient: ");
+  //DEBUG_PRINTLN("AboutView::updateClient()");
+  m_text.draw();
+}
 
-  //int16_t x = m_rectClient.left;
-  int16_t y = m_rectClient.top;
-  //int16_t iClientWidth = m_rectClient.width();
-  if(m_iFirstDisplayedLine > 0)
-  {
-    int16_t dY = 0;
-    printTextCenter("\x06", y, &AwesomeF100_14, &dY);
-    y += dY;
-  }
-  m_lcd.setFont(LiberationSans_14);
-  int16_t iFontLineSpace = m_lcd.fontLineSpace();
-  for(size_t i = (size_t)m_iFirstDisplayedLine; i <  (sizeof(m_lines)/ sizeof(m_lines[0])); i++)
-  {
-    if(m_lines[i] == 0)
-      break;
-    if(y + iFontLineSpace > m_rectClient.bottom)
-    {
-      int16_t dY = 0;
-      printTextCenter("\x07", y, &AwesomeF100_14, &dY);
-      y += dY;
-      break;
-    }
-    printTextLeft(m_lines[i], y);
-    y += iFontLineSpace;
-  }
-  if(y < m_rectClient.bottom)
-  {
-    RECT rFill = m_rectClient;
-    rFill.top = y;
-    m_lcd.fillRect(rFill, ILI9341_BLACK);
-  }
+/**
+ * to arrange and the widgets
+ */
+void AboutView::onPosition()
+{
+  // support the default behaviour
+  View::onPosition();
+  DEBUG_PRINTLN("AboutView::onPosition()");
+  // stretch the list box over the entire client area!
+  m_text.setPosition(m_rectClient);
 }
 
 void AboutView::onActivate(View *pPrevActive)
 {
+  // support the default behaviour
+  View::onActivate(pPrevActive);
+  DEBUG_PRINTLN("AboutView::onActivate()");
+  m_text.scroll(-100); // reset first displayed position
   g_pPanner->enable(false);  
-  m_iFirstDisplayedLine = 0;
 }
 

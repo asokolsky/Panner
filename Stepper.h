@@ -11,7 +11,11 @@ public:
   void enable(bool bEnable = true);
   bool isEnabled() { return m_bEnabled; }
 
-  void DUMP();
+#ifdef DEBUG
+  void DUMP(const char *szText = 0);
+#else
+  void DUMP(const char *szText = 0) {}
+#endif
 
   //
   std::map<std::string, long> m_wayPoints;
@@ -19,6 +23,9 @@ public:
   void moveToWayPoint(const std::string &s) {
     long int lPos = m_wayPoints[s];
     moveTo(lPos);
+  }
+  float getAcceleration() {
+    return _acceleration;
   }
 
 private:

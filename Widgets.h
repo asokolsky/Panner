@@ -2,18 +2,41 @@
  *  Nano-windowing system for Arduino and derivatives
  */
 
+const uint16_t WS_VISIBLE   =0x0001;
+const uint16_t WS_CHILD     =0x0002;
+const uint16_t WS_BORDER    =0x0004;
+const uint16_t WS_TITLEBAR  =0x0008;
+const uint16_t WS_HSCROLL   =0x0010;
+const uint16_t WS_VSCROLL   =0x0020;
+const uint16_t WS_LEFTTEXT  =0x0100;
+const uint16_t WS_CENTERTEXT=0x0200;
  /**
   *  Root object that can be displayed on the screen
   */
 class Widget
 {
+protected:
+  uint16_t m_uStyle;
+  
 public:
   /** this is position of the widget */
   RECT m_position;
   /** this is client area - not including title, border, etc */
   RECT m_rectClient;
+  /** Text font - if any  */
+  const ILI9341_t3_font_t *m_pFont = 0;
   
-  Widget() {}
+  Widget(const ILI9341_t3_font_t *pFont = 0, uint16_t uStyle = 0) : m_pFont(pFont) {}
+
+  bool hasBorder() {
+    return (m_uStyle & WS_BORDER) != 0;
+  }
+  void hasBorder(bool bHasBorder) {
+    if(bHasBorder)
+      m_uStyle |= WS_BORDER;
+    else
+      m_uStyle &= ~WS_BORDER;
+  }
 
   virtual void draw();
   /** 
@@ -35,7 +58,22 @@ public:
     setPosition(r.left, r.top, r.right, r.bottom);
   }
 
+  void setFont(const ILI9341_t3_font_t *pFont = 0) {
+    m_pFont = pFont; 
+  }
+  const ILI9341_t3_font_t *getFont() {
+    return m_pFont;
+  }
+  unsigned char getLineSpace() {
+    return (m_pFont != 0) ? m_pFont->line_space : 0;
+  }
+
+#ifdef DEBUG
   void DUMP(const char *szText = 0);
+#else
+  void DUMP(const char *szText = 0) {}
+#endif
+
 };
 
 /**
@@ -44,23 +82,13 @@ public:
 class TextWidget : public Widget
 {
   std::string m_strText;
-  const ILI9341_t3_font_t *m_pFont;
   
 public:
 
-  TextWidget(const ILI9341_t3_font_t *pFont) : m_pFont(pFont) {}
+  TextWidget(const ILI9341_t3_font_t *pFont = 0) : Widget(pFont) {}
 
   void setText(const char *msg) {
     m_strText = msg; 
-  }
-  void setFont(const ILI9341_t3_font_t *pFont = 0) {
-    m_pFont = pFont; 
-  }
-  const ILI9341_t3_font_t *getFont() {
-    return m_pFont;
-  }
-  unsigned char getLineSpace() {
-    return m_pFont->line_space;
   }
   
   /** Text is painted centered */
@@ -75,19 +103,23 @@ const uint16_t smSingleSelection = 1;
 const uint16_t smMultiSelection = 2;
 
 /**
- * ListBox with a vertical scroll
+ * ListBox with a vertical scroll and border by default
  */
 class ListWidget : public Widget
 {
+protected:  
   /** one of smXXX */
   uint16_t m_selectionMode; 
   /** no selection by default */
   int16_t m_iCurSel = LB_ERR;
+  int16_t m_iFirstDisplayed = 0;
+
+  int16_t sanitize(int16_t iSel);
   
 public:
   std::vector<std::string> m_items;
 
-  ListWidget(uint16_t selectionMode) :  m_selectionMode(selectionMode) {}
+  ListWidget(uint16_t selectionMode, const ILI9341_t3_font_t *pFont = 0);
 
   void clear() {
     m_items.clear();
@@ -101,8 +133,10 @@ public:
       iSel = LB_ERR;
     m_iCurSel = iSel;
   }
-
+  /** makes sense only if m_selectionMode is smSingleSelection */
   void advanceSelection(int16_t iAdv = 1);
+  /** makes sense only if m_selectionMode is smNoSelection */
+  void scroll(int16_t iAdv = 1);
   
   void draw();
   /** recalc the client rect */
@@ -121,7 +155,7 @@ class DropDownListWidget : public ListWidget
   RECT m_rectClientDropped;
   
 public:  
-  DropDownListWidget() : ListWidget(smSingleSelection) {}
+  DropDownListWidget(const ILI9341_t3_font_t *pFont = 0) : ListWidget(smSingleSelection, pFont) {}
 
   void dropDown() {
     m_bDropped = true;

@@ -9,7 +9,12 @@ public:
   int16_t y;
 
   POINT() {}
-  void DUMP(const char *szText = 0);  
+  
+#ifdef DEBUG
+  void DUMP(const char *szText = 0);
+#else
+  void DUMP(const char *szText = 0) {}
+#endif
  };
  
  class RECT 
@@ -41,7 +46,11 @@ public:
     bottom -= px;
   }
 
+#ifdef DEBUG
   void DUMP(const char *szText = 0);
+#else
+  void DUMP(const char *szText = 0) {}
+#endif
 };
 
 
@@ -55,6 +64,9 @@ public:
   }
   void getClipRect(RECT &r) {
     r.left = _clipx1; r.top = _clipy1; r.right = _clipx2; r.bottom = _clipy2;
+  }
+  void resetClipRect() {
+    ILI9341_t3::setClipRect();
   }
   
 
@@ -75,7 +87,11 @@ public:
 
   void setup();
 
+#ifdef DEBUG
   void DUMP(const char *szText = 0);
+#else
+  void DUMP(const char *szText = 0) {}
+#endif
 };
 
 extern Display m_lcd;

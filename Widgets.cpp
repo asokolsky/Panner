@@ -8,6 +8,7 @@
 /**
  *  RECT Class Implementation
  */
+#ifdef DEBUG
 void RECT::DUMP(const char *szText /* = 0*/) 
 {
   if(szText != 0) {
@@ -20,6 +21,7 @@ void RECT::DUMP(const char *szText /* = 0*/)
   DEBUG_PRINT(" bottom="); DEBUG_PRINTDEC((int)bottom);
   DEBUG_PRINTLN("");  
 }
+#endif
 /**
  *  Widget Class Implementation
  */
@@ -39,6 +41,7 @@ void Widget::setPosition(int16_t left, int16_t top, int16_t right, int16_t botto
   onPosition();
 }
 
+#ifdef DEBUG
 void Widget::DUMP(const char *szText /*= 0*/)
 {
   if(szText != 0) {
@@ -48,6 +51,7 @@ void Widget::DUMP(const char *szText /*= 0*/)
   m_position.DUMP(" m_position: ");
   m_rectClient.DUMP("m_rectClient: ");  
 }
+#endif
 
 /** 
  *  m_position was just changed.  
@@ -137,6 +141,13 @@ void TextWidget::draw()
 /**
  *  ListWidget Class Implementation
  */
+ListWidget::ListWidget(uint16_t selectionMode, const ILI9341_t3_font_t *pFont /*= 0*/) :  
+  Widget(pFont), 
+  m_selectionMode(selectionMode) 
+{
+  hasBorder(true);
+}
+ 
 /** 
  *  m_position was just changed.  Default implementation updates m_rectClient
  */
@@ -144,38 +155,37 @@ void ListWidget::onPosition()
 {
   DEBUG_PRINTLN("ListWidget::onPosition()");
   m_rectClient = m_position;
-  m_rectClient.deflate();
+  if(hasBorder())
+    m_rectClient.deflate();
 }
 
-//using namespace std;
- 
 void ListWidget::draw()
 {
   //DEBUG_PRINTLN("ListWidget::draw()");
   //m_position.DUMP("ListWidget m_position: ");
   //m_rectClient.DUMP("ListWidget m_rectClient: ");
+  if(hasBorder())
+    m_lcd.drawRect(m_position.left, m_position.top, m_position.width(), m_position.height(), ILI9341_DARKGREY);
   
-  m_lcd.drawRect(m_position.left, m_position.top, m_position.width(), m_position.height(), ILI9341_DARKGREY);
   RECT rectOldClip;
   m_lcd.getClipRect(rectOldClip);
   m_lcd.setClipRect(m_rectClient);
 
   //int16_t x = m_rectClient.left;
   int16_t y = m_rectClient.top;
-
   int16_t iSel = getCurSel();
-  int16_t iFirstDisplayedLine = iSel - 1;
-  if(iFirstDisplayedLine < 0)
-    iFirstDisplayedLine = 0;
-  if(iFirstDisplayedLine > 0)
+  m_iFirstDisplayed = sanitize((m_selectionMode != smNoSelection) ? (iSel - 1) : m_iFirstDisplayed);
+  if(m_iFirstDisplayed > 0)
   {
     int16_t dY = 0;
     printTextCenter("\x06", y, &AwesomeF100_14, &dY);
     y += dY;
   }
-  //m_lcd.setFont(LiberationSans_14);
+  //
+  if(m_pFont != 0)
+    m_lcd.setFont(*m_pFont);
   int16_t iFontLineSpace = m_lcd.fontLineSpace();
-  for(size_t i = iFirstDisplayedLine; i < m_items.size(); i++)
+  for(size_t i = m_iFirstDisplayed; i < m_items.size(); i++)
   {
     if(y + iFontLineSpace > m_rectClient.bottom)
     {
@@ -202,15 +212,23 @@ void ListWidget::draw()
   m_lcd.setClipRect(rectOldClip);
 }
 
+int16_t ListWidget::sanitize(int16_t iSel)
+{
+  if(iSel >=  (int16_t)m_items.size())
+    return m_items.size() - 1;
+  if(iSel < 0)
+    return 0;
+  return iSel;  
+}
+
 void ListWidget::advanceSelection(int16_t iAdv /*= 1*/)
 {
-  int16_t iSel = getCurSel();
-  iSel += iAdv;
-  if(iSel >=  (int16_t)m_items.size())
-    iSel = m_items.size() - 1;
-  else if(iSel < 0)
-    iSel = 0;
-  setCurSel(iSel);  
+  setCurSel(sanitize(getCurSel() + iAdv));
+}
+
+void ListWidget::scroll(int16_t iAdv /*= 1*/)
+{
+  m_iFirstDisplayed = sanitize(m_iFirstDisplayed + iAdv);
 }
 
 /**

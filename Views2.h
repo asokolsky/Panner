@@ -1,7 +1,34 @@
 /**
  * Project-specific Views and Dialogs
  */
- 
+
+
+/**
+ * Settings view class
+ */
+class SettingsView : public View
+{
+  ListWidget m_settings;
+  /** confirmation dialog */
+  MessageBox m_resetConfirmation;
+  
+public:  
+  SettingsView();
+  
+  /** analog keyboard APIs where vk is one of VK_xxx */
+  //void onKeyDown(uint8_t vk);
+  /** Long press on central click pops up a Reset confirmation dialog */
+  void onLongKeyDown(uint8_t vk);
+  void onKeyUp(uint8_t vk);
+
+  /** needed to arrange children */
+  void onPosition();
+  /** repaint client area */
+  void updateClient(unsigned long now);
+  /** also handles WaypointDefinitionDialog results */
+  void onActivate(View *pPrevActive);
+};
+
  
 class WaypointDefinitionDialog : public ModalDialog
 { 
@@ -61,33 +88,11 @@ public:
   void onActivate(View *pPrevActive);
 };
 
-class WaypointDeleteConfirmationDialog : public ModalDialog
-{ 
-public:  
-  std::string m_strMessage;
-  
-  WaypointDeleteConfirmationDialog();
-  /**
-   * to scroll though waypoint list
-   */
-  //void onKeyUp(uint8_t vk);
-  /**
-   * to arrange and fill widgets
-   */
-  //void onActivate(View *pPrevActive);
-  /**
-   * to arrange and fill widgets
-   */
-  //void onPosition();
-  
-  void updateClient(unsigned long now);
-};
-
 class WaypointsView : public View
 {
   //std::string m_msg;
   ListWidget m_wpoints;
-  WaypointDeleteConfirmationDialog m_deleteConfirmation;
+  MessageBox m_deleteConfirmation;
   
 public:  
   WaypointsView();
@@ -111,6 +116,8 @@ public:
 
 class EditView : public View
 {
+  ListWidget m_steps;
+  
 public:  
   EditView();
   
@@ -121,6 +128,10 @@ public:
 
   void updateClient(unsigned long now);
 
+  /**
+   * to arrange and the widgets
+   */
+  void onPosition();
   void onActivate(View *pPrevActive);
 };
 
@@ -164,23 +175,24 @@ public:
 
 class AboutView : public View
 {
-  static const char *m_lines[];  
-  static int16_t m_iFirstDisplayedLine; // = 0;
+  ListWidget m_text;
   
 public:  
   AboutView();
-  //~AboutView();
 
   /** analog keyboard APIs where vk is one of VK_xxx */
   //void onKeyDown(uint8_t vk);
   //void onLongKeyDown(uint8_t vk);
   void onKeyUp(uint8_t vk);
-
+  /**
+   * to arrange and the widgets
+   */
+  void onPosition();
   void onActivate(View *pPrevActive);
-
   void updateClient(unsigned long now);
 };
 
+extern SettingsView g_settingsView;
 extern ControlView g_controlView;
 extern WaypointsView g_waypointsView;
 extern EditView g_editView;

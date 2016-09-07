@@ -54,6 +54,8 @@ public:
   
   /** The Active View */
   static View *g_pActiveView;
+  /** The Previous View */
+  static View *g_pPreviousView;
   
   /** once in application lifetime initialization */  
   static void setup();
@@ -95,7 +97,11 @@ public:
    */
   virtual void updateClient(unsigned long now);
 
+#ifdef DEBUG
   void DUMP(const char *szText = 0);
+#else
+  void DUMP(const char *szText = 0) {}
+#endif
 
 protected:
 
@@ -175,8 +181,19 @@ public:
   
 };
 
+class MessageBox : public ModalDialog
+{
+public:  
+  std::string m_strMessage;
+  
+  MessageBox(const char *szTitle, uint16_t uType = MB_OK);
+    
+  void updateClient(unsigned long now);  
+};
+
 extern const char szCancel[];
 extern const char szOK[];
+extern const char szConfirmation[];
 
 
 #endif

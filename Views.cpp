@@ -14,6 +14,7 @@
  * Globals: views
  */
 View *View::g_pActiveView = 0;
+View *View::g_pPreviousView = 0;
 Stepper *View::g_pPanner = 0;
 
 
@@ -25,11 +26,12 @@ const int16_t iBottomBarHeight = 35;
 const int16_t iButtonCornerRadius = 4;
 const uint16_t uButtonBorderColor = ILI9341_DARKGREY;
 const uint16_t uButtonLabelColor = ILI9341_YELLOW;
-const uint16_t uButtonFaceColor = ILI9341_DARKGREEN;
+const uint16_t uButtonFaceColor = ILI9341_BLACK; // ILI9341_DARKGREEN;
 
 
 const char szCancel[] = "Cancel";
 const char szOK[] = "OK";
+const char szConfirmation[] = "Confirmation";
 
 /**
  * Class View
@@ -43,6 +45,9 @@ View::View(const char *szTitle,
   m_fontNav(fontNav), m_szNavLabel(szNavLabel), 
   m_fontSoftB(fontSoftB), m_szSoftBLabel(szSoftBLabel)
 {
+  if(m_fontSoftA == 0) m_fontSoftA = &LiberationSans_16;
+  if(m_fontSoftB == 0) m_fontSoftB = &LiberationSans_16;
+  if(m_fontNav == 0) m_fontNav = &LiberationSans_16;
   setPosition(0, 0, m_lcd.height(), m_lcd.width());  // the order is important!
 }
 
@@ -71,7 +76,7 @@ void View::activate(View *p)
   }
   if(p != 0)
   {
-    p->onActivate(g_pActiveView);
+    p->onActivate(g_pPreviousView = g_pActiveView);
     g_pActiveView = p;
     p->update(millis());
   }
@@ -92,11 +97,13 @@ void View::onDeActivate(View *pNewActive)
 void View::onActivate(View *pPrevActive)
 {
   DEBUG_PRINTLN("View::onActivate");
+  m_lcd.resetClipRect();
   setPosition(0, 0, m_lcd.width(), m_lcd.height()); // done in the constructor but let's reiterate
   // erase the entire background
   RECT rFill = m_position;
   rFill.bottom -= iBottomBarHeight;
-  m_lcd.fillRect(rFill, ILI9341_OLIVE); //ILI9341_BLACK
+  m_lcd.fillRect(rFill); //, ILI9341_OLIVE);
+  m_lcd.DUMP();
 }
 
 
@@ -380,13 +387,14 @@ void View::updateClientRunOrPaused(unsigned long now, bool bExtendedInfo, const 
   //g_pPanner->DUMP();
 }
 
+#ifdef DEBUG
 void View::DUMP(const char *szText /*= 0*/)
 {
   Widget::DUMP(szText);
   DEBUG_PRINT("View@"); DEBUG_PRINTDEC((int)this); 
   DEBUG_PRINT(" m_szTitle="); DEBUG_PRINTLN(m_szTitle); 
 }
-
+#endif
 
 /**
  *  ModalDialog Class Implementation
@@ -488,5 +496,18 @@ void ModalDialog::onActivate(View *pPrevActive)
   RECT rFill = m_position;
   rFill.bottom -= iBottomBarHeight;
   m_lcd.fillRect(rFill, ILI9341_DARKCYAN); // ILI9341_BLACK
+}
+
+/**
+ *  MessageBox Class implementation
+ */
+MessageBox::MessageBox(const char *szTitle, uint16_t uType /* = MB_OK */) :
+  ModalDialog(szTitle, uType)
+{
+}
+    
+void MessageBox::updateClient(unsigned long now)
+{
+  printTextCenter(m_strMessage.c_str(), m_rectClient.top + (m_rectClient.height()/2));
 }
 

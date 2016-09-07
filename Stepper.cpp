@@ -20,9 +20,13 @@ void Stepper::enable(bool bEnable)
   m_bEnabled = bEnable;
 }
 
-void Stepper::DUMP()
+#ifdef DEBUG
+void Stepper::DUMP(const char *szText /*= 0*/)
 {
-  DEBUG_PRINT("Stepper@"); DEBUG_PRINTDEC((int)this); 
+  if(szText != 0) {
+    DEBUG_PRINT(szText);
+  }
+  DEBUG_PRINT(" Stepper@"); DEBUG_PRINTDEC((int)this); 
   DEBUG_PRINT(" m_bEnabled="); DEBUG_PRINTDEC((int)m_bEnabled);
   
   DEBUG_PRINT(" _currentPos="); DEBUG_PRINTDEC((int)_currentPos);   
@@ -33,6 +37,8 @@ void Stepper::DUMP()
   
   DEBUG_PRINTLN("");
 }
+#endif
+
 
 
 

@@ -27,35 +27,33 @@ void Display::setup()
   setTextWrap(false);
 }
 
+#ifdef DEBUG
 void Display::DUMP(const char *szText /* = 0*/)
 {
   if(szText != 0) {
     DEBUG_PRINT(szText);
   }
   DEBUG_PRINT(" Display@"); DEBUG_PRINTDEC((int)this); 
-
   DEBUG_PRINT(" _width="); DEBUG_PRINTDEC(_width); DEBUG_PRINT(" _height="); DEBUG_PRINTDEC(_height); 
   
-  int16_t  cursor_x, cursor_y;
+  //int16_t  cursor_x, cursor_y;
   RECT r;
   r.left = _clipx1;
   r.right = _clipx2;
   r.top = _clipy1;
   r.top = _clipy2;
-  r.DUMP("clipRect: ");
-  
+  r.DUMP(" clipRect: ");
 
-  int16_t  origin_x, origin_y;
+  //int16_t  origin_x, origin_y;
   
   r.left = rel_clipx1;
   r.right = rel_clipx2;
   r.top = rel_clipy1;
   r.top = rel_clipy2;
-  r.DUMP("rel_clipRect: ");
+  r.DUMP(" rel_clipRect: ");
   
-  uint16_t textcolor, textbgcolor;
-  uint8_t textsize, rotation;
-
-  
+  //uint16_t textcolor, textbgcolor;
+  //uint8_t textsize, rotation;  
 }
+#endif
 
