@@ -27,6 +27,36 @@ void Display::setup()
   setTextWrap(false);
 }
 
+void Display::drawButton(RECT rButton, const ILI9341_t3_font_t *pFont, const char *szLabel, bool bEraseBkgnd)
+{ 
+  drawRoundRect(rButton.left, rButton.top, rButton.width(), rButton.height(), iButtonCornerRadius, uButtonBorderColor);
+  rButton.deflate(iButtonCornerRadius);
+  if(bEraseBkgnd || (szLabel == 0) || (szLabel[0] == '\0'))
+    fillRect(rButton, uButtonFaceColor); // clear the entire button face
+  if((szLabel == 0) || (szLabel[0] == '\0'))
+    return;
+  // draw the text!
+  setTextColor(uButtonLabelColor, uButtonFaceColor);
+  setFont(*pFont);
+  setClipRect(rButton);
+
+    int16_t gw = (rButton.width() - m_lcd.measureTextWidth(szLabel))/2;
+    RECT rFill = rButton;
+    rFill.right = rFill.left + gw;
+    if(!bEraseBkgnd)
+      fillRect(rFill, uButtonFaceColor); // clear the entire button face
+    setCursor(rFill.right, rButton.top + ((rButton.height() - m_lcd.measureTextHeight(szLabel))/2));
+    print(szLabel);
+    rFill.right = rButton.right;
+    rFill.left = rFill.right - gw;
+    if(!bEraseBkgnd)
+      fillRect(rFill, uButtonFaceColor); // clear the entire button face
+
+  ILI9341_t3::setClipRect();
+}
+
+
+
 #ifdef DEBUG
 void Display::DUMP(const char *szText /* = 0*/)
 {

@@ -34,5 +34,8 @@ private:
 
 //extern Stepper g_panner;
 
+const uint16_t uPannerMaxSpeed = 50;
+const uint16_t uPannerAcceleration = 15;
+
 #endif
 

@@ -13,7 +13,9 @@
  * Globals: views
  */
 const int iPannerSlowSpeed = 15;
+int g_iPannerSlowSpeed = iPannerSlowSpeed;
 const int iPannerFastSpeed = 3*iPannerSlowSpeed;
+int g_iPannerFastSpeed = iPannerFastSpeed;
 
 SettingsView g_settingsView;
 ControlView g_controlView;
@@ -27,22 +29,15 @@ AboutView g_aboutView;
  * 
  */
  
-SettingsView::SettingsView() : View("Settings", 
-  &AwesomeF000_16, "Z",  // i
-  &AwesomeF000_16, "\x7D", // up/down
-  0, szOK),
-  m_settings(smSingleSelection),
+SettingsView::SettingsView() : 
+  View("Settings", &AwesomeF000_16, "Z"/* i */,  &AwesomeF000_16, "[\x7D"/* up/down */, 0, szOK),
   m_resetConfirmation(szConfirmation, MB_OKCANCEL)
 {
   m_settings.hasBorder(false);
+  addChild(&m_settings);
   m_resetConfirmation.m_strMessage = "Reset all settings?";
 }
   
-/** analog keyboard APIs where vk is one of VK_xxx */
-/*void SettingsView::onKeyDown(uint8_t vk)
-{
-}*/
-
 /** Long press on central click pops up a Reset confirmation dialog */
 void SettingsView::onLongKeyDown(uint8_t vk)
 {
@@ -51,47 +46,58 @@ void SettingsView::onLongKeyDown(uint8_t vk)
     activate(&m_resetConfirmation);
   }
 }
+
+static const char szPanSlowSpeed[] = "Pan Slow Speed";
+static const char szPanMaxSpeed[] = "Pan Max Speed";
+static const char szPanAcceleration[] = "Pan Acceleration";
+
 void SettingsView::onKeyUp(uint8_t vk)
 {
   switch(vk) {
     case VK_LEFT:
     case VK_RIGHT:
-      // stop pan
       DEBUG_PRINTLN("SettingsView::onKeyUp(VK_LEFT or VK_RIGHT): stop pan");
+      break;
+    case VK_UP:
+      DEBUG_PRINTLN("SettingsView::onKeyUp(VK_UP)");
+      m_settings.setCurValue(m_settings.getCurValue() + 1);
+      break;
+    case VK_DOWN:
+      DEBUG_PRINTLN("SettingsView::onKeyUp(VK_DOWN)");
+      m_settings.setCurValue(m_settings.getCurValue() - 1);
       break;
     case VK_SOFTA:
       // switch to About view
       DEBUG_PRINTLN("SettingsView::onKeyUp(VK_SOFTA): switch to About view");
       activate(&g_aboutView);
       break;
-    case VK_SOFTB:
+    case VK_SOFTB: {
+      // save settings!
+      std::string key = szPanSlowSpeed;
+      long lVal = m_settings.m_values[key];
+      g_iPannerSlowSpeed = lVal;      
+      g_iPannerFastSpeed = g_iPannerSlowSpeed * 3;
+      //
+      key = szPanMaxSpeed;
+      lVal = m_settings.m_values[key];      
+      g_pPanner->setMaxSpeed(lVal);
+      //
+      key = szPanAcceleration;
+      lVal = m_settings.m_values[key];
+      g_pPanner->setAcceleration(lVal);
+      //    
       activate((g_pPreviousView == &g_aboutView) ? &g_controlView : g_pPreviousView);
       break;
-    case VK_SEL: {
+    }
+    case VK_SEL:
       DEBUG_PRINTLN("SettingsView::onKeyUp(VK_SEL):");
       // move focus to the next editable item
-      int16_t iSel = m_settings.getCurSel();
-      m_settings.advanceSelection();
-      if(iSel == m_settings.getCurSel())
+      if(m_settings.advanceSelection() == LB_ERR) {
         m_settings.setCurSel(0);
+        m_settings.advanceSelection();
+      }
       break;
-    }
   }  
-}
-/** needed to arrange children */
-void SettingsView::onPosition()
-{
-  // support the default behaviour
-  View::onPosition();
-  DEBUG_PRINTLN("SettingsView::onPosition()");
-  // stretch the list box over the entire client area!
-  m_settings.setPosition(m_rectClient);
-}
-/** repaint client area */
-void SettingsView::updateClient(unsigned long now)
-{
-  DEBUG_PRINTLN("SettingsView::updateClient()");
-  m_settings.draw();
 }
 
 /** also handles m_resetConfirmation results */
@@ -103,33 +109,30 @@ void SettingsView::onActivate(View *pPrevActive)
   if((pPrevActive == &m_resetConfirmation) && (m_resetConfirmation.getResult() == IDOK))
   {
     // the Reset Confirmation MessageBox was just closed.  Reset confirmed!
+    g_iPannerSlowSpeed = iPannerSlowSpeed;
+    g_iPannerFastSpeed = iPannerFastSpeed;
+    g_pPanner->setMaxSpeed(uPannerMaxSpeed);
+    g_pPanner->setAcceleration(uPannerAcceleration);
     
   }
   // clear the listBox
   m_settings.clear();
   // fill m_settings
   {
-    char s[80];
     std::string ss;
-    m_settings.m_items.push_back(ss); // empty line
-    ss = "Direct Control";
+    ss = " Direct Control";
     m_settings.m_items.push_back(ss);
-    sprintf(s, "  Pan Speed: %i", iPannerSlowSpeed);
-    ss = s;
+    ss = szPanSlowSpeed;
+    m_settings.push_back(ss, g_iPannerSlowSpeed);
+    ss = " Runtime";
     m_settings.m_items.push_back(ss);
-    
-    ss = "Runtime";
-    m_settings.m_items.push_back(ss);
-
-    sprintf(s, "  Pan Max Speed: %i", (int)g_pPanner->maxSpeed());
-    ss = s;
-    m_settings.m_items.push_back(ss);
-    sprintf(s, "  Pan Acceleration: %i", (int)g_pPanner->getAcceleration());
-    ss = s;
-    m_settings.m_items.push_back(ss);
-    
+    ss = szPanMaxSpeed;
+    m_settings.push_back(ss, (long)g_pPanner->maxSpeed());
+    ss = szPanAcceleration;
+    m_settings.push_back(ss, (long)g_pPanner->getAcceleration());    
     m_settings.setCurSel(1);
   }
+
   g_pPanner->enable(false);
 }
 
@@ -142,16 +145,17 @@ WaypointDefinitionDialog::WaypointDefinitionDialog() :
   ModalDialog("Define WayPoint", MB_OKCANCEL),
   m_wpoints(smSingleSelection)
 {
+  addChild(&m_wpoints);
   // set font and text for navigation label
   m_fontNav = &AwesomeF000_16;
   m_szNavLabel = "\x7D";
 }
 
-void WaypointDefinitionDialog::onPosition() 
+void WaypointDefinitionDialog::onActivate(View *pPrevActive)
 {
   // support the default behaviour
-  ModalDialog::onPosition();
-  DEBUG_PRINTLN("WaypointDefinitionDialog::onPosition()");
+  ModalDialog::onActivate(pPrevActive);
+  DEBUG_PRINTLN("WaypointDefinitionDialog::onActivate()");
 
   // stretch the list box over the entire client area - 1/2 of it!
   RECT r = m_rectClient;
@@ -161,14 +165,6 @@ void WaypointDefinitionDialog::onPosition()
   r.right -= w;
   r.bottom--;
   m_wpoints.setPosition(r); 
-}
-
-void WaypointDefinitionDialog::onActivate(View *pPrevActive)
-{
-  // support the default behaviour
-  ModalDialog::onActivate(pPrevActive);
-
-  DEBUG_PRINTLN("WaypointDefinitionDialog::onActivate()");
 
   // clear the listBox
   m_wpoints.clear();
@@ -194,19 +190,6 @@ void WaypointDefinitionDialog::onActivate(View *pPrevActive)
   m_wpoints.setCurSel(m_wpoints.m_items.size() - 1);
 }
 
-/** 
- *  redraw client area only, not including title and bottom bar 
- *  Refer to m_rectClient for dimensions - changing those in updateClient is not kosher!
- */
-void WaypointDefinitionDialog::updateClient(unsigned long now)
-{
-  DUMP("WaypointDefinitionDialog::updateClient()");
-  m_wpoints.DUMP("m_wpoints:");
-  
-  // we already set m_wpoints.m_position so now we just redraw!
-  m_wpoints.draw();
-}
-
 void WaypointDefinitionDialog::onKeyUp(uint8_t vk)
 {
   switch(vk) {
@@ -227,8 +210,8 @@ void WaypointDefinitionDialog::onKeyUp(uint8_t vk)
 /**
  *  Direct Control View Class Implementation
  */
-ControlView::ControlView() : 
-  View("Direct Control", &AwesomeF000_16, "\x13",  /* settings icon */  &AwesomeF000_16, "SAT", /* S[T */ 0, "WPoints")
+ControlView::ControlView() :
+  View("Direct Control", &AwesomeF000_16, "\x13",  /* settings icon */  &AwesomeF000_16, "SAT" /* S[T */, 0, "WPoints")
 {
 }
 
@@ -248,11 +231,11 @@ void ControlView::onKeyDown(uint8_t vk)
     case VK_LEFT:
       // start pan left
       DEBUG_PRINTLN("ControlView::onKeyDown(VK_LEFT): start pan left");
-      g_pPanner->setSpeed((float)iPannerSlowSpeed);
+      g_pPanner->setSpeed((float)g_iPannerSlowSpeed);
       break;
     case VK_RIGHT:
       // start pan right
-      g_pPanner->setSpeed((float) - iPannerSlowSpeed);
+      g_pPanner->setSpeed((float) - g_iPannerSlowSpeed);
       DEBUG_PRINTLN("ControlView::onKeyDown(VK_RIGHT): start pan right");
       break;
   }
@@ -264,12 +247,12 @@ void ControlView::onLongKeyDown(uint8_t vk)
     case VK_LEFT:
       // start fast pan left
       DEBUG_PRINTLN("ControlView::onLongKeyDown(VK_LEFT): start fast pan left");
-      g_pPanner->setSpeed((float)iPannerFastSpeed);
+      g_pPanner->setSpeed((float)g_iPannerFastSpeed);
       break;
     case VK_RIGHT:
       // start fast pan right
       DEBUG_PRINTLN("ControlView::onLongKeyDown(VK_RIGHT): start fast pan right");
-      g_pPanner->setSpeed((float) - iPannerFastSpeed);
+      g_pPanner->setSpeed((float) - g_iPannerFastSpeed);
       break;
   }
 }
@@ -299,18 +282,6 @@ void ControlView::onKeyUp(uint8_t vk)
       break;
   }  
 }
-
-/*void ControlView::onPosition() 
-{
-  // support the default behaviour
-  View::onPosition();
-  DEBUG_PRINTLN("ControlView::onPosition()");
-  
-  m_rectClient.DUMP("m_rectClient: ");
-  // reposition children widgets
-  m_twMessage.setPosition(m_rectClient.left, m_rectClient.bottom - m_twMessage.getLineSpace(), m_rectClient.right, m_rectClient.bottom);
-  m_twMessage.m_position.DUMP("m_twMessage.m_position: ");
-}*/
 
 void ControlView::updateClient(unsigned long now)
 {
@@ -352,6 +323,7 @@ WaypointsView::WaypointsView() :
   m_wpoints(smSingleSelection),
   m_deleteConfirmation(szConfirmation, MB_OKCANCEL)
 {
+  addChild(&m_wpoints);
 }
 
 /**
@@ -418,11 +390,28 @@ void WaypointsView::onKeyUp(uint8_t vk)
   }  
 }
 
-void WaypointsView::onPosition() 
+void WaypointsView::updateClient(unsigned long now)
 {
-  // support the default behaviour
-  View::onPosition();
-  DEBUG_PRINTLN("WaypointsView::onPosition()");
+  View::updateClient(now);
+  //DEBUG_PRINTLN("WaypointsView::updateClient()");
+  uint16_t x = m_rectClient.width() / 4;             // position of the first ':'
+  RECT rClip = m_rectClient;
+  rClip.right -= rClip.width() / 3;
+  m_lcd.setClipRect(rClip);
+  // do show position and speed
+  uint16_t y = m_rectClient.top + m_lcd.fontLineSpace();
+  printKeyVal(x, y, "Pan", g_pPanner->currentPosition());
+  y += m_lcd.fontLineSpace() + 2;
+  printKeyVal(x, y, "Speed", (long)g_pPanner->speed());
+  
+  m_lcd.setClipRect(m_rectClient);
+  //m_wpoints.draw();
+}
+
+void WaypointsView::onActivate(View *pPrevActive)
+{
+  View::onActivate(pPrevActive);
+  DEBUG_PRINTLN("WaypointsView::onActivate()");
 
   // stretch the list box over the entire client area - 1/2 of it!
   RECT r = m_rectClient;
@@ -431,28 +420,7 @@ void WaypointsView::onPosition()
   r.top++;
   r.bottom--;
   m_wpoints.setPosition(r);
-}
-
-void WaypointsView::updateClient(unsigned long now)
-{
-  //DEBUG_PRINTLN("WaypointsView::updateClient()");
-  RECT rClip = m_rectClient;
-  rClip.right -= rClip.width() / 3;
-  m_lcd.setClipRect(rClip);
-  // do show position and speed
-  uint16_t y = m_rectClient.top + m_lcd.fontLineSpace();
-  printKeyVal(y, "Pos", g_pPanner->currentPosition());
-  y += m_lcd.fontLineSpace() + 2;
-  printKeyVal(y, "Speed", (long)g_pPanner->speed());
   
-  m_lcd.setClipRect(m_rectClient);
-  m_wpoints.draw();
-}
-
-void WaypointsView::onActivate(View *pPrevActive)
-{
-  View::onActivate(pPrevActive);
-  DEBUG_PRINTLN("WaypointsView::onActivate()");
 
   if((pPrevActive == &m_deleteConfirmation) && (m_deleteConfirmation.getResult() == IDOK))
   {
@@ -495,22 +463,15 @@ EditView::EditView() :
   m_steps(smSingleSelection)
 {
   m_steps.hasBorder(false);
+  addChild(&m_steps);
 }
 
-/** analog keyboard APIs where vk is one of VK_xxx */
-void EditView::updateClient(unsigned long now) 
-{
-  DEBUG_PRINTLN("EditView::updateClient()");
-  // draw the content of the program here
-  m_steps.draw();
-}
-
-void EditView::onKeyDown(uint8_t vk)
+/*void EditView::onKeyDown(uint8_t vk)
 {
   DEBUG_PRINT("EditView::onKeyDown ");
   DEBUG_PRINTDEC(vk);
   DEBUG_PRINTLN("");
-}
+}*/
 
 void EditView::onLongKeyDown(uint8_t vk)
 {
@@ -574,16 +535,6 @@ void EditView::onKeyUp(uint8_t vk)
   }
 }
 
-/** needed to arrange children */
-void EditView::onPosition()
-{
-  // support the default behaviour
-  View::onPosition();
-  DEBUG_PRINTLN("EditView::onPosition()");
-  // stretch the list box over the entire client area!
-  m_steps.setPosition(m_rectClient);
-}
-
 void EditView::onActivate(View *pPrevActive)
 {
   // support the default behaviour
@@ -621,21 +572,6 @@ void RunView::onKeyUp(uint8_t vk)
 {
   switch(vk)
   {
-    /*case VK_SEL:
-      DEBUG_PRINTLN("RunView::onKeyUp(VK_SEL)");
-      break;
-    case VK_LEFT:
-      DEBUG_PRINTLN("RunView::onKeyUp(VK_LEFT)");
-      break;     
-    case VK_RIGHT:
-      DEBUG_PRINTLN("RunView::onKeyUp(VK_RIGHT)");
-      break;
-    case VK_UP:
-      DEBUG_PRINTLN("RunView::onKeyUp(VK_UP)");
-      break;      
-    case VK_DOWN:
-      DEBUG_PRINTLN("RunView::onKeyUp(VK_DOWN)");
-      break;*/
     case VK_SOFTA:
       DEBUG_PRINTLN("RunView::onKeyUp(VK_SOFTA): switch to Pause view");
       // switch to Pause view
@@ -650,11 +586,6 @@ void RunView::onKeyUp(uint8_t vk)
       activate(&g_editView);
       // ....
       break;
-      
-    /*default:
-      DEBUG_PRINT("RunView::onKeyUp ");
-      DEBUG_PRINTDEC(vk);
-      DEBUG_PRINTLN("");*/
   }
 }
 
@@ -705,22 +636,6 @@ void PausedRunView::onKeyUp(uint8_t vk)
 {
   switch(vk)
   {
-    /*case VK_SEL:
-      DEBUG_PRINTLN("PausedRunView::onKeyUp(VK_SEL)");
-      break;
-    case VK_LEFT:
-      DEBUG_PRINTLN("PausedRunView::onKeyUp(VK_LEFT)");
-      break;
-    case VK_RIGHT:
-      DEBUG_PRINTLN("PausedRunView::onKeyUp(VK_RIGHT)");
-      break;
-    case VK_UP:
-      DEBUG_PRINTLN("PausedRunView::onKeyUp(VK_UP)");
-      break;
-    case VK_DOWN:
-      DEBUG_PRINTLN("PausedRunView::onKeyUp(VK_DOWN)");
-      break;*/
-      
     case VK_SOFTA:
       DEBUG_PRINTLN("PausedRunView::onKeyUp(VK_SOFTA): switch to Run view");
       // resume program execution here!
@@ -735,11 +650,6 @@ void PausedRunView::onKeyUp(uint8_t vk)
       activate(&g_editView);
       // ....
       break;
-      
-    /*default:
-      DEBUG_PRINT("PausedRunView::onKeyUp ");
-      DEBUG_PRINTDEC(vk);
-      DEBUG_PRINTLN("");*/
   }
 }
 
@@ -764,7 +674,6 @@ void PausedRunView::onActivate(View *pPrevActive)
  *  About View Class Implementation
  */
 const char *aboutViewLines[] = {
-  "",
   "Panner v0.1",
   "(c) 2015-2016 Alex Sokolsky",
   "",
@@ -783,6 +692,7 @@ AboutView::AboutView() :
   m_text(smNoSelection, &LiberationSans_12)
 {
   m_text.hasBorder(false);
+  addChild(&m_text);
   for(size_t i = 0; i <  (sizeof(aboutViewLines)/ sizeof(aboutViewLines[0])); i++) {
     std::string ss(aboutViewLines[i]);
     m_text.m_items.push_back(ss);
@@ -793,16 +703,14 @@ void AboutView::onKeyUp(uint8_t vk)
 {
   switch(vk)
   {
-    case VK_DOWN: {
+    case VK_DOWN:
       DEBUG_PRINTLN("AboutView::onKeyUp(VK_DOWN)");
       m_text.scroll(1);
       break;
-    }
     case VK_UP:
       DEBUG_PRINTLN("AboutView::onKeyUp(VK_UP)");
       m_text.scroll(-1);
       break;
-      
     case VK_SOFTA:
     case VK_SOFTB:
       DEBUG_PRINTLN("AboutView::onKeyUp(VK_SOFTB): back to control view");
@@ -812,32 +720,12 @@ void AboutView::onKeyUp(uint8_t vk)
 }
 
 
-/**
- *  display About info in a scrollable line list
- */
-void AboutView::updateClient(unsigned long now)
-{
-  //DEBUG_PRINTLN("AboutView::updateClient()");
-  m_text.draw();
-}
-
-/**
- * to arrange and the widgets
- */
-void AboutView::onPosition()
-{
-  // support the default behaviour
-  View::onPosition();
-  DEBUG_PRINTLN("AboutView::onPosition()");
-  // stretch the list box over the entire client area!
-  m_text.setPosition(m_rectClient);
-}
-
 void AboutView::onActivate(View *pPrevActive)
 {
   // support the default behaviour
   View::onActivate(pPrevActive);
   DEBUG_PRINTLN("AboutView::onActivate()");
+  
   m_text.scroll(-100); // reset first displayed position
   g_pPanner->enable(false);  
 }

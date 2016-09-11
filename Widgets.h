@@ -1,3 +1,6 @@
+
+class View;
+
 /**
  *  Nano-windowing system for Arduino and derivatives
  */
@@ -17,7 +20,7 @@ class Widget
 {
 protected:
   uint16_t m_uStyle;
-  
+
 public:
   /** this is position of the widget */
   RECT m_position;
@@ -52,6 +55,11 @@ public:
    *  print text centered in the m_position using current font
    */
   void printTextCenter(const char *szText, uint16_t y, const ILI9341_t3_font_t *pFont = 0, int16_t *pDY = 0);
+  /**
+   *  Print Key: Val with ':' being at x
+   */
+  void printKeyVal(uint16_t x, uint16_t y, const char *szKey1, long lVal1, bool bSelected = false, const char *szKey2 = 0, long lVal2 = 0);
+  
 
   void setPosition(int16_t left, int16_t top, int16_t right, int16_t bottom);
   void setPosition(RECT &r) {
@@ -103,7 +111,7 @@ const uint16_t smSingleSelection = 1;
 const uint16_t smMultiSelection = 2;
 
 /**
- * ListBox with a vertical scroll and border by default
+ * List of strings with up/down scroll and border by default
  */
 class ListWidget : public Widget
 {
@@ -133,12 +141,16 @@ public:
       iSel = LB_ERR;
     m_iCurSel = iSel;
   }
-  /** makes sense only if m_selectionMode is smSingleSelection */
-  void advanceSelection(int16_t iAdv = 1);
+  /** 
+   * makes sense only if m_selectionMode is smSingleSelection 
+   */
+  int16_t advanceSelection(int16_t iAdv = 1);
   /** makes sense only if m_selectionMode is smNoSelection */
   void scroll(int16_t iAdv = 1);
-  
+  /** display/paint the list */
   void draw();
+  /** called from draw to draw a single item */
+  virtual void drawItem(size_t i, int16_t y);
   /** recalc the client rect */
   void onPosition();
 };
@@ -147,7 +159,7 @@ public:
  *  Small drop down list.  
  *  When not dropped shows just a single item with an arrow down
  */
-class DropDownListWidget : public ListWidget
+/*class DropDownListWidget : public ListWidget
 {
   bool m_bDropped = false;
   // RECT m_position and RECT m_rectClient are for closed state only;
@@ -162,11 +174,49 @@ public:
   }
   void dropClose() {
     m_bDropped = true;    
-  }  
+  } */
   
   /** */
-  void draw();
+  //void draw();
   /** the height is determined by the Widget font and can not be changed */
-  void onPosition();
+  //void onPosition();
+//};
+
+/**
+ *  List of any one of:
+ *    null for empty space
+ *    string for plain text
+ *    pair of key (string) value (number or enum - one of)
+ */
+class KeyValueListWidget : public ListWidget
+{
+public:  
+  // std::vector<std::string> m_items; - this holds keys
+  /** values associated with keys from m_items */
+  std::map<std::string, long> m_values;
+
+  KeyValueListWidget(const ILI9341_t3_font_t *pFont = 0) : ListWidget(smSingleSelection, pFont) {}
+
+  /** reset content */
+  void clear();
+  /** add a Key/Value pair to the KeyValueListWidget */
+  void push_back(std::string key, long val);
+  /** get the value of the currently selected key */
+  long getCurValue();
+  /** 
+   * set the value of the currently selected key.  
+   * Return LB_ERR in case of error 
+   */
+  int16_t setCurValue(long lVal); 
+  /** just show a single item */
+  void drawItem(size_t i, int16_t y); 
+  /** most work done here */
+  void drawItem(std::string &key, long lVal, int16_t y, bool bSelected);
+
+  /** 
+   * advance selection ignoring non-adjustable items 
+   * Return LB_ERR in case of error 
+   */
+  int16_t advanceSelection(int16_t iAdv = 1);
 };
 

@@ -6,8 +6,8 @@ Stepper::Stepper(uint8_t pinStep, uint8_t pinDirection, uint8_t pinEnable) :
 {
   _enableInverted = true;
   setEnablePin(pinEnable);
-  setMaxSpeed(50);
-  setAcceleration(15);
+  setMaxSpeed(uPannerMaxSpeed);
+  setAcceleration(uPannerAcceleration);
 }
 
 

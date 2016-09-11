@@ -71,6 +71,8 @@ void setup()
   g_ci.begin();
 }
 
+//int freeMemory();
+
 void loop()
 {  
   unsigned long now = millis();
@@ -100,6 +102,17 @@ void loop()
   //if(bUpdateDisplay) g_ci.updateDisplay(now);   
   if(bUpdateDisplay && View::g_pActiveView != 0)
     View::g_pActiveView->update(now);
+
+  /*static unsigned long ulTimeToDebugDump = 10000;
+  if(now > ulTimeToDebugDump)
+  {
+    ulTimeToDebugDump = now + 10000;
+    int iFreeMemory = freeMemory();
+    DEBUG_PRINTLN("freeMemory() => ");
+    DEBUG_PRINTDEC(iFreeMemory);
+    DEBUG_PRINTLN("");
+  }*/
+
 }
 
 

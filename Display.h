@@ -87,6 +87,13 @@ public:
 
   void setup();
 
+  const int16_t iButtonCornerRadius = 4;
+  const uint16_t uButtonBorderColor = ILI9341_DARKGREY;
+  const uint16_t uButtonLabelColor = ILI9341_YELLOW;
+  const uint16_t uButtonFaceColor = ILI9341_BLACK; // ILI9341_DARKGREEN;
+
+  void drawButton(RECT rButton, const ILI9341_t3_font_t *pFont, const char *szLabel, bool bEraseBkgnd);
+
 #ifdef DEBUG
   void DUMP(const char *szText = 0);
 #else

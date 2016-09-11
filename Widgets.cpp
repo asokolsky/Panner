@@ -125,6 +125,72 @@ void Widget::printTextCenter(const char *szText, uint16_t y, const ILI9341_t3_fo
   if(pOldFont != 0)
     m_lcd.setFont(*pOldFont);  
 }
+
+static const char szSeparator[] = ": ";
+
+/**
+ * Print Key1: Val1   Key2: Val2
+ * with Key in ILI9341_DARKGREY
+ * and Val in ILI9341_WHITE
+ * x is the position of the first ':'
+ */
+void Widget::printKeyVal(uint16_t x, uint16_t y, const char *szKey1, long lVal1, bool bSelected, const char *szKey2, long lVal2)
+{
+  char szText[80];
+  uint16_t w = m_lcd.measureTextWidth(szKey1);       // key width
+  RECT rFill;
+  rFill.top = rFill.bottom = y;
+  rFill.bottom += m_lcd.fontLineSpace();
+  rFill.left = m_rectClient.left;
+  rFill.right = x - w;
+  m_lcd.fillRect(rFill, ILI9341_BLACK);              // wipe space between rClient.left and key1
+  m_lcd.setTextColor(ILI9341_DARKGREY, ILI9341_BLACK);
+  m_lcd.setCursor(rFill.right, y);
+  m_lcd.print(szKey1);                               // print key1
+  m_lcd.setCursor(x, y);
+  m_lcd.print(szSeparator);
+  x += m_lcd.measureTextWidth(szSeparator);  
+  m_lcd.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
+  m_lcd.setCursor(x, y);
+  sprintf(szText, "%ld", lVal1);                     // print val1
+  m_lcd.print(szText);
+  if(bSelected) {
+    RECT r;
+    r.top = y-1;
+    r.bottom = r.top + m_lcd.fontLineSpace() + 1;
+    r.left = x-1;
+    r.right = r.left + m_lcd.measureTextWidth(szText) + 3;
+    m_lcd.drawRect(r.left, r.top, r.width(), r.height(), ILI9341_DARKGREY);
+    x += 3;
+  }  
+  x += m_lcd.measureTextWidth(szText);
+  if(szKey2 != 0)
+  {
+    rFill.left = x;
+    x = (m_lcd.width() / 4) * 3;                       // position of second ':'
+    w = m_lcd.measureTextWidth(szKey2);
+    rFill.right = x - w;
+    m_lcd.fillRect(rFill, ILI9341_BLACK);              // wipe space between val1 and key2
+    m_lcd.setTextColor(ILI9341_DARKGREY, ILI9341_BLACK);
+    m_lcd.setCursor(rFill.right, y);
+    m_lcd.print(szKey2);                               // print key2
+    m_lcd.setCursor(x, y);
+    m_lcd.print(szSeparator);
+    x += m_lcd.measureTextWidth(szSeparator);  
+    m_lcd.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
+    m_lcd.setCursor(x, y);
+    sprintf(szText, "%ld", lVal2);
+    m_lcd.print(szText);                               // print val2
+    x += m_lcd.measureTextWidth(szText);
+  }
+  if(x < m_rectClient.right)
+  {
+    rFill.left = x;
+    rFill.right = m_rectClient.right;
+    m_lcd.fillRect(rFill, ILI9341_BLACK);
+  }
+}
+
  
 /**
  *  TextWidget Class Implementation
@@ -159,6 +225,9 @@ void ListWidget::onPosition()
     m_rectClient.deflate();
 }
 
+/**
+ * Display the list of strings
+ */
 void ListWidget::draw()
 {
   //DEBUG_PRINTLN("ListWidget::draw()");
@@ -194,10 +263,7 @@ void ListWidget::draw()
       y += dY;
       break;
     }
-    printTextLeft(m_items[i].c_str(), y);
-    if(i == (size_t)iSel) {
-      m_lcd.drawRect(m_rectClient.left, y, m_rectClient.width(), iFontLineSpace, ILI9341_DARKGREY);
-    }
+    drawItem(i, y);
     y += iFontLineSpace;
   }
   if(y < m_rectClient.bottom)
@@ -212,6 +278,13 @@ void ListWidget::draw()
   m_lcd.setClipRect(rectOldClip);
 }
 
+void ListWidget::drawItem(size_t i, int16_t y)
+{
+  printTextLeft(m_items[i].c_str(), y);
+  if(i == (size_t)getCurSel())
+    m_lcd.drawRect(m_rectClient.left, y, m_rectClient.width(), m_lcd.fontLineSpace(), ILI9341_DARKGREY);
+}
+
 int16_t ListWidget::sanitize(int16_t iSel)
 {
   if(iSel >=  (int16_t)m_items.size())
@@ -221,9 +294,12 @@ int16_t ListWidget::sanitize(int16_t iSel)
   return iSel;  
 }
 
-void ListWidget::advanceSelection(int16_t iAdv /*= 1*/)
+int16_t ListWidget::advanceSelection(int16_t iAdv /*= 1*/)
 {
+  if(m_selectionMode != smSingleSelection)
+    return LB_ERR;
   setCurSel(sanitize(getCurSel() + iAdv));
+  return 0;
 }
 
 void ListWidget::scroll(int16_t iAdv /*= 1*/)
@@ -237,17 +313,102 @@ void ListWidget::scroll(int16_t iAdv /*= 1*/)
  */
 
 /** */
-void DropDownListWidget::draw()
+/*void DropDownListWidget::draw()
 {
   
-}
+}*/
 
 /** 
  * In the closed state the height is determined by the Widget font and can not be changed.
  * RECT m_position and RECT m_rectClient are for closed state only;
  */
-void DropDownListWidget::onPosition()
+/*void DropDownListWidget::onPosition()
 {
   
+}*/
+
+
+
+/** 
+ * KeyValueListWidget Class Implementation
+ */
+
+/** 
+ * reset content 
+ */
+void KeyValueListWidget::clear() 
+{
+  m_items.clear();
+  m_values.clear();
+}
+
+/** 
+ * add a Key/Value pair to the KeyValueListWidget 
+ */
+void KeyValueListWidget::push_back(std::string key, long val)
+{
+  m_items.push_back(key);    
+  m_values[key] = val;
+}
+
+/** 
+ * get the value of the currently selected key 
+ */
+long KeyValueListWidget::getCurValue() 
+{
+  if((m_iCurSel < 0) || (m_iCurSel >= (int16_t)m_items.size()))
+    return LB_ERR;
+  std::string key = m_items[m_iCurSel];
+  if(m_values.count(key) == 0)
+    return LB_ERR;
+  return m_values[key];
+}
+
+/** 
+ * set the value of the currently selected key.  Return LB_ERR in case of error 
+ */
+int16_t KeyValueListWidget::setCurValue(long lVal)
+{
+  if((m_iCurSel < 0) || (m_iCurSel >= (int16_t)m_items.size()))
+    return LB_ERR;
+  std::string key = m_items[m_iCurSel];
+  if(m_values.count(key) == 0)
+    return LB_ERR;
+  m_values[key] = lVal;
+  return 0;
+}
+
+void KeyValueListWidget::KeyValueListWidget::drawItem(size_t i, int16_t y)
+{
+  i = (size_t)sanitize((int16_t)i);
+  std::string key = m_items[i];
+  if(m_values.count(key) == 0)
+    ListWidget::drawItem(i, y);
+  else
+    drawItem(key, m_values[key], y, (i == (size_t)getCurSel()));
+}
+
+void KeyValueListWidget::drawItem(std::string &key, long lVal, int16_t y, bool bSelected)
+{
+  uint16_t x = (2 * m_rectClient.width()) / 3;             // position of the ':'
+  printKeyVal(x, y, key.c_str(), lVal, bSelected);
+}
+
+/**
+ * advance selection ignoring non-adjustable items 
+ */
+int16_t KeyValueListWidget::advanceSelection(int16_t iAdv /*= 1*/)
+{
+  if(m_selectionMode != smSingleSelection)
+    return LB_ERR;
+  for(int16_t iSel = m_iCurSel + iAdv; (0 <= iSel) && (iSel < (int16_t)m_items.size()) ; (iAdv > 0) ? iSel++ : iSel--)
+  {
+    std::string key = m_items[iSel];
+    if(m_values.count(key) == 0)
+      continue;
+    setCurSel(iSel);
+    return 0;
+  }
+  return LB_ERR;
 }
 

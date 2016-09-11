@@ -20,6 +20,7 @@ class View : public Widget
 protected:
   static Stepper *g_pPanner;
   
+  bool m_bEraseBkgnd = true;
   const char *m_szTitle;
   const ILI9341_t3_font_t *m_fontSoftA;
   const char *m_szSoftALabel;
@@ -31,22 +32,23 @@ protected:
   /**  update period 1/2 sec */
   static const unsigned long ulUpdatePeriod = 100;
   /** when the view has to be updated */
-  unsigned long m_ulToUpdate = 0;
+  static unsigned long m_ulToUpdate;
 
-  bool needsUpdate(unsigned long now) {
+  static bool needsUpdate(unsigned long now) {
     return (now >= m_ulToUpdate);
   }
 
+  /** 
+   *  Parent of a modal dialog.
+   *  Move it to Widget?
+   */
   View *m_zParent = 0;
-  View *m_zChild = 0;
+  std::vector<Widget *> m_zChildren;
 
-  /*View *getParent() {
-    return m_zParent;
+  void addChild(Widget *pChild) {
+    m_zChildren.push_back(pChild);
   }
-  void setParent(View *p) {
-    m_zParent = p;
-  }*/
-
+  
 public:  
   View(const char *szTitle, const ILI9341_t3_font_t *fontSoftA, const char *szSoftALabel, 
                             const ILI9341_t3_font_t *fontNav, const char *szNavLabel, 
@@ -109,10 +111,7 @@ protected:
   virtual void drawTitleBar();
   void drawBattery(uint8_t iPcentFull);
   /** draws the soft labels. */
-  void drawSoftLabels();
-  void drawButton(int16_t x, int16_t y, int16_t w, int16_t h, const ILI9341_t3_font_t *pFont, const char *szLabel);
-  void printKeyVal(uint16_t y, const char *szKey1, long lVal1, const char *szKey2 = 0, long lVal2 = 0);
-
+  void drawSoftLabels(bool bEraseBkgnd);
   /** 
    * updateClient implementation for Control, Run or Paused view 
    */

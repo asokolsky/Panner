@@ -16,18 +16,15 @@
 View *View::g_pActiveView = 0;
 View *View::g_pPreviousView = 0;
 Stepper *View::g_pPanner = 0;
+unsigned long View::m_ulToUpdate = 0;
+
 
 
 const int16_t iBatteryWidth = 36;
 //const int16_t iBatteryHeight = 16;
 
-const int16_t iTitleBarHeight = 27;
+const int16_t iTitleBarHeight = 30; // 27;
 const int16_t iBottomBarHeight = 35;
-const int16_t iButtonCornerRadius = 4;
-const uint16_t uButtonBorderColor = ILI9341_DARKGREY;
-const uint16_t uButtonLabelColor = ILI9341_YELLOW;
-const uint16_t uButtonFaceColor = ILI9341_BLACK; // ILI9341_DARKGREEN;
-
 
 const char szCancel[] = "Cancel";
 const char szOK[] = "OK";
@@ -100,10 +97,7 @@ void View::onActivate(View *pPrevActive)
   m_lcd.resetClipRect();
   setPosition(0, 0, m_lcd.width(), m_lcd.height()); // done in the constructor but let's reiterate
   // erase the entire background
-  RECT rFill = m_position;
-  rFill.bottom -= iBottomBarHeight;
-  m_lcd.fillRect(rFill); //, ILI9341_OLIVE);
-  m_lcd.DUMP();
+  m_bEraseBkgnd = true;
 }
 
 
@@ -116,13 +110,18 @@ void View::updateMaybe(unsigned long now)
 }
 
 /** 
- *  m_position was just changed.  Default implementation updates m_rectClient
+ *  m_position was just changed.  
+ *  Default implementation updates m_rectClient.
+ *  If there is exactly one child - stretch it to cover the client.
+ *  Derived class can overwrite this behaviour in oPosition or onActivate
  */
 void View::onPosition()
 {
   m_rectClient = m_position;
   m_rectClient.top += iTitleBarHeight;
   m_rectClient.bottom -= iBottomBarHeight;
+  if(m_zChildren.size() == 1)
+    m_zChildren[0]->setPosition(m_rectClient);
 }
 
 
@@ -132,10 +131,16 @@ void View::onPosition()
  */
 void View::update(unsigned long now)
 {
-  DUMP("View::update()");    
-
+  DUMP("View::update()");
+  if(m_bEraseBkgnd)
+  {
+    RECT rFill = m_position;
+    rFill.bottom -= iBottomBarHeight;
+    m_lcd.fillRect(rFill); //, ILI9341_OLIVE);
+  }
   drawTitleBar();
-  drawSoftLabels(); 
+  drawSoftLabels(m_bEraseBkgnd);
+  m_bEraseBkgnd = false;
   //
   // try to protect non-client area  
   // 
@@ -159,9 +164,12 @@ void View::update(unsigned long now)
  */
 void View::updateClient(unsigned long now)
 {
-  DEBUG_PRINTLN("View::updateClient() SHOULD BE OVERWRITTEN");
+  DEBUG_PRINTLN("View::updateClient()");
   // entire background erase - does the job but blinks!
-  m_lcd.fillRect(m_rectClient, ILI9341_BLUE);
+  // m_lcd.fillRect(m_rectClient, ILI9341_BLUE);
+  // redraw children!
+  for(size_t i = 0; i < m_zChildren.size(); i++)
+    m_zChildren[i]->draw();
 }
 
 /**
@@ -232,113 +240,25 @@ void View::drawBattery(uint8_t iPcentFull)
   m_lcd.print(szText);
 }
 
-void View::drawButton(int16_t x, int16_t y, int16_t w, int16_t h, const ILI9341_t3_font_t *pFont, const char *szLabel)
-{ 
-  RECT rFill;
-  m_lcd.drawRoundRect(x, y, w, h, iButtonCornerRadius, uButtonBorderColor);
-  x += iButtonCornerRadius;
-  int16_t y0 = y;
-  y += iButtonCornerRadius;
-  w -= 2*iButtonCornerRadius;
-  int16_t h0 = h;
-  h -= 2*iButtonCornerRadius;
-  rFill.left = x;
-  rFill.right = x+w;
-  rFill.top = y;
-  rFill.bottom = y+h;
-  m_lcd.setClipRect(rFill);
-  if(szLabel == 0)
-  {
-    m_lcd.fillRect(rFill, uButtonFaceColor); // clear the entire button face
-  }
-  else
-  {
-    m_lcd.setFont(*pFont);  
-    int16_t tw = m_lcd.measureTextWidth(szLabel);
-    int16_t th = m_lcd.measureTextHeight(szLabel);
-    int16_t gw = (w-tw)/2;
-    rFill.right = x+gw;
-    m_lcd.fillRect(rFill, uButtonFaceColor); // clear the entire button face
-    x += gw;
-    m_lcd.setCursor(x, y0 + ((h0 - th)/2));
-    m_lcd.print(szLabel);
-    x += tw;
-    rFill.left = x;
-    rFill.right = x+gw;
-    m_lcd.fillRect(rFill, uButtonFaceColor); // clear the entire button face
-  }  
-  m_lcd.ILI9341_t3::setClipRect();
-}
-
 /**
  * Draw bottom row with labels for soft keys
- * returns the bar height
  */
-void View::drawSoftLabels()
+void View::drawSoftLabels(bool bEraseBkgnd)
 {
-  m_lcd.setTextColor(uButtonLabelColor, uButtonFaceColor);
   int16_t iButtonWidth = (m_lcd.width() / 3) - 12;
-  int16_t iButtonHeight = iBottomBarHeight; // m_lcd.fontLineSpace() + 2*iButtonCornerRadius;
-  int16_t y = m_lcd.height() - iButtonHeight;
-  drawButton(0, y, iButtonWidth, iButtonHeight, m_fontSoftA, m_szSoftALabel);
-  drawButton((m_lcd.width() - iButtonWidth)/2, y, iButtonWidth, iButtonHeight, m_fontNav, m_szNavLabel);
-  drawButton(m_lcd.width() - iButtonWidth, y, iButtonWidth, iButtonHeight, m_fontSoftB, m_szSoftBLabel);
-}
-
-static const char szSeparator[] = ": ";
-
-/**
- * Print Key1: Val1   Key2: Val2
- * with Key in ILI9341_DARKGREY
- * and Val in ILI9341_WHITE
- */
-void View::printKeyVal(uint16_t y, const char *szKey1, long lVal1, const char *szKey2, long lVal2)
-{
-  char szText[80];
-  uint16_t x = m_rectClient.width() / 4;             // position of the first ':'
-  uint16_t w = m_lcd.measureTextWidth(szKey1);       // key width
-  RECT rFill;
-  rFill.top = rFill.bottom = y;
-  rFill.bottom += m_lcd.fontLineSpace();
-  rFill.left = m_rectClient.left;
-  rFill.right = x - w;
-  m_lcd.fillRect(rFill, ILI9341_BLACK);              // wipe space between rClient.left and key1
-  m_lcd.setTextColor(ILI9341_DARKGREY, ILI9341_BLACK);
-  m_lcd.setCursor(rFill.right, y);
-  m_lcd.print(szKey1);                               // print key1
-  m_lcd.setCursor(x, y);
-  m_lcd.print(szSeparator);
-  x += m_lcd.measureTextWidth(szSeparator);  
-  m_lcd.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
-  m_lcd.setCursor(x, y);
-  sprintf(szText, "%ld", lVal1);                     // print val1
-  m_lcd.print(szText);
-  x += m_lcd.measureTextWidth(szText);
-  if(szKey2 != 0)
-  {
-    rFill.left = x;
-    x = (m_lcd.width() / 4) * 3;                       // position of second ':'
-    w = m_lcd.measureTextWidth(szKey2);
-    rFill.right = x - w;
-    m_lcd.fillRect(rFill, ILI9341_BLACK);              // wipe space between val1 and key2
-    m_lcd.setTextColor(ILI9341_DARKGREY, ILI9341_BLACK);
-    m_lcd.setCursor(rFill.right, y);
-    m_lcd.print(szKey2);                               // print key2
-    m_lcd.setCursor(x, y);
-    m_lcd.print(szSeparator);
-    x += m_lcd.measureTextWidth(szSeparator);  
-    m_lcd.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
-    m_lcd.setCursor(x, y);
-    sprintf(szText, "%ld", lVal2);
-    m_lcd.print(szText);                               // print val2
-    x += m_lcd.measureTextWidth(szText);
-  }
-  if(x < m_rectClient.right)
-  {
-    rFill.left = x;
-    rFill.right = m_rectClient.right;
-    m_lcd.fillRect(rFill, ILI9341_BLACK);
-  }
+  int16_t iButtonHeight = iBottomBarHeight;
+  RECT rButton;
+  rButton.top = m_lcd.height() - iButtonHeight;
+  rButton.bottom = rButton.top + iButtonHeight;
+  rButton.left = 0;
+  rButton.right = iButtonWidth; 
+  m_lcd.drawButton(rButton, m_fontSoftA, m_szSoftALabel, bEraseBkgnd);
+  rButton.left = (m_lcd.width() - iButtonWidth)/2;
+  rButton.right = rButton.left + iButtonWidth;
+  m_lcd.drawButton(rButton, m_fontNav, m_szNavLabel, bEraseBkgnd);
+  rButton.left = m_lcd.width() - iButtonWidth;
+  rButton.right = rButton.left + iButtonWidth;
+  m_lcd.drawButton(rButton, m_fontSoftB, m_szSoftBLabel, bEraseBkgnd);
 }
 
 /** dummy defaults, children to overwrite */
@@ -352,10 +272,11 @@ void View::onKeyUp(uint8_t vk) {
 /** updateClient implementation for Run or Paused view */
 void View::updateClientRunOrPaused(unsigned long now, bool bExtendedInfo, const char *pMsg)
 {
+  uint16_t x = m_rectClient.width() / 4;             // position of the first ':'
   uint16_t y = m_rectClient.top;
   y += m_lcd.fontLineSpace(); 
   
-  printKeyVal(y, "Pos", g_pPanner->currentPosition(), "Speed", (long)g_pPanner->speed());
+  printKeyVal(x, y, "Pan", g_pPanner->currentPosition(), false, "Speed", (long)g_pPanner->speed());
   y += m_lcd.fontLineSpace();
 
   if(bExtendedInfo)
@@ -374,7 +295,7 @@ void View::updateClientRunOrPaused(unsigned long now, bool bExtendedInfo, const 
     } else {
       pLabel = "Stopped";
     }  
-    printKeyVal(y, pLabel, wSecs);
+    printKeyVal(x, y, pLabel, wSecs);
     y += m_lcd.fontLineSpace();
   }
   if((pMsg != 0) && (pMsg[0] != '\0'))
@@ -410,7 +331,7 @@ ModalDialog::ModalDialog(const char *szTitle,
 }
 
 ModalDialog::ModalDialog(const char *szTitle, uint16_t uType) :
-  View(szTitle, &LiberationSans_18, szCancel, &LiberationSans_18, 0, &LiberationSans_18, szOK),
+  View(szTitle, 0, szCancel, 0, 0, 0, szOK),
   m_uType(uType)
 {
   switch(uType) 
@@ -457,12 +378,12 @@ void ModalDialog::drawTitleBar()
   rFill.bottom = rFill.top + m_lcd.fontLineSpace();
   rFill.left = m_position.left;
   rFill.right = x;
-  m_lcd.fillRect(rFill, ILI9341_BLACK); 
+  //m_lcd.fillRect(rFill, ILI9341_BLACK);
   m_lcd.setCursor(x, y);
   m_lcd.print(m_szTitle);
   rFill.left = x + w;
   rFill.right = m_position.right;
-  m_lcd.fillRect(rFill, ILI9341_BLACK);
+  //m_lcd.fillRect(rFill, ILI9341_BLACK);
 }
 
 void ModalDialog::onKeyUp(uint8_t vk)
@@ -493,9 +414,10 @@ void ModalDialog::onActivate(View *pPrevActive)
   if(pPrevActive != 0)
     setPosition(pPrevActive->m_position.left, pPrevActive->m_position.top + iTitleBarHeight, pPrevActive->m_position.right, pPrevActive->m_position.bottom);
   // erase the entire background
-  RECT rFill = m_position;
-  rFill.bottom -= iBottomBarHeight;
-  m_lcd.fillRect(rFill, ILI9341_DARKCYAN); // ILI9341_BLACK
+  m_bEraseBkgnd = true;
+  //RECT rFill = m_position;
+  //rFill.bottom -= iBottomBarHeight;
+  //m_lcd.fillRect(rFill); //, ILI9341_DARKCYAN);
 }
 
 /**
