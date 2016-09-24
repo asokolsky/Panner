@@ -4,6 +4,46 @@ const uint8_t pinCS = 10;
 const uint8_t pinDC = 9;
 
 /**
+ *  RECT Class Implementation
+ */
+
+bool RECT::doesIntersect(RECT &r)
+{
+ // If one rectangle is on left side of other
+ if(left > r.right || r.left > right)
+   return false; 
+  // If one rectangle is above other
+  if(top < r.bottom || r.top < bottom)
+    return false;  
+  return true;
+}
+
+RECT RECT::intersect(RECT &r)
+{
+  RECT res;
+  res.top = max(top, r.top);
+  res.left = max(left, r.left);
+  res.bottom = min(bottom, r.bottom);
+  res.right = min(right, r.right);
+  return res;
+}
+
+ 
+#ifdef DEBUG
+void RECT::DUMP(const char *szText /* = 0*/) 
+{
+  if(szText != 0) {
+    DEBUG_PRINT(szText);
+  }
+  DEBUG_PRINT(" RECT@"); DEBUG_PRINTDEC((int)this); 
+  DEBUG_PRINT(" l="); DEBUG_PRINTDEC((int)left);
+  DEBUG_PRINT(" r="); DEBUG_PRINTDEC((int)right);
+  DEBUG_PRINT(" t="); DEBUG_PRINTDEC((int)top);
+  DEBUG_PRINT(" b="); DEBUG_PRINTDEC((int)bottom);
+  DEBUG_PRINTLN("");  
+}
+#endif
+/**
  *  Globals
  */
 Display m_lcd;
@@ -27,32 +67,110 @@ void Display::setup()
   setTextWrap(false);
 }
 
-void Display::drawButton(RECT rButton, const ILI9341_t3_font_t *pFont, const char *szLabel, bool bEraseBkgnd)
+void Display::drawButton(const RECT &rButton, const ILI9341_t3_font_t *pFont, const char *szLabel, bool bEraseBkgnd)
 { 
-  drawRoundRect(rButton.left, rButton.top, rButton.width(), rButton.height(), iButtonCornerRadius, uButtonBorderColor);
-  rButton.deflate(iButtonCornerRadius);
-  if(bEraseBkgnd || (szLabel == 0) || (szLabel[0] == '\0'))
-    fillRect(rButton, uButtonFaceColor); // clear the entire button face
-  if((szLabel == 0) || (szLabel[0] == '\0'))
-    return;
-  // draw the text!
-  setTextColor(uButtonLabelColor, uButtonFaceColor);
-  setFont(*pFont);
-  setClipRect(rButton);
+  RECT rLoc = rButton;
+  setClipRect(rLoc);
+  drawRoundRect(rLoc.left, rLoc.top, rLoc.width(), rLoc.height(), iButtonCornerRadius, uButtonBorderColor);
+  rLoc.deflate(iButtonCornerRadius);
+  setClipRect(rLoc);
+  printText(szLabel, uButtonLabelColor, uButtonFaceColor, rLoc, haCenter, vaCenter, pFont, bEraseBkgnd);
+}
 
-    int16_t gw = (rButton.width() - m_lcd.measureTextWidth(szLabel))/2;
-    RECT rFill = rButton;
-    rFill.right = rFill.left + gw;
-    if(!bEraseBkgnd)
-      fillRect(rFill, uButtonFaceColor); // clear the entire button face
-    setCursor(rFill.right, rButton.top + ((rButton.height() - m_lcd.measureTextHeight(szLabel))/2));
-    print(szLabel);
-    rFill.right = rButton.right;
-    rFill.left = rFill.right - gw;
-    if(!bEraseBkgnd)
-      fillRect(rFill, uButtonFaceColor); // clear the entire button face
+/**
+ * Print text with appropriate alignement in rLocation.
+ * rLocation.bottom can be 0 if va == vaTop
+ */
+void Display::printText(
+  const char *szText, 
+  uint16_t c, uint16_t bg, 
+  RECT &rLocation, 
+  HorizontalAlignment ha, 
+  VerticalAlignment va /*= vaTop*/, 
+  const ILI9341_t3_font_t *pFont /*= 0*/, 
+  bool bEraseBkgnd /*= false*/)
+{
+  //DEBUG_PRINT("Display::printText('"); DEBUG_PRINT(szText); DEBUG_PRINT("' ha="); DEBUG_PRINTDEC((int)ha); DEBUG_PRINT(" va="); DEBUG_PRINTDEC((int)va); rLocation.DUMP(" rLocation");
+  setTextColor(c, bg);
+  const ILI9341_t3_font_t *pOldFont = 0;
+  if(pFont != 0) {
+    pOldFont = m_lcd.getFont();
+    m_lcd.setFont(*pFont);
+  }
+  if(rLocation.bottom == 0)
+    rLocation.bottom = rLocation.top + m_lcd.fontLineSpace();
+  
+  RECT rOldClip = getClipRect();  
+  RECT rClip = rOldClip.intersect(rLocation); 
+  setClipRect(rClip);
 
-  ILI9341_t3::setClipRect();
+  if(bEraseBkgnd || (szText == 0) || (szText[0] == '\0'))
+    fillRect(rLocation, bg); // clear the entire button face
+    
+  if((szText != 0) && (szText[0] != '\0'))
+  {
+    int16_t dx = rLocation.width() - m_lcd.measureTextWidth(szText);
+    int16_t dy = rLocation.height() - m_lcd.measureTextHeight(szText);
+    
+    RECT rFill = rLocation;
+    switch(ha) {
+      case haLeft:
+        rFill.right = rFill.left;
+        break;
+      case haCenter:
+        rFill.right = rFill.left + (dx/2);
+        break;
+      case haRight:
+        rFill.right = rFill.left + dx;
+        break;
+    }
+    if((!bEraseBkgnd) && (ha != haLeft))
+      fillRect(rFill, bg);
+    
+    rFill.left = rFill.right;
+    rFill.right += m_lcd.measureTextWidth(szText);
+    switch(va) {
+      case vaTop:
+        setCursor(rFill.left, rFill.top);
+        print(szText);
+        rFill.top = rFill.bottom - dy;
+        //fillRect(rFill, bg);
+        break;
+      case vaCenter:
+        rFill.bottom = rFill.top + (dy/2);
+        fillRect(rFill, bg);              
+        setCursor(rFill.left, rFill.bottom);
+        print(szText);
+        rFill.bottom = rLocation.bottom;
+        rFill.top = rFill.bottom - (dy/2);
+        //fillRect(rFill, bg);        
+        break;
+      case vaBottom:
+        rFill.bottom = rFill.top + dy;
+        //fillRect(rFill, bg);
+        setCursor(rFill.left, rFill.bottom);
+        print(szText);
+        break;
+    }    
+    
+    rFill = rLocation;
+    switch(ha) {
+      case haLeft:
+        rFill.left = rFill.right - dx;
+        break;
+      case haCenter:
+        rFill.left = rFill.right - (dx/2);
+        break;
+      case haRight:
+        rFill.left = rFill.right;
+        break;
+    }
+    if((!bEraseBkgnd) && (ha != haRight))
+      fillRect(rFill, bg); // clear the entire button face
+  }
+  setClipRect(rOldClip);
+  if(pOldFont != 0)
+    setFont(*pOldFont);
 }
 
 

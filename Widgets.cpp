@@ -1,27 +1,12 @@
 #include "Panner.h"
 #include "BatteryMonitor.h"
 #include <font_LiberationSans.h>
-#include <font_AwesomeF000.h>
-#include <font_AwesomeF100.h>
-#include <font_AwesomeF200.h>
+//#include <font_AwesomeF000.h>
+#include <font_AwesomeF080.h>
+//#include <font_AwesomeF100.h>
+//#include <font_AwesomeF200.h>
 
-/**
- *  RECT Class Implementation
- */
-#ifdef DEBUG
-void RECT::DUMP(const char *szText /* = 0*/) 
-{
-  if(szText != 0) {
-    DEBUG_PRINT(szText);
-  }
-  DEBUG_PRINT(" RECT@"); DEBUG_PRINTDEC((int)this); 
-  DEBUG_PRINT(" left="); DEBUG_PRINTDEC((int)left);
-  DEBUG_PRINT(" top="); DEBUG_PRINTDEC((int)top);
-  DEBUG_PRINT(" right="); DEBUG_PRINTDEC((int)right);
-  DEBUG_PRINT(" bottom="); DEBUG_PRINTDEC((int)bottom);
-  DEBUG_PRINTLN("");  
-}
-#endif
+
 /**
  *  Widget Class Implementation
  */
@@ -34,6 +19,7 @@ void Widget::draw()
 
 void Widget::setPosition(int16_t left, int16_t top, int16_t right, int16_t bottom) 
 {
+  //if((left == m_position.left) && (m_position.top == top) && (m_position.right == right) && (m_position.bottom == bottom)) return;
   m_position.left = left;
   m_position.top = top;
   m_position.right = right;
@@ -62,70 +48,6 @@ void Widget::onPosition()
   m_rectClient = m_position;
 }
  
-/**
- *  print text left-aligned in the client area
- */
-void Widget::printTextLeft(const char *szText, uint16_t y, const ILI9341_t3_font_t *pFont/* = 0 */)
-{
-  //DEBUG_PRINT("Widget::printTextLeft(");DEBUG_PRINT(szText);DEBUG_PRINTLN(")");
-  //DUMP("Widget::printTextLeft");
-  
-  const ILI9341_t3_font_t *pOldFont = 0;
-  if(pFont != 0) {
-    pOldFont = m_lcd.getFont();
-    m_lcd.setFont(*pFont);
-  }
-  int16_t x = m_rectClient.left;
-  //DEBUG_PRINT("x=");DEBUG_PRINTDEC(x);DEBUG_PRINTLN("");
-  m_lcd.setCursor(x, y);
-  m_lcd.print(szText);
-  x += m_lcd.measureTextWidth(szText);
-  //DEBUG_PRINT("x=");DEBUG_PRINTDEC(x);DEBUG_PRINTLN("");
-  if(x < m_rectClient.right)
-  {
-    RECT rFill;
-    rFill.top = y;
-    rFill.bottom = y + m_lcd.fontLineSpace();
-    rFill.left = x;
-    rFill.right = m_rectClient.right;
-    m_lcd.fillRect(rFill, ILI9341_BLACK);
-  }
-  if(pOldFont != 0)
-    m_lcd.setFont(*pOldFont);  
-}
-/**
- *  print text centered in the client area using current font
- */
-void Widget::printTextCenter(const char *szText, uint16_t y, const ILI9341_t3_font_t *pFont /* = 0*/, int16_t *pDY /*= 0*/)
-{
-  const ILI9341_t3_font_t *pOldFont = 0;
-  if(pFont != 0) {
-    pOldFont = m_lcd.getFont();
-    m_lcd.setFont(*pFont);
-  }
-  RECT rFill;
-  rFill.left = m_rectClient.left;
-  rFill.top = y;
-  rFill.bottom = y + m_lcd.fontLineSpace();
-  int16_t tw = m_lcd.measureTextWidth(szText);
-  int16_t x1 = m_rectClient.left + (m_rectClient.width() - tw)/2;
-  rFill.right = x1;  
-  m_lcd.fillRect(rFill, ILI9341_BLACK);
-  m_lcd.setCursor(x1, y);
-  m_lcd.print(szText);
-  x1 += tw;
-  if(x1 < m_rectClient.right)
-  {
-    rFill.left = x1;
-    rFill.right = m_rectClient.right;
-    m_lcd.fillRect(rFill, ILI9341_BLACK);
-  }
-  if(pDY != 0)
-    *pDY = rFill.height();    
-  if(pOldFont != 0)
-    m_lcd.setFont(*pOldFont);  
-}
-
 static const char szSeparator[] = ": ";
 
 /**
@@ -136,22 +58,21 @@ static const char szSeparator[] = ": ";
  */
 void Widget::printKeyVal(uint16_t x, uint16_t y, const char *szKey1, long lVal1, bool bSelected, const char *szKey2, long lVal2)
 {
-  char szText[80];
-  uint16_t w = m_lcd.measureTextWidth(szKey1);       // key width
-  RECT rFill;
-  rFill.top = rFill.bottom = y;
-  rFill.bottom += m_lcd.fontLineSpace();
-  rFill.left = m_rectClient.left;
-  rFill.right = x - w;
-  m_lcd.fillRect(rFill, ILI9341_BLACK);              // wipe space between rClient.left and key1
-  m_lcd.setTextColor(ILI9341_DARKGREY, ILI9341_BLACK);
-  m_lcd.setCursor(rFill.right, y);
-  m_lcd.print(szKey1);                               // print key1
+  RECT rLocation;
+  rLocation.left = m_rectClient.left;
+  rLocation.right = x;
+  rLocation.top = y;
+  rLocation.bottom = 0;
+  //rLocation.DUMP("Widget::printKeyVal rLocation");
+  
+  m_lcd.printText(szKey1, ILI9341_DARKGREY, ILI9341_BLACK, rLocation, Display::haRight, Display::vaTop);
   m_lcd.setCursor(x, y);
   m_lcd.print(szSeparator);
-  x += m_lcd.measureTextWidth(szSeparator);  
+  x += m_lcd.measureTextWidth(szSeparator);
+  
   m_lcd.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
   m_lcd.setCursor(x, y);
+  char szText[80];
   sprintf(szText, "%ld", lVal1);                     // print val1
   m_lcd.print(szText);
   if(bSelected) {
@@ -166,14 +87,11 @@ void Widget::printKeyVal(uint16_t x, uint16_t y, const char *szKey1, long lVal1,
   x += m_lcd.measureTextWidth(szText);
   if(szKey2 != 0)
   {
-    rFill.left = x;
-    x = (m_lcd.width() / 4) * 3;                       // position of second ':'
-    w = m_lcd.measureTextWidth(szKey2);
-    rFill.right = x - w;
-    m_lcd.fillRect(rFill, ILI9341_BLACK);              // wipe space between val1 and key2
-    m_lcd.setTextColor(ILI9341_DARKGREY, ILI9341_BLACK);
-    m_lcd.setCursor(rFill.right, y);
-    m_lcd.print(szKey2);                               // print key2
+    rLocation.left = x;
+    x = rLocation.right = (m_rectClient.width() / 4) * 3;         // position of second ':'
+    //rLocation.top = y;
+    //rLocation.bottom = 0;
+    m_lcd.printText(szKey2, ILI9341_DARKGREY, ILI9341_BLACK, rLocation, Display::haRight, Display::vaTop);
     m_lcd.setCursor(x, y);
     m_lcd.print(szSeparator);
     x += m_lcd.measureTextWidth(szSeparator);  
@@ -185,9 +103,9 @@ void Widget::printKeyVal(uint16_t x, uint16_t y, const char *szKey1, long lVal1,
   }
   if(x < m_rectClient.right)
   {
-    rFill.left = x;
-    rFill.right = m_rectClient.right;
-    m_lcd.fillRect(rFill, ILI9341_BLACK);
+    rLocation.left = x;
+    rLocation.right = m_rectClient.right;
+    m_lcd.fillRect(rLocation, ILI9341_BLACK);
   }
 }
 
@@ -195,14 +113,14 @@ void Widget::printKeyVal(uint16_t x, uint16_t y, const char *szKey1, long lVal1,
 /**
  *  TextWidget Class Implementation
  */
-void TextWidget::draw()
+/*void TextWidget::draw()
 {
   DEBUG_PRINT("TextWidget::draw: "); DEBUG_PRINTLN(m_strText.c_str());
   m_position.DUMP("TextWidget m_position: ");
   m_rectClient.DUMP("TextWidget m_rectClient: ");
 
   printTextCenter(m_strText.c_str(), 0, m_pFont, 0);
-}
+}*/
 
 /**
  *  ListWidget Class Implementation
@@ -213,16 +131,21 @@ ListWidget::ListWidget(uint16_t selectionMode, const ILI9341_t3_font_t *pFont /*
 {
   hasBorder(true);
 }
+
+void ListWidget::push_back(const char str[])
+{
+  m_items.push_back(str);
+}
  
 /** 
  *  m_position was just changed.  Default implementation updates m_rectClient
  */
 void ListWidget::onPosition()
 {
-  DEBUG_PRINTLN("ListWidget::onPosition()");
-  m_rectClient = m_position;
+  Widget::onPosition(); // m_rectClient = m_position;
   if(hasBorder())
     m_rectClient.deflate();
+  //DUMP("ListWidget::onPosition()");
 }
 
 /**
@@ -230,42 +153,61 @@ void ListWidget::onPosition()
  */
 void ListWidget::draw()
 {
-  //DEBUG_PRINTLN("ListWidget::draw()");
-  //m_position.DUMP("ListWidget m_position: ");
-  //m_rectClient.DUMP("ListWidget m_rectClient: ");
+  //DUMP("ListWidget::draw()");
   if(hasBorder())
     m_lcd.drawRect(m_position.left, m_position.top, m_position.width(), m_position.height(), ILI9341_DARKGREY);
   
-  RECT rectOldClip;
-  m_lcd.getClipRect(rectOldClip);
-  m_lcd.setClipRect(m_rectClient);
+  RECT rectOldClip = m_lcd.getClipRect();  
+  //rectOldClip.DUMP("rectOldClip");  
+  RECT rClip = rectOldClip.intersect(m_rectClient);
+  m_lcd.setClipRect(rClip);
+  //rClip.DUMP("rClip");
 
-  //int16_t x = m_rectClient.left;
-  int16_t y = m_rectClient.top;
-  int16_t iSel = getCurSel();
-  m_iFirstDisplayed = sanitize((m_selectionMode != smNoSelection) ? (iSel - 1) : m_iFirstDisplayed);
-  if(m_iFirstDisplayed > 0)
-  {
-    int16_t dY = 0;
-    printTextCenter("\x06", y, &AwesomeF100_14, &dY);
-    y += dY;
-  }
   //
   if(m_pFont != 0)
     m_lcd.setFont(*m_pFont);
   int16_t iFontLineSpace = m_lcd.fontLineSpace();
+  int16_t yBot = m_rectClient.bottom - max(iFontLineSpace, AwesomeF080_14.line_space);
+  //DEBUG_PRINT("yBot="); DEBUG_PRINTDEC(yBot); DEBUG_PRINTLN();
+  //DEBUG_PRINT("iFontLineSpace="); DEBUG_PRINTDEC(iFontLineSpace); DEBUG_PRINTLN();
+  //DEBUG_PRINT("AwesomeF080_14.line_space="); DEBUG_PRINTDEC(AwesomeF080_14.line_space); DEBUG_PRINTLN();
+
+  RECT rLoc = m_rectClient;
+  int16_t y = m_rectClient.top;
+  //DEBUG_PRINT("y="); DEBUG_PRINTDEC(y); DEBUG_PRINTLN();  
+  if(m_selectionMode != smNoSelection)
+  {
+    int16_t iItemsDisplayed = (m_rectClient.height() / (iFontLineSpace + 2)) -2;
+    if(iItemsDisplayed <= m_iCurSel)
+      m_iFirstDisplayed = 0;   
+    m_iFirstDisplayed = sanitize(m_iCurSel - iItemsDisplayed);
+  }
+  if(m_iFirstDisplayed > 0)
+  {
+    y += AwesomeF080_14.line_space;
+    rLoc.bottom = y;
+    m_lcd.printText("\x58", m_lcd.getTextColor(), ILI9341_BLACK, rLoc, Display::haCenter, Display::vaCenter, &AwesomeF080_14, false);  /* /\ */
+  }
+  
   for(size_t i = m_iFirstDisplayed; i < m_items.size(); i++)
   {
-    if(y + iFontLineSpace > m_rectClient.bottom)
+    if(y >= yBot)
     {
-      int16_t dY = 0;
-      printTextCenter("\x07", y, &AwesomeF100_14, &dY);
-      y += dY;
+      rLoc.top = y;
+      y += AwesomeF080_14.line_space;
+      rLoc.bottom = y;
+      m_lcd.printText("\x57", m_lcd.getTextColor(), ILI9341_BLACK, rLoc, Display::haCenter, Display::vaCenter, &AwesomeF080_14, false);  /* \/ */
       break;
     }
-    drawItem(i, y);
-    y += iFontLineSpace;
+    //y++;
+    rLoc.top = y;
+    y += iFontLineSpace + 2;
+    rLoc.bottom = y;
+    drawItem(i, rLoc);
+    
+    //DEBUG_PRINT("y="); DEBUG_PRINTDEC(y); DEBUG_PRINTLN();
   }
+  //DEBUG_PRINT("Finally: y="); DEBUG_PRINTDEC(y); DEBUG_PRINTLN();
   if(y < m_rectClient.bottom)
   {
     RECT rFill;
@@ -278,11 +220,11 @@ void ListWidget::draw()
   m_lcd.setClipRect(rectOldClip);
 }
 
-void ListWidget::drawItem(size_t i, int16_t y)
+void ListWidget::drawItem(size_t iItem, RECT &rLoc)
 {
-  printTextLeft(m_items[i].c_str(), y);
-  if(i == (size_t)getCurSel())
-    m_lcd.drawRect(m_rectClient.left, y, m_rectClient.width(), m_lcd.fontLineSpace(), ILI9341_DARKGREY);
+  m_lcd.printText(m_items[iItem].c_str(), m_lcd.getTextColor(), ILI9341_BLACK, rLoc, Display::haLeft, Display::vaCenter, 0, false);
+  if(iItem == (size_t)m_iCurSel)
+    m_lcd.drawRect(rLoc.left, rLoc.top, rLoc.width(), rLoc.height(), ILI9341_DARKGREY);
 }
 
 int16_t ListWidget::sanitize(int16_t iSel)
@@ -294,6 +236,9 @@ int16_t ListWidget::sanitize(int16_t iSel)
   return iSel;  
 }
 
+/**
+ * AdvanceSelection in the list of text items - simple!
+ */
 int16_t ListWidget::advanceSelection(int16_t iAdv /*= 1*/)
 {
   if(m_selectionMode != smSingleSelection)
@@ -307,31 +252,123 @@ void ListWidget::scroll(int16_t iAdv /*= 1*/)
   m_iFirstDisplayed = sanitize(m_iFirstDisplayed + iAdv);
 }
 
+#ifdef DEBUG
+void ListWidget::DUMP(const char *szText /*= 0*/)
+{
+  if(szText != 0) {
+    DEBUG_PRINT(szText);
+  }
+  DEBUG_PRINT(" ListWidget@"); DEBUG_PRINTDEC((int)this); DEBUG_PRINT(" m_selectionMode="); DEBUG_PRINTDEC((int)m_selectionMode); 
+  DEBUG_PRINT(" m_iCurSel="); DEBUG_PRINTDEC((int)m_iCurSel);  DEBUG_PRINT(" m_iFirstDisplayed="); DEBUG_PRINTDEC((int)m_iFirstDisplayed); 
+  
+  m_position.DUMP(" m_position: ");
+  m_rectClient.DUMP("m_rectClient: ");  
+  
+}
+#endif
+
 /**
- *  Small drop down list.  
- *  When not dropped shows just a single item with an arrow down
+ *  ListSpinnerWidget
  */
 
-/** */
-/*void DropDownListWidget::draw()
+/**
+ * AdvanceSelection in the list of text strings or number spinner!
+ */
+int16_t ListSpinnerWidget::advanceSelection(int16_t iAdv /*= 1*/)
 {
-  
-}*/
+  if(m_selectionMode == smMultiSelection)
+  {
+    // this is a number spinner!!
+    m_iCurSel += iAdv;  // uninhibited advance!
+    return 0;
+  }
+  if(m_selectionMode == smNoSelection)
+  {
+    // this is a null spinner!!
+    return LB_ERR;
+  }
+  return ListWidget::advanceSelection(iAdv);
+}
 
 /** 
- * In the closed state the height is determined by the Widget font and can not be changed.
- * RECT m_position and RECT m_rectClient are for closed state only;
+ *  Draw any of ListSpinnerWidget or NumberSpinnerWidget or NullSpinnerWidget
  */
-/*void DropDownListWidget::onPosition()
+void ListSpinnerWidget::draw()
 {
-  
-}*/
-
-
+  //DUMP("ListSpinnerWidget::draw()");
+  //
+  // first - non-client area
+  //
+  const char *szArrow = 0; // nothing by default
+  if(hasFocus())
+  {
+    // draw up/down arrows! if we have focus only.
+    szArrow = "\x5C"; // up/down
+    if(m_selectionMode == smSingleSelection)
+    {
+      if(m_iCurSel == 0)
+        szArrow =  "\x5E"; // down only
+      else if((m_iCurSel + 1) == (int16_t)m_items.size())
+        szArrow = "\x5D";  // up only
+    }
+  }
+  RECT rLocation = m_position;
+  rLocation.left = m_rectClient.right;
+  //m_lcd.drawRect(rLocation.left, rLocation.top, rLocation.width(), rLocation.height(), ILI9341_WHITE);
+  m_lcd.printText(szArrow, ILI9341_WHITE, ILI9341_BLACK, rLocation, Display::haLeft, Display::vaCenter, &AwesomeF080_12);
+  if(hasBorder())
+    m_lcd.drawRect(m_position.left, m_position.top, m_position.width(), m_position.height(), ILI9341_DARKGREY);
+  //
+  // now client area
+  //  
+  RECT rectOldClip = m_lcd.getClipRect();  
+  RECT rClip = rectOldClip.intersect(m_rectClient);
+  m_lcd.setClipRect(rClip);  
+  if(m_pFont != 0)
+    m_lcd.setFont(*m_pFont);
+  if(m_selectionMode == smMultiSelection)
+  {
+    // this is a number spinner!!
+    char szText[80];
+    sprintf(szText, "%d", m_iCurSel);
+    m_lcd.printText(szText, ILI9341_WHITE, ILI9341_BLACK, m_rectClient, Display::haLeft, Display::vaCenter);
+  }
+  else if (m_selectionMode == smNoSelection)
+  {
+    // this is a null spinner!!
+    ;
+  }
+  else
+  {
+    // text list spinner
+    m_lcd.printText(
+      ((0 <= m_iCurSel) && (m_iCurSel < (int16_t)m_items.size())) ? m_items[m_iCurSel].c_str() : 0, 
+      ILI9341_WHITE, ILI9341_BLACK, m_rectClient, Display::haLeft, Display::vaCenter);
+  }
+    
+  m_lcd.setClipRect(rectOldClip);
+}
 
 /** 
- * KeyValueListWidget Class Implementation
+ * The height is determined by the Widget font and can not be changed.
  */
+void ListSpinnerWidget::onPosition()
+{
+  // adjust m_position to just one line of text high
+  int16_t h = (m_pFont != 0) ? m_pFont->line_space : m_lcd.fontLineSpace();
+  if(hasBorder())
+    h += 2;
+  int16_t bot = m_position.top + h;
+  if(bot < m_position.bottom)
+    m_position.bottom = bot;
+  // do the default behaviour - m_rectClient = m_position;
+  ListWidget::onPosition();
+  m_rectClient.right -= 16; // space for the spinner arrow(s)
+  if(m_rectClient.right < m_rectClient.left)
+    m_rectClient.right = m_rectClient.left;
+  //DUMP("ListSpinnerWidget::onPosition()");
+}
+
 
 /** 
  * reset content 
@@ -343,55 +380,57 @@ void KeyValueListWidget::clear()
 }
 
 /** 
- * add a Key/Value pair to the KeyValueListWidget 
+ * add a Key to the KeyValueListWidget 
  */
-void KeyValueListWidget::push_back(std::string key, long val)
+void KeyValueListWidget::push_back(const char key[])
 {
-  m_items.push_back(key);    
-  m_values[key] = val;
+  m_items.push_back(key);
+  NullSpinnerWidget w;
+  m_values.push_back(w);
 }
 
 /** 
- * get the value of the currently selected key 
+ * add a Key/NumValue pair to the KeyValueListWidget 
  */
-long KeyValueListWidget::getCurValue() 
+void KeyValueListWidget::push_back(const char key[], int16_t val)
 {
-  if((m_iCurSel < 0) || (m_iCurSel >= (int16_t)m_items.size()))
-    return LB_ERR;
-  std::string key = m_items[m_iCurSel];
-  if(m_values.count(key) == 0)
-    return LB_ERR;
-  return m_values[key];
+  m_items.push_back(key);
+  NumberSpinnerWidget w(val);
+  m_values.push_back(w);
 }
 
 /** 
- * set the value of the currently selected key.  Return LB_ERR in case of error 
+ * add a Key/ListValue pair to the KeyValueListWidget 
  */
-int16_t KeyValueListWidget::setCurValue(long lVal)
+void KeyValueListWidget::push_back(const char key[], ListSpinnerWidget &val)
 {
-  if((m_iCurSel < 0) || (m_iCurSel >= (int16_t)m_items.size()))
-    return LB_ERR;
-  std::string key = m_items[m_iCurSel];
-  if(m_values.count(key) == 0)
-    return LB_ERR;
-  m_values[key] = lVal;
-  return 0;
+  m_items.push_back(key);
+  m_values.push_back(val);
 }
 
-void KeyValueListWidget::KeyValueListWidget::drawItem(size_t i, int16_t y)
+void KeyValueListWidget::drawItem(size_t i, RECT &rLoc)
 {
   i = (size_t)sanitize((int16_t)i);
-  std::string key = m_items[i];
-  if(m_values.count(key) == 0)
-    ListWidget::drawItem(i, y);
-  else
-    drawItem(key, m_values[key], y, (i == (size_t)getCurSel()));
-}
-
-void KeyValueListWidget::drawItem(std::string &key, long lVal, int16_t y, bool bSelected)
-{
+  if(m_values[i].getSelectionMode() == smNoSelection)
+  {
+    // the only reason NullSpinnerWidget exists
+    ListWidget::drawItem(i, rLoc);
+    return;
+  }
   uint16_t x = (2 * m_rectClient.width()) / 3;             // position of the ':'
-  printKeyVal(x, y, key.c_str(), lVal, bSelected);
+
+  RECT rLocation = rLoc;
+  rLocation.right = x;
+  m_lcd.printText(m_items[i].c_str(), ILI9341_DARKGREY, ILI9341_BLACK, rLocation, Display::haRight, Display::vaCenter);
+
+  rLocation.left = rLocation.right;
+  rLocation.right += m_lcd.measureTextWidth(szSeparator);
+  m_lcd.printText(szSeparator, ILI9341_DARKGREY, ILI9341_BLACK, rLocation, Display::haLeft, Display::vaCenter); 
+  rLocation.left = rLocation.right;
+  rLocation.right = m_rectClient.right;
+  m_values[i].setPosition(rLocation);
+  m_values[i].hasFocus(i == (size_t)getCurSel());
+  m_values[i].draw();
 }
 
 /**
@@ -403,12 +442,42 @@ int16_t KeyValueListWidget::advanceSelection(int16_t iAdv /*= 1*/)
     return LB_ERR;
   for(int16_t iSel = m_iCurSel + iAdv; (0 <= iSel) && (iSel < (int16_t)m_items.size()) ; (iAdv > 0) ? iSel++ : iSel--)
   {
-    std::string key = m_items[iSel];
-    if(m_values.count(key) == 0)
-      continue;
+    //if(m_values[iSel].getSelectionMode() == smNoSelection) continue;
     setCurSel(iSel);
     return 0;
   }
   return LB_ERR;
 }
+
+/** 
+ * get the value of the currently selected key 
+ */
+ListSpinnerWidget *KeyValueListWidget::getCurValue()
+{
+  if((m_iCurSel < 0) || (m_iCurSel >= (int16_t)m_values.size()))
+    return 0;
+  return &m_values[m_iCurSel];
+}
+
+/** 
+ * get the value of the given key
+ */
+ListSpinnerWidget *KeyValueListWidget::getValue(const char key[])
+{
+  for(size_t i = 0; i < m_items.size(); i++)  
+    if(m_items[i].compare(key) == 0)
+      return &m_values[i];
+  return 0;
+}
+/** 
+ * get the value of the given key
+ */
+int16_t KeyValueListWidget::getNumericValue(const char key[])
+{
+  ListSpinnerWidget *p = getValue(key);
+  if((p == 0) || (p->getSelectionMode() != smMultiSelection))
+    return LB_ERR;
+  return p->getCurSel();
+}
+
 

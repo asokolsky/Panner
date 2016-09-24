@@ -11,49 +11,32 @@ CommandInterpreterChannel::CommandInterpreterChannel(uint8_t pinStep, uint8_t pi
 }
 
 void CommandInterpreterChannel::beginCommands() {
-  m_cSpeed = 0;
+  //m_cSpeed = 0;
   m_ulNext = 0;
 }
 
-void CommandInterpreterChannel::beginCommand(Command *p, unsigned long now) {
-  schar_t channel = p->m_channel; 
-  schar_t command = p->m_command;
-  m_cSpeed = p->m_speed;
-  unsigned long ulDuration = p->m_uDuration; 
-  
-  m_ulNext = now + ulDuration;
-
-  switch(command)
+void CommandInterpreterChannel::beginCommand(Command *p, unsigned long now) 
+{
+  //schar_t channel = p->m_channel; 
+  //schar_t command = p->m_command;
+  p->DUMP("CommandInterpreterChannel::beginCommand");
+  switch(p->m_command)
   {
     case cmdGo:
-      DEBUG_PRINT("CommandInterpreterChannel::beginCommand channel=");
-      DEBUG_PRINTDEC(channel);
-      DEBUG_PRINT(" command=cmdGo m_cSpeed=");
-      DEBUG_PRINTDEC(m_cSpeed);
-      DEBUG_PRINT(" p->m_lPosition=");
-      DEBUG_PRINTDEC(p->m_lPosition);
-      DEBUG_PRINTLN("");
       m_motor.move(p->m_lPosition);
       break;
     case cmdGoTo:
-      DEBUG_PRINT("CommandInterpreterChannel::beginCommand channel=");
-      DEBUG_PRINTDEC(channel);
-      DEBUG_PRINT(" command=cmdGoTo m_cSpeed=");
-      DEBUG_PRINTDEC(m_cSpeed);
-      DEBUG_PRINT(" p->m_lPosition=");
-      DEBUG_PRINTDEC(p->m_lPosition);
-      DEBUG_PRINTLN("");
       m_motor.moveTo(p->m_lPosition);
       break;
-    default:
+    case cmdSetMaxSpeed:
+      m_motor.setMaxSpeed((float)p->m_uValue);
+      break;    
+    case cmdSetAcceleration:
+      m_motor.setAcceleration((float)p->m_uValue);
+      break;
+    
+    //default:
       // melting core now!
-      DEBUG_PRINT("CommandInterpreterChannel::beginCommand channel=");
-      DEBUG_PRINTDEC(channel);
-      DEBUG_PRINT(" command=");
-      DEBUG_PRINTDEC(command);
-      DEBUG_PRINT(" m_cSpeed=");
-      DEBUG_PRINTDEC(m_cSpeed);
-      DEBUG_PRINTLN("");
   }
 }
 
@@ -63,7 +46,7 @@ boolean CommandInterpreterChannel::endCommand() {
   // work with hardware here
   //m_motor.stop();
 
-  m_cSpeed = 0;
+  //m_cSpeed = 0;
   m_ulNext = 0;
   return true;
 }
@@ -113,7 +96,7 @@ boolean CommandInterpreterChannel::isReadyToEndCommand(unsigned long now)
   return bRes;
 }
 
-void CommandInterpreterChannel::adjustCommandDuration(schar_t iSecs) {
+/*void CommandInterpreterChannel::adjustCommandDuration(schar_t iSecs) {
   DEBUG_PRINT("CommandInterpreterChannel::adjustCommandDuration iSecs=");
   DEBUG_PRINTDEC(iSecs);
   DEBUG_PRINT(", m_ulNext=");
@@ -132,13 +115,14 @@ void CommandInterpreterChannel::adjustCommandDuration(schar_t iSecs) {
   DEBUG_PRINT("m_ulNext=");
   DEBUG_PRINTDEC(m_ulNext);
   DEBUG_PRINTLN("");
-}
+}*/
 
-static char sanitizeSpeed(schar_t cSpeed) {
+/*static char sanitizeSpeed(schar_t cSpeed) {
   return constrain(cSpeed, -100, 100);
-}
+}*/
 
-void CommandInterpreterChannel::adjustCommandSpeed(schar_t cSpeedAdjustment) {
+/*void CommandInterpreterChannel::adjustCommandSpeed(schar_t cSpeedAdjustment) 
+{
   DEBUG_PRINT("CommandInterpreterChannel::adjustCommandSpeed cSpeedAdjustment=");
   DEBUG_PRINTDEC(cSpeedAdjustment);
   DEBUG_PRINTLN("");
@@ -159,7 +143,7 @@ void CommandInterpreterChannel::adjustCommandSpeed(schar_t cSpeedAdjustment) {
        
   m_cSpeed = cSpeed;
   //doSpeedStep(now);
-}
+}*/
 
 
 void CommandInterpreterChannel::tick(unsigned long now) {

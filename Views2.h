@@ -16,10 +16,11 @@ public:
   SettingsView();
   
   /** analog keyboard APIs where vk is one of VK_xxx */
-  //void onKeyDown(uint8_t vk);
+  //bool onKeyDown(uint8_t vk);
+  bool onKeyAutoRepeat(uint8_t vk);
   /** Long press on central click pops up a Reset confirmation dialog */
-  void onLongKeyDown(uint8_t vk);
-  void onKeyUp(uint8_t vk);
+  bool onLongKeyDown(uint8_t vk);
+  bool onKeyUp(uint8_t vk);
 
   /** also handles WaypointDefinitionDialog results */
   void onActivate(View *pPrevActive);
@@ -35,7 +36,7 @@ public:
   /**
    * to scroll though waypoint list
    */
-  void onKeyUp(uint8_t vk);
+  bool onKeyUp(uint8_t vk);
   /**
    * to arrange and fill widgets
    */
@@ -59,11 +60,11 @@ public:
   
   /** analog keyboard APIs where vk is one of VK_xxx */
   /** start panning */
-  void onKeyDown(uint8_t vk);
+  bool onKeyDown(uint8_t vk);
   /** start faster panning */
-  void onLongKeyDown(uint8_t vk);
+  bool onLongKeyDown(uint8_t vk);
   /** stop panning */
-  void onKeyUp(uint8_t vk);
+  bool onKeyUp(uint8_t vk);
 
   /** repaint client area */
   void updateClient(unsigned long now);
@@ -76,19 +77,25 @@ public:
   void onActivate(View *pPrevActive);
 };
 
+/**
+ * Waypoints view class
+ * Show the waypoints defined in the Control View
+ * Go to the selected waypoint.
+ * Delete one by long press of middle key
+ */
 class WaypointsView : public View
 {
-  //std::string m_msg;
   ListWidget m_wpoints;
+  //ListSpinnerWidget m_wpoints;
   MessageBox m_deleteConfirmation;
   
 public:  
   WaypointsView();
   
   /** analog keyboard APIs where vk is one of VK_xxx */
-  void onKeyDown(uint8_t vk);
-  void onLongKeyDown(uint8_t vk);
-  void onKeyUp(uint8_t vk);
+  bool onKeyDown(uint8_t vk);
+  bool onLongKeyDown(uint8_t vk);
+  bool onKeyUp(uint8_t vk);
 
   /**
    * redraw the view
@@ -103,17 +110,19 @@ public:
 
 class EditView : public View
 {
-  ListWidget m_steps;
+  KeyValueListWidget m_steps;
   
 public:  
   EditView();
   
   /** analog keyboard APIs where vk is one of VK_xxx */
-  //void onKeyDown(uint8_t vk);
-  void onKeyUp(uint8_t vk);
-  void onLongKeyDown(uint8_t vk);
+  //bool onKeyDown(uint8_t vk);
+  bool onKeyUp(uint8_t vk);
+  bool onLongKeyDown(uint8_t vk);
 
   void onActivate(View *pPrevActive);
+private:
+  void populate(KeyValueListWidget &steps, Command *pCmds);
 };
 
 
@@ -125,7 +134,7 @@ public:
   RunView();
 
   /** analog keyboard APIs where vk is one of VK_xxx */
-  void onKeyUp(uint8_t vk);
+  bool onKeyUp(uint8_t vk);
 
   void updateClient(unsigned long now);
 
@@ -143,7 +152,7 @@ public:
   PausedRunView();
 
   /** analog keyboard APIs where vk is one of VK_xxx */
-  void onKeyUp(uint8_t vk);
+  bool onKeyUp(uint8_t vk);
 
   void updateClient(unsigned long now);
 
@@ -158,7 +167,7 @@ public:
   AboutView();
 
   /** analog keyboard APIs where vk is one of VK_xxx */
-  void onKeyUp(uint8_t vk);
+  bool onKeyUp(uint8_t vk);
   void onActivate(View *pPrevActive);
 };
 

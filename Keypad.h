@@ -31,28 +31,34 @@ const uint8_t VK_SOFTB = 7;
  */
 class Keypad 
 {
-  /** delay in ms before the long key is fired */
-  static const int s_iLongKeyDelay = 2000;
   /** delay in ms to debounce */
   static const int s_iDebounceDelay = 50;
+  /** delay in ms to autorepeat */
+  static const int s_iAutoRepeatDelay = 200;
+  /** delay in ms before the long key is fired */
+  static const int s_iLongKeyDelay = 2000;
 
 public:
   /** keypad is connected to this analog input pin */
   Keypad(uint8_t bPin);
 
   /**
-   *  call this from the main loop passing to it the result of millis();
+   *  Call this from the main loop passing to it the result of millis();
    *  It will call
    *         pView->onKeyDown(uint8_t vk);
-   *         pView->onKeyUp(uint8_t vk);
+   *         pView->onKeyAutoRepeat(uint8_t vk);
    *         pView->onLongKeyDown(uint8_t vk);
+   *         pView->onKeyUp(uint8_t vk);
+   *  Returns: true if key wasdispatched and processed (then screen redraw is needed!), false otherwise.
    */
   bool getAndDispatchKey(unsigned long now);
 
-private:
+protected:
   uint8_t m_bPin;
   /** when to fire long key */
   unsigned long m_ulToFireLongKey = 0;
+  /** when to fire key auto repeat */
+  unsigned long m_ulToFireAutoRepeat = 0;
   /** when bouncing subsides */
   unsigned long m_ulBounceSubsided = 0;
   /** get one of VK_xxx */

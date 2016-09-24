@@ -2,6 +2,7 @@
 #include "BatteryMonitor.h"
 #include <font_LiberationSans.h>
 #include <font_AwesomeF000.h>
+#include <font_AwesomeF080.h>
 #include <font_AwesomeF100.h>
 #include <font_AwesomeF200.h>
 
@@ -26,11 +27,44 @@ PausedRunView g_pausedRunView;
 AboutView g_aboutView;
 
 /**
+ * Globals: commands to run at startup
+ */
+static Command cmds[] = 
+{
+  {chPan,     cmdSetMaxSpeed, 50},
+  {chPan,     cmdSetAcceleration, 10},
+  {chControl, cmdControlBeginLoop, 0},
+    {chPan,     cmdGoToWaypoint, 1},                 // go right
+    {chControl, cmdControlWaitForCompletion,  50000},  // wait for the movement to be completed for 50 sec
+    {chControl, cmdControlRest,  10000},  // rest for 10 sec
+    {chPan,     cmdGoToWaypoint, 2},                // go left
+    {chControl, cmdControlWaitForCompletion,  50000},  // wait for the movement to be completed for 50 sec
+    {chControl, cmdControlRest,  10000},  // rest for 10 sec
+  {chControl, cmdControlEndLoop, 0},
+  {chControl, cmdControlNone,    0}
+};
+
+static const char szRest[] = "Rest";
+static const char szWaitForCompletion[] = "Wait";
+static const char szBeginLoop[] = "Begin Loop";
+static const char szEndLoop[] = "End Loop";
+static const char szGo[] = "Go";
+static const char szGoTo[] = "GoTo";
+static const char szSetMaxSpeed[] = "Max Speed";
+static const char szSetAcceleration[] = "Acceleration";
+
+static const char szPanSlowSpeed[] = "Pan Slow Speed";
+static const char szPanMaxSpeed[] = "Pan Max Speed";
+static const char szPanAcceleration[] = "Pan Acceleration";
+
+
+/**
  * 
  */
  
 SettingsView::SettingsView() : 
   View("Settings", &AwesomeF000_16, "Z"/* i */,  &AwesomeF000_16, "[\x7D"/* up/down */, 0, szOK),
+  //View("Settings", &AwesomeF000_16, "Z"/* i */,  &AwesomeF080_16, "\x5C", 0, szOK),
   m_resetConfirmation(szConfirmation, MB_OKCANCEL)
 {
   m_settings.hasBorder(false);
@@ -39,56 +73,52 @@ SettingsView::SettingsView() :
 }
   
 /** Long press on central click pops up a Reset confirmation dialog */
-void SettingsView::onLongKeyDown(uint8_t vk)
+bool SettingsView::onLongKeyDown(uint8_t vk)
 {
   if(vk == VK_SEL) {
     DEBUG_PRINTLN("SettingsView::onKeyDown(VK_SEL): reset settings!");
     activate(&m_resetConfirmation);
+    return true;
   }
+  return false;
 }
 
-static const char szPanSlowSpeed[] = "Pan Slow Speed";
-static const char szPanMaxSpeed[] = "Pan Max Speed";
-static const char szPanAcceleration[] = "Pan Acceleration";
+bool SettingsView::onKeyAutoRepeat(uint8_t vk)
+{
+  switch(vk) {
+    case VK_UP: {
+      DEBUG_PRINTLN("SettingsView::onKeyAutoRepeat(VK_UP)");
+      //m_settings.setCurValue(m_settings.getCurValue() + 1);
+      ListSpinnerWidget *p = m_settings.getCurValue();
+      if(p != 0)
+        p->advanceSelection(1);
+      break;
+    }
+    case VK_DOWN: {
+      DEBUG_PRINTLN("SettingsView::onKeyAutoRepeat(VK_DOWN)");
+      //m_settings.setCurValue(m_settings.getCurValue() - 1);
+      ListSpinnerWidget *p = m_settings.getCurValue();
+      if(p != 0)
+        p->advanceSelection(-1);
+      break;
+    }
+    default:
+      return false;
+  }  
+  return true;
+}
 
-void SettingsView::onKeyUp(uint8_t vk)
+bool SettingsView::onKeyUp(uint8_t vk)
 {
   switch(vk) {
     case VK_LEFT:
+      DEBUG_PRINTLN("SettingsView::onKeyUp(VK_LEFT): jump to a prev editable field");
+      m_settings.advanceSelection(-1);
+      break;
     case VK_RIGHT:
-      DEBUG_PRINTLN("SettingsView::onKeyUp(VK_LEFT or VK_RIGHT): stop pan");
+      DEBUG_PRINTLN("SettingsView::onKeyUp(VK_RIGHT or VK_SEL): jump to a next editable field");
+      m_settings.advanceSelection(1);
       break;
-    case VK_UP:
-      DEBUG_PRINTLN("SettingsView::onKeyUp(VK_UP)");
-      m_settings.setCurValue(m_settings.getCurValue() + 1);
-      break;
-    case VK_DOWN:
-      DEBUG_PRINTLN("SettingsView::onKeyUp(VK_DOWN)");
-      m_settings.setCurValue(m_settings.getCurValue() - 1);
-      break;
-    case VK_SOFTA:
-      // switch to About view
-      DEBUG_PRINTLN("SettingsView::onKeyUp(VK_SOFTA): switch to About view");
-      activate(&g_aboutView);
-      break;
-    case VK_SOFTB: {
-      // save settings!
-      std::string key = szPanSlowSpeed;
-      long lVal = m_settings.m_values[key];
-      g_iPannerSlowSpeed = lVal;      
-      g_iPannerFastSpeed = g_iPannerSlowSpeed * 3;
-      //
-      key = szPanMaxSpeed;
-      lVal = m_settings.m_values[key];      
-      g_pPanner->setMaxSpeed(lVal);
-      //
-      key = szPanAcceleration;
-      lVal = m_settings.m_values[key];
-      g_pPanner->setAcceleration(lVal);
-      //    
-      activate((g_pPreviousView == &g_aboutView) ? &g_controlView : g_pPreviousView);
-      break;
-    }
     case VK_SEL:
       DEBUG_PRINTLN("SettingsView::onKeyUp(VK_SEL):");
       // move focus to the next editable item
@@ -97,7 +127,46 @@ void SettingsView::onKeyUp(uint8_t vk)
         m_settings.advanceSelection();
       }
       break;
+      
+    case VK_UP: {
+      DEBUG_PRINTLN("SettingsView::onKeyUp(VK_UP)");
+      //m_settings.setCurValue(m_settings.getCurValue() + 1);
+      ListSpinnerWidget *p = m_settings.getCurValue();
+      if(p != 0)
+        p->advanceSelection(1);
+      break;
+    }
+    case VK_DOWN: {
+      DEBUG_PRINTLN("SettingsView::onKeyUp(VK_DOWN)");
+      //m_settings.setCurValue(m_settings.getCurValue() - 1);
+      ListSpinnerWidget *p = m_settings.getCurValue();
+      if(p != 0)
+        p->advanceSelection(-1);
+      break;
+    }
+    case VK_SOFTA:
+      // switch to About view
+      DEBUG_PRINTLN("SettingsView::onKeyUp(VK_SOFTA): switch to About view");
+      activate(&g_aboutView);
+      break;
+    case VK_SOFTB: {
+      // save settings!
+      g_iPannerSlowSpeed = m_settings.getNumericValue(szPanSlowSpeed);
+      g_iPannerFastSpeed = g_iPannerSlowSpeed * 3;
+      //
+      g_pPanner->setMaxSpeed(m_settings.getNumericValue(szPanMaxSpeed));
+      //
+      g_pPanner->setAcceleration(m_settings.getNumericValue(szPanAcceleration));
+      //    
+      activate(((g_pPreviousView == &g_aboutView) || (g_pPreviousView == &m_resetConfirmation)) ? 
+               &g_controlView : 
+               g_pPreviousView);
+      break;
+    }
+    default:
+      return false;
   }  
+  return true;
 }
 
 /** also handles m_resetConfirmation results */
@@ -119,17 +188,11 @@ void SettingsView::onActivate(View *pPrevActive)
   m_settings.clear();
   // fill m_settings
   {
-    std::string ss;
-    ss = " Direct Control";
-    m_settings.m_items.push_back(ss);
-    ss = szPanSlowSpeed;
-    m_settings.push_back(ss, g_iPannerSlowSpeed);
-    ss = " Runtime";
-    m_settings.m_items.push_back(ss);
-    ss = szPanMaxSpeed;
-    m_settings.push_back(ss, (long)g_pPanner->maxSpeed());
-    ss = szPanAcceleration;
-    m_settings.push_back(ss, (long)g_pPanner->getAcceleration());    
+    m_settings.push_back(" Direct Control");
+    m_settings.push_back(szPanSlowSpeed, g_iPannerSlowSpeed);
+    m_settings.push_back(" Runtime");
+    m_settings.push_back(szPanMaxSpeed, (long)g_pPanner->maxSpeed());
+    m_settings.push_back(szPanAcceleration, (long)g_pPanner->getAcceleration());
     m_settings.setCurSel(1);
   }
 
@@ -151,13 +214,43 @@ WaypointDefinitionDialog::WaypointDefinitionDialog() :
   m_szNavLabel = "\x7D";
 }
 
+/** 
+ * fill m_wpoints from  std::map<std::string, long> g_pPanner->m_wayPoints; 
+ */
+static int16_t fill(ListWidget &list, const std::map<std::string, long> &wayPoints)
+{
+  // clear the listBox
+  list.clear();
+  int16_t i = 0;
+  for(auto const& x : wayPoints)
+  {
+    DEBUG_PRINT("Key="); DEBUG_PRINT(x.first.c_str()); DEBUG_PRINT(" Val="); DEBUG_PRINTDEC(x.second); DEBUG_PRINTLN("");
+    char s[80];
+    sprintf(s, "%s: %li", x.first.c_str(), x.second);
+    list.push_back(s);
+    i++;
+  }
+  return i;
+}
+
+static bool newWaypointLabel(char szLabel[2], const std::map<std::string, long> &wayPoints)
+{
+  for(char ch = 'A'; ch < 'Z'; ch++)
+  {
+    szLabel[0] = ch;
+    if(wayPoints.count(szLabel) == 0)
+      return true;    
+  }
+  return false;
+}
+
 void WaypointDefinitionDialog::onActivate(View *pPrevActive)
 {
   // support the default behaviour
   ModalDialog::onActivate(pPrevActive);
   DEBUG_PRINTLN("WaypointDefinitionDialog::onActivate()");
 
-  // stretch the list box over the entire client area - 1/2 of it!
+  // stretch the list box over the half of the client area
   RECT r = m_rectClient;
   int16_t w = r.width() / 4;
   r.top++;
@@ -166,31 +259,19 @@ void WaypointDefinitionDialog::onActivate(View *pPrevActive)
   r.bottom--;
   m_wpoints.setPosition(r); 
 
-  // clear the listBox
-  m_wpoints.clear();
-  // fill m_wpoints from  std::map<std::string, long> g_pPanner->m_wayPoints;
-  int i = 0;
-  for(auto const& x : g_pPanner->m_wayPoints)
-  {
-    DEBUG_PRINT("Key="); DEBUG_PRINT(x.first.c_str()); DEBUG_PRINT(" Val="); DEBUG_PRINTDEC(x.second); DEBUG_PRINTLN("");
-    char s[80];
-    sprintf(s, "%s: %li", x.first.c_str(), x.second);
-    std::string ss(s);
-    m_wpoints.m_items.push_back(ss);
-    i++;
-  }
+  // fill ListWidget m_wpoints from  std::map<std::string, long> g_pPanner->m_wayPoints;
+  fill(m_wpoints, g_pPanner->m_wayPoints);
   // add new label
   {
     char s[] = " ";
-    s[0] = 'A' + i;
-    std::string ss(s);
-    m_wpoints.m_items.push_back(ss);
+    newWaypointLabel(s, g_pPanner->m_wayPoints);
+    m_wpoints.m_items.push_back(s);
   }
   // and select it by default
   m_wpoints.setCurSel(m_wpoints.m_items.size() - 1);
 }
 
-void WaypointDefinitionDialog::onKeyUp(uint8_t vk)
+bool WaypointDefinitionDialog::onKeyUp(uint8_t vk)
 {
   switch(vk) {
     case VK_DOWN: 
@@ -203,8 +284,9 @@ void WaypointDefinitionDialog::onKeyUp(uint8_t vk)
       vk = VK_SOFTB;
       // fall through!
     default:
-      ModalDialog::onKeyUp(vk); // to handle OK/Cancel
+      return ModalDialog::onKeyUp(vk); // to handle OK/Cancel
   }
+  return true;
 }
 
 /**
@@ -216,7 +298,8 @@ ControlView::ControlView() :
 }
 
 /** 
- * to be called from the main loop on the active view.  Do nothing by default. Return TRUE to update display
+ * To be called from the main loop on the active view.  
+ * Do nothing by default. Return TRUE to update display
  */
 boolean ControlView::loop(unsigned long now)
 {
@@ -225,7 +308,7 @@ boolean ControlView::loop(unsigned long now)
 }
 
 /** analog keyboard APIs where vk is one of VK_xxx */
-void ControlView::onKeyDown(uint8_t vk)
+bool ControlView::onKeyDown(uint8_t vk)
 {
   switch(vk) {
     case VK_LEFT:
@@ -238,10 +321,13 @@ void ControlView::onKeyDown(uint8_t vk)
       g_pPanner->setSpeed((float) - g_iPannerSlowSpeed);
       DEBUG_PRINTLN("ControlView::onKeyDown(VK_RIGHT): start pan right");
       break;
+    default:
+      return false;
   }
+  return true;
 }
 
-void ControlView::onLongKeyDown(uint8_t vk)
+bool ControlView::onLongKeyDown(uint8_t vk)
 {
   switch(vk) {
     case VK_LEFT:
@@ -254,10 +340,13 @@ void ControlView::onLongKeyDown(uint8_t vk)
       DEBUG_PRINTLN("ControlView::onLongKeyDown(VK_RIGHT): start fast pan right");
       g_pPanner->setSpeed((float) - g_iPannerFastSpeed);
       break;
+    default:
+      return false;
   }
+  return true;
 }
 
-void ControlView::onKeyUp(uint8_t vk)
+bool ControlView::onKeyUp(uint8_t vk)
 {
   switch(vk) {
     case VK_LEFT:
@@ -267,7 +356,7 @@ void ControlView::onKeyUp(uint8_t vk)
       g_pPanner->setSpeed(0);
       break;
     case VK_SOFTA:
-      // switch to About view
+      // switch to Settings view
       DEBUG_PRINTLN("ControlView::onKeyUp(VK_SOFTA): switch to Settings view");
       activate(&g_settingsView);
       break;
@@ -280,7 +369,10 @@ void ControlView::onKeyUp(uint8_t vk)
       DEBUG_PRINTLN("ControlView::onKeyUp(VK_SEL): define a waipoint in the dialog");
       activate(&m_WPontDlg);
       break;
-  }  
+    default:
+      return false;
+  }
+  return true;
 }
 
 void ControlView::updateClient(unsigned long now)
@@ -305,8 +397,9 @@ void ControlView::onActivate(View *pPrevActive)
       std::string strSelectedText = m_WPontDlg.m_wpoints.m_items[iSel];
       std::string str = strSelectedText.substr(0, 1);      
       g_pPanner->m_wayPoints[str] = cp;
+      
+      m_strMessage = "Way point '" + str + "' defined!";
     }
-    m_strMessage = "Way point defined!";
   }
   else
   {
@@ -320,7 +413,7 @@ void ControlView::onActivate(View *pPrevActive)
  */
 WaypointsView::WaypointsView() : 
   View("WayPoints", 0, "Control", &AwesomeF000_16, "w[x" /* "\x7D"*/ , 0, "Program"),
-  m_wpoints(smSingleSelection),
+  //m_wpoints(smSingleSelection),
   m_deleteConfirmation(szConfirmation, MB_OKCANCEL)
 {
   addChild(&m_wpoints);
@@ -329,7 +422,7 @@ WaypointsView::WaypointsView() :
 /**
  * analog keyboard APIs where vk is one of VK_xxx 
  */
-void WaypointsView::onKeyDown(uint8_t vk)
+bool WaypointsView::onKeyDown(uint8_t vk)
 {
   switch(vk) {
     case VK_SEL: {
@@ -342,10 +435,13 @@ void WaypointsView::onKeyDown(uint8_t vk)
       }
       break;
     }
+    default:
+      return false;
   }
+  return true;
 }
 
-void WaypointsView::onLongKeyDown(uint8_t vk)
+bool WaypointsView::onLongKeyDown(uint8_t vk)
 {
   switch(vk) {
     case VK_SEL: {
@@ -359,10 +455,13 @@ void WaypointsView::onLongKeyDown(uint8_t vk)
       }
       break;
     }
+    default:
+      return false;
   }
+  return true;
 }
 
-void WaypointsView::onKeyUp(uint8_t vk)
+bool WaypointsView::onKeyUp(uint8_t vk)
 {
   switch(vk) {
     case VK_RIGHT: 
@@ -387,7 +486,10 @@ void WaypointsView::onKeyUp(uint8_t vk)
       DEBUG_PRINTLN("WaypointsView::onKeyUp(VK_SEL)");
       // do nothing here!  
       break;
-  }  
+    default:
+      return false;
+  }
+  return true;
 }
 
 void WaypointsView::updateClient(unsigned long now)
@@ -432,17 +534,9 @@ void WaypointsView::onActivate(View *pPrevActive)
       g_pPanner->m_wayPoints.erase(str);
     }
   }
-  // clear the listBox
-  m_wpoints.clear();
-  // fill m_wpoints from  std::map<std::string, long> g_pPanner->m_wayPoints;
-  for(auto const& x : g_pPanner->m_wayPoints)
-  {
-    DEBUG_PRINT("Key="); DEBUG_PRINT(x.first.c_str()); DEBUG_PRINT(" Val="); DEBUG_PRINTDEC(x.second); DEBUG_PRINTLN("");
-    char s[80];
-    sprintf(s, "%s: %li", x.first.c_str(), x.second);
-    std::string ss(s);
-    m_wpoints.m_items.push_back(ss);
-  }
+  // fill ListWidget m_wpoints from  std::map<std::string, long> g_pPanner->m_wayPoints;
+  fill(m_wpoints, g_pPanner->m_wayPoints);
+
   g_pPanner->enable(true);
 }
 
@@ -459,8 +553,8 @@ boolean WaypointsView::loop(unsigned long now)
  * EditView class implementation
  */
 EditView::EditView() : 
-  View("Program", 0, "WPoints", &AwesomeF000_16, "\x7D" /* up/down */, &AwesomeF000_16, "K"/* Run */),
-  m_steps(smSingleSelection)
+  View("Program", 0, "WPoints", &AwesomeF000_16, "G" /* up/down */, &AwesomeF000_16, "K"/* Run */),
+  m_steps()
 {
   m_steps.hasBorder(false);
   addChild(&m_steps);
@@ -473,7 +567,7 @@ EditView::EditView() :
   DEBUG_PRINTLN("");
 }*/
 
-void EditView::onLongKeyDown(uint8_t vk)
+bool EditView::onLongKeyDown(uint8_t vk)
 {
   switch(vk)
   {
@@ -485,39 +579,48 @@ void EditView::onLongKeyDown(uint8_t vk)
       DEBUG_PRINTLN("EditView::onLongKeyDown(VK_SOFTA): back to control");
       activate(&g_controlView);
       break;
-    /*default:
-      DEBUG_PRINT("EditView::onLongKeyDown ");
-      DEBUG_PRINTDEC(vk);
-      DEBUG_PRINTLN("");*/
+    default:
+      //DEBUG_PRINT("EditView::onLongKeyDown "); DEBUG_PRINTDEC(vk);  DEBUG_PRINTLN("");
+      return false;
   }
+  return true;
 }
 
-void EditView::onKeyUp(uint8_t vk)
+bool EditView::onKeyUp(uint8_t vk)
 {
   switch(vk)
   {
-    /*case VK_LEFT:
+    case VK_UP: {
+      // increase the editable field value
+      DEBUG_PRINTLN("EditView::onKeyUp(VK_UP)");
+      //m_steps.setCurValue(m_steps.getCurValue() + 1);      
+      ListSpinnerWidget *p = m_steps.getCurValue();
+      if(p != 0)
+        p->advanceSelection(1);
+      break;
+    }
+    case VK_DOWN: {
       // decrease the editable field value
-      DEBUG_PRINTLN("EditView::onKeyUp(VK_LEFT): --");
+      DEBUG_PRINTLN("EditView::onKeyUp(VK_DOWN)");
+      //m_steps.setCurValue(m_steps.getCurValue() - 1);
+      ListSpinnerWidget *p = m_steps.getCurValue();
+      if(p != 0)
+        p->advanceSelection(-1);
+      break;
+    } 
+    case VK_LEFT:
+      // decrease the editable field value
+      DEBUG_PRINTLN("EditView::onKeyUp(VK_LEFT): jump to a prev editable field");
+      m_steps.advanceSelection(-1);
       break;
     case VK_RIGHT:
-      // increase the editable field value
-      DEBUG_PRINTLN("EditView::onKeyUp(VK_RIGHT): ++");
-      break;*/
-
-    case VK_UP:
-      // increase the editable field value
-      DEBUG_PRINTLN("EditView::onKeyUp(VK_UP): ++");
+      DEBUG_PRINTLN("EditView::onKeyUp(VK_RIGHT or VK_SEL): jump to a next editable field");
+      m_steps.advanceSelection(1);
       break;
-    case VK_DOWN:
-      // decrease the editable field value
-      DEBUG_PRINTLN("EditView::onKeyUp(VK_DOWN): --");
-      break;
-
-      
     case VK_SEL:
-      DEBUG_PRINTLN("EditView::onKeyUp(VK_SEL): jump to the next editable field");
-      m_steps.advanceSelection();
+      DEBUG_PRINTLN("EditView::onKeyUp(VK_RIGHT or VK_SEL): jump to a next editable field");
+      if(m_steps.advanceSelection(1) == LB_ERR)
+        m_steps.setCurSel(0);
       break;
     case VK_SOFTA:
       DEBUG_PRINTLN("EditView::onKeyUp(VK_SOFTA): jump to the waypoints view");
@@ -526,13 +629,80 @@ void EditView::onKeyUp(uint8_t vk)
     case VK_SOFTB:
       DEBUG_PRINTLN("EditView::onKeyUp(VK_SOFTB): switch to Run view");
       activate(&g_runView);
-      break;
-      
-    /*default:
-      DEBUG_PRINT("EditView::onKeyUp ");
-      DEBUG_PRINTDEC(vk);
-      DEBUG_PRINTLN("");*/
+      break;      
+    default:
+      //DEBUG_PRINT("EditView::onKeyUp "); DEBUG_PRINTDEC(vk); DEBUG_PRINTLN("");
+      return false;
   }
+  return true;
+}
+
+void EditView::populate(KeyValueListWidget &steps, Command *pCmds)
+{
+  steps.clear();
+  
+  for(;pCmds != 0; pCmds++)
+  {
+    switch(pCmds->m_channel)
+    {
+      case chControl:
+        switch(pCmds->m_command)
+        {
+          case cmdControlNone:
+            // graceful completion!
+            return;
+          case cmdControlRest:
+            steps.push_back(szRest, pCmds->m_uValue / 1000);
+            break;
+          case cmdControlWaitForCompletion:
+            steps.push_back(szWaitForCompletion, pCmds->m_uValue / 1000);
+            break;
+          case cmdControlBeginLoop:
+            steps.push_back(szBeginLoop);
+            break;
+          case cmdControlEndLoop:
+            steps.push_back(szEndLoop);
+            break;
+          default:
+            pCmds->DUMP("populate() ABNORMAL EXIT in chControl!");
+            return;
+        }
+        break;
+      case chPan:
+        switch(pCmds->m_command)
+        {
+          case cmdControlNone:
+            // graceful completion!
+            return;
+          case cmdGo:
+            steps.push_back(szGo, pCmds->m_lPosition);
+            break;
+          case cmdGoTo:
+            steps.push_back(szGoTo, pCmds->m_lPosition);
+            break;
+          case cmdGoToWaypoint: {
+            ListSpinnerWidget wayPoints;
+            // fill ListWidget m_wpoints from  std::map<std::string, long> g_pPanner->m_wayPoints;
+            fill(wayPoints, g_pPanner->m_wayPoints);
+            steps.push_back(szGoTo, wayPoints);
+            break;
+          }
+          case cmdSetMaxSpeed:
+            steps.push_back(szSetMaxSpeed, pCmds->m_uValue);
+            break;
+          case cmdSetAcceleration:
+            steps.push_back(szSetAcceleration, pCmds->m_uValue);
+            break;
+          default:
+            pCmds->DUMP("populate() ABNORMAL EXIT in chPan!");
+            return;
+        }
+        break;
+      default:
+        pCmds->DUMP("populate() ABNORMAL EXIT in unknown channel!");
+        return;
+    }    
+  }  
 }
 
 void EditView::onActivate(View *pPrevActive)
@@ -540,6 +710,9 @@ void EditView::onActivate(View *pPrevActive)
   // support the default behaviour
   View::onActivate(pPrevActive);
   DEBUG_PRINTLN("EditView::onActivate()");
+
+  // fill the m_steps from cmds
+  populate(m_steps, cmds);
 
   g_pPanner->enable(false);  
 }
@@ -552,23 +725,7 @@ RunView::RunView() :
 {
 }
 
-/**
- * Globals: commands to run at startup
- */
-static Command cmds[] = {
-  {chControl, cmdControlBeginLoop, 0, 0},
-    {chControl, cmdControlRest,  0, 10000},  // rest for 10 sec
-    {chPan,     cmdGoTo, 0, -400},                // go left
-    {chControl, cmdControlWaitForCompletion,  0, 50000},  // wait for the movement to be completed for 50 sec
-    {chControl, cmdControlRest,  0, 10000},  // rest for 10 sec
-    {chPan,     cmdGoTo, 0, 400},                 // go right
-    {chControl, cmdControlWaitForCompletion,  0, 50000},  // wait for the movement to be completed for 50 sec
-  {chControl, cmdControlEndLoop, 0, 0},
-  {chControl, cmdControlNone,    0, 0}
-};
-
- 
-void RunView::onKeyUp(uint8_t vk)
+bool RunView::onKeyUp(uint8_t vk)
 {
   switch(vk)
   {
@@ -586,7 +743,10 @@ void RunView::onKeyUp(uint8_t vk)
       activate(&g_editView);
       // ....
       break;
+    default:
+      return false;
   }
+  return true;
 }
 
 /**
@@ -632,7 +792,7 @@ PausedRunView::PausedRunView() :
 {
 }
 
-void PausedRunView::onKeyUp(uint8_t vk)
+bool PausedRunView::onKeyUp(uint8_t vk)
 {
   switch(vk)
   {
@@ -650,14 +810,17 @@ void PausedRunView::onKeyUp(uint8_t vk)
       activate(&g_editView);
       // ....
       break;
+    default:
+      return false;
   }
+  return true;
 }
 
 
 /**
  *  display Interpreter status
  */
-void PausedRunView::updateClient(/*long lPanPos, float flPanSpeed, const char *pLabel, unsigned wSecs,*/ unsigned long now)
+void PausedRunView::updateClient(unsigned long now)
 {
   DEBUG_PRINTLN("PausedRunView::updateClient()");
   updateClientRunOrPaused(now, true);
@@ -693,13 +856,11 @@ AboutView::AboutView() :
 {
   m_text.hasBorder(false);
   addChild(&m_text);
-  for(size_t i = 0; i <  (sizeof(aboutViewLines)/ sizeof(aboutViewLines[0])); i++) {
-    std::string ss(aboutViewLines[i]);
-    m_text.m_items.push_back(ss);
-  }
+  for(size_t i = 0; i <  (sizeof(aboutViewLines)/ sizeof(aboutViewLines[0])); i++)
+    m_text.m_items.push_back(aboutViewLines[i]);
 }
 
-void AboutView::onKeyUp(uint8_t vk)
+bool AboutView::onKeyUp(uint8_t vk)
 {
   switch(vk)
   {
@@ -716,9 +877,11 @@ void AboutView::onKeyUp(uint8_t vk)
       DEBUG_PRINTLN("AboutView::onKeyUp(VK_SOFTB): back to control view");
       activate(g_pPreviousView);
       break;      
+    default:
+      return false;
   }
+  return true;
 }
-
 
 void AboutView::onActivate(View *pPrevActive)
 {

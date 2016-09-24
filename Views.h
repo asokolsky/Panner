@@ -70,9 +70,10 @@ public:
   virtual void onActivate(View *pPrevActive);
 
   /** analog keyboard APIs where vk is one of VK_xxx */
-  virtual void onKeyDown(uint8_t vk);
-  virtual void onLongKeyDown(uint8_t vk);
-  virtual void onKeyUp(uint8_t vk);
+  virtual bool onKeyDown(uint8_t vk);
+  virtual bool onKeyAutoRepeat(uint8_t vk);
+  virtual bool onLongKeyDown(uint8_t vk);
+  virtual bool onKeyUp(uint8_t vk);
 
   /** ThumbStick APIs where vk is one of VK_xxx */
   //virtual void onThumbDown() = 0;
@@ -144,6 +145,10 @@ const int16_t IDTRYAGAIN=10;
 const int16_t IDCONTINUE=11;
 */
 
+/**
+ * ModalDialog is created by a View, is displayed under it, and using keyboard.
+ * Name is misleading - it does NOT have its own event loop.
+ */
 class ModalDialog : public View
 {
   /**  one of MB_xxx */
@@ -167,7 +172,7 @@ public:
    * VK_SOFTA - Cancels
    * VK_SOFTB - Affirms
    */
-  void onKeyUp(uint8_t vk);
+  bool onKeyUp(uint8_t vk);
 
   void onActivate(View *pPrevActive);
 
@@ -180,6 +185,9 @@ public:
   
 };
 
+/**
+ * MessageBox is a simplified ModalDialog
+ */
 class MessageBox : public ModalDialog
 {
 public:  

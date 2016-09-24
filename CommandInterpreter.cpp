@@ -1,6 +1,24 @@
 #include "Panner.h"
 
 /**
+ * Command Debug Support
+ */
+#ifdef DEBUG
+void Command::DUMP(const char *szText)
+{
+  if(szText != 0) {
+    DEBUG_PRINT(szText);
+  }
+  DEBUG_PRINT(" Command@"); DEBUG_PRINTDEC((int)this); 
+  DEBUG_PRINT(" m_channel="); DEBUG_PRINTDEC(m_channel); 
+  DEBUG_PRINT(" m_command="); DEBUG_PRINTDEC(m_command); 
+  DEBUG_PRINT(" m_lPosition="); DEBUG_PRINTDEC(m_lPosition); 
+  DEBUG_PRINTLN("");
+}
+#endif
+
+
+/**
  * CommandInterpreter implementation
  */
 PannerCommandInterpreter::PannerCommandInterpreter(uint8_t pinStep, uint8_t pinDirection, uint8_t pinEnable)
@@ -24,15 +42,15 @@ void PannerCommandInterpreter::begin()
 // buffer for a sequence of one command
 //
 static Command cmds[] = {
-  {chControl, cmdControlNone, 0, 0},
-  {chControl, cmdControlNone, 0, 0},
+  {chControl, cmdControlNone, 0},
+  {chControl, cmdControlNone, 0},
 };
 
-void PannerCommandInterpreter::beginRun(schar_t cmd, schar_t cSpeed, unsigned long ulDuration) {
+void PannerCommandInterpreter::beginRun(schar_t cmd, unsigned long ulDuration)
+{
   DEBUG_PRINTLN("PannerCommandInterpreter::beginRun");
   cmds[0].m_command = cmd;
-  cmds[0].m_speed = cSpeed;
-  cmds[0].m_uDuration = ulDuration;
+  cmds[0].m_uValue = ulDuration;
   beginRun(cmds);
 }
 
@@ -43,41 +61,30 @@ void PannerCommandInterpreter::beginRun(Command *p) {
     if(m_channels[i] != 0)
       m_channels[i]->beginCommands();
 
-  m_bWaitingForCompletion = false;
+  m_ulCompletionExpiration = 0;
   beginCommand(p, millis());
 }
 
 void PannerCommandInterpreter::endRun() {
   DEBUG_PRINTLN("PannerCommandInterpreter::endRun");
-  m_bWaitingForCompletion = false;
+  m_ulCompletionExpiration = 0;
   m_pCommand = 0;
   m_ulNext = 0;
 
   for(unsigned char i = 0; i < sizeof(m_channels)/sizeof(m_channels[0]); i++)
     if(m_channels[i] != 0)
       m_channels[i]->endCommands();
-  /*    
-  g_lcd.clear();
-  g_lcd.setCursor(0, 0);
-  g_lcd.print("Done!");
-  */
 }
 
 /** force stop processing commands */
 void PannerCommandInterpreter::stopRun() {
   DEBUG_PRINTLN("PannerCommandInterpreter::stopRun");
-  m_bWaitingForCompletion = false;
+  m_ulNext = m_ulPaused = m_ulCompletionExpiration = 0;
   m_pCommand = 0;
-  m_ulNext = m_ulPaused = 0;
-  
+    
   for(unsigned char i = 0; i < sizeof(m_channels)/sizeof(m_channels[0]); i++)
     if((m_channels[i] != 0) && m_channels[i]->isBusy())
       m_channels[i]->endCommand();
-  /*    
-  g_lcd.clear();
-  g_lcd.setCursor(0, 0);
-  g_lcd.print("Stopped!");
-  */
 }
 
 
@@ -103,7 +110,10 @@ void PannerCommandInterpreter::resumeRun() {
   for(unsigned char i = 0; i < sizeof(m_channels)/sizeof(m_channels[0]); i++)
     if((m_channels[i] != 0) && m_channels[i]->isBusy())
       m_channels[i]->resumeCommand(ulPauseDuration);
-  m_ulNext += ulPauseDuration;
+  if(m_ulNext != 0)
+    m_ulNext += ulPauseDuration;
+  if(m_ulCompletionExpiration != 0)
+    m_ulCompletionExpiration += ulPauseDuration;
   m_ulPaused = 0;
   //updateDisplay(now);
 }
@@ -117,11 +127,7 @@ void PannerCommandInterpreter::resumeRun() {
  */
 bool PannerCommandInterpreter::continueRun(unsigned long now)
 {
-/**
-  DEBUG_PRINT("PannerCommandInterpreter::continueRun now=");
-  DEBUG_PRINTDEC(now);
-  DEBUG_PRINTLN("");
-*/
+  // DEBUG_PRINT("PannerCommandInterpreter::continueRun now="); DEBUG_PRINTDEC(now); DEBUG_PRINTLN("");
   if(m_pCommand == 0) {
     DEBUG_PRINTLN("PannerCommandInterpreter::continueRun m_pCommand==0");
     return false;
@@ -175,9 +181,8 @@ bool PannerCommandInterpreter::continueRun(unsigned long now)
 }
 
 boolean PannerCommandInterpreter::isBusy(schar_t cChannel) {
-  if(!isRunning())
-    return false;
-  return (0 <= cChannel) 
+  return isRunning()
+    && (0 <= cChannel) 
     && (cChannel < chMax) 
     && (m_channels[cChannel] != 0) 
     && m_channels[cChannel]->isBusy();
@@ -198,8 +203,7 @@ char PannerCommandInterpreter::getBusyChannels() {
  * side effect - may change m_pCommand 
  */
 void PannerCommandInterpreter::beginCommand(Command *p, unsigned long now) {
-  DEBUG_PRINTLN("PannerCommandInterpreter::beginCommand");
-  
+  DEBUG_PRINTLN("PannerCommandInterpreter::beginCommand");  
   for(bool bContinue = true; bContinue;) 
   {
     m_pCommand = p;
@@ -210,11 +214,11 @@ void PannerCommandInterpreter::beginCommand(Command *p, unsigned long now) {
         switch(p->m_command)
         {
           case cmdControlRest:
-            beginRest(p->m_uDuration, now);
+            beginRest(p->m_uValue, now);
             bContinue = false;
             break;
           case cmdControlWaitForCompletion:
-            beginWaitForCompletion();
+            beginWaitForCompletion(p->m_uValue, now);
             bContinue = false;
             break;
           case cmdControlBeginLoop:
@@ -237,6 +241,7 @@ void PannerCommandInterpreter::beginCommand(Command *p, unsigned long now) {
       //case chZoom:
         if(m_channels[ch] == 0) {
           // we are not equiped to handle this command!  Ignore it!
+          DEBUG_PRINTLN("PannerCommandInterpreter::beginCommand on 0 channel!  Ignoring..");
           p++;
         } else {
           m_channels[ch]->beginCommand(p, now);
@@ -253,35 +258,25 @@ void PannerCommandInterpreter::beginCommand(Command *p, unsigned long now) {
   //updateDisplay(now);
 }
 
-void PannerCommandInterpreter::beginWaitForCompletion() {
-  DEBUG_PRINTLN("PannerCommandInterpreter::beginWaitForCompletion");
-  m_bWaitingForCompletion = true;
+void PannerCommandInterpreter::beginWaitForCompletion(unsigned long ulDuration, unsigned long now) {
+  DEBUG_PRINT("PannerCommandInterpreter::beginWaitForCompletion ulDuration=");  DEBUG_PRINTDEC(ulDuration); DEBUG_PRINT(" now="); DEBUG_PRINTDEC(now); DEBUG_PRINTLN("");
+  m_ulCompletionExpiration = now + ulDuration;
 }
 void PannerCommandInterpreter::endWaitForCompletion() {
-  DEBUG_PRINTLN("PannerCommandInterpreter::endWaitForCompletion");
-  m_bWaitingForCompletion = false;
+  DEBUG_PRINT("PannerCommandInterpreter::endWaitForCompletion, now="); DEBUG_PRINTDEC(millis()); DEBUG_PRINTLN("");
+  m_ulCompletionExpiration = 0;
 }
 
 void PannerCommandInterpreter::beginRest(unsigned long ulDuration, unsigned long now) {
-  DEBUG_PRINT("PannerCommandInterpreter::beginRest ulDuration=");
-  DEBUG_PRINTDEC(ulDuration);
-  DEBUG_PRINT(" now=");
-  DEBUG_PRINTDEC(now);
-  DEBUG_PRINTLN("");
+  DEBUG_PRINT("PannerCommandInterpreter::beginRest ulDuration=");  DEBUG_PRINTDEC(ulDuration); DEBUG_PRINT(" now="); DEBUG_PRINTDEC(now); DEBUG_PRINTLN("");
   m_ulNext = now + ulDuration;
 }
 void PannerCommandInterpreter::endRest() {
-  DEBUG_PRINT("PannerCommandInterpreter::endRest, now=");
-  DEBUG_PRINTDEC(millis());
-  DEBUG_PRINTLN("");
+  DEBUG_PRINT("PannerCommandInterpreter::endRest, now="); DEBUG_PRINTDEC(millis()); DEBUG_PRINTLN("");
   m_ulNext = 0;
 }
 void PannerCommandInterpreter::beginLoop(Command *p) {
-  DEBUG_PRINT("PannerCommandInterpreter::beginLoop p=0x");
-  DEBUG_PRINTHEX((unsigned)p);
-  DEBUG_PRINT(", p->m_command=");
-  DEBUG_PRINTDEC(p->m_command);
-  DEBUG_PRINTLN("");
+  p->DUMP("PannerCommandInterpreter::beginLoop");
   // the following is necessary because
   m_pBeginLoopCommand = p;
 }
@@ -289,11 +284,7 @@ void PannerCommandInterpreter::beginLoop(Command *p) {
 Command *PannerCommandInterpreter::endLoop() {
   Command *p = m_pBeginLoopCommand;
   m_pBeginLoopCommand = 0;
-  DEBUG_PRINT("PannerCommandInterpreter::endLoop p=0x");
-  DEBUG_PRINTHEX((unsigned)p);
-  DEBUG_PRINT(", p->m_command=");
-  DEBUG_PRINTDEC(p->m_command);
-  DEBUG_PRINTLN("");
+  p->DUMP("PannerCommandInterpreter::endLoop");
   return p;
 }
 
@@ -301,15 +292,16 @@ Command *PannerCommandInterpreter::endLoop() {
 /** 
  * External API 
  */
-void PannerCommandInterpreter::beginCommand(schar_t cmd, schar_t cSpeed, unsigned long ulDuration) {
+void PannerCommandInterpreter::beginCommand(schar_t cmd, unsigned long ulDuration) 
+{
   DEBUG_PRINTLN("PannerCommandInterpreter::beginCommand");
   cmds[0].m_command = cmd;
-  cmds[0].m_speed = cSpeed;
-  cmds[0].m_uDuration = ulDuration;
+  cmds[0].m_uValue = ulDuration;
   beginCommand(cmds, millis());
 }
 
-void PannerCommandInterpreter::adjustCommandSpeed(schar_t ch, schar_t iSpeed) {
+/*void PannerCommandInterpreter::adjustCommandSpeed(schar_t ch, schar_t iSpeed) 
+{
   DEBUG_PRINTLN("PannerCommandInterpreter::adjustCommandSpeed");
   switch(ch) {
     //case chSlide:
@@ -319,9 +311,9 @@ void PannerCommandInterpreter::adjustCommandSpeed(schar_t ch, schar_t iSpeed) {
         m_channels[ch]->adjustCommandSpeed(iSpeed);
       break;
   }
-}
+}*/
 
-void PannerCommandInterpreter::adjustCommandDuration(schar_t ch, schar_t iCmd, int iSecs) {
+/*void PannerCommandInterpreter::adjustCommandDuration(schar_t ch, schar_t iCmd, int iSecs) {
   DEBUG_PRINTLN("PannerCommandInterpreter::adjustCommandDuration");
   switch(ch) {
     case chControl:
@@ -340,7 +332,7 @@ void PannerCommandInterpreter::adjustCommandDuration(schar_t ch, schar_t iCmd, i
         m_channels[ch]->adjustCommandDuration(iSecs);
       break;
   }
-}
+}*/
 
 /** 
  * iCmd is actually a channel # 
@@ -371,47 +363,13 @@ word PannerCommandInterpreter::getBusySeconds(unsigned long now) {
   return wSecsRes;
 }
 
-/*void PannerCommandInterpreter::updateDisplay(unsigned long now) 
+/** 
+ * how much more wait for completion will last
+ */
+unsigned PannerCommandInterpreter::getWaitSeconds(unsigned long now) 
 {
-  const char *pLabel = 0;
-  unsigned wSecs = 0;
-  //byte cSelectedChannel = g_pView->s_cSelectedChannel;
-  //if((cmdFirst <= cSelectedChannel) 
-  //  && (cSelectedChannel <= cmdLast) 
-  //  && (m_channels[cSelectedChannel] != 0)) {
-  //  unsigned long ulNext = m_channels[cSelectedChannel]->getNext();
-  //  if(now < ulNext)
-  //    wSecs = (ulNext - now) / 1000L;
-
-  if(isResting()) {
-    pLabel = "Rest";
-    if((wSecs == 0) && (now < m_ulNext))
-      wSecs = (m_ulNext - now) / 1000;
-  } else if(isWaitingForCompletion()) {
-    pLabel = "Wait";
-    if(wSecs == 0)
-      wSecs = getBusySeconds(now);
-  } else if(isPaused()) {
-    pLabel = "Resu";
-    // if(wSecs == 0) wSecs = getBusySeconds(now);
-  } else {
-    pLabel = "Stop";
-    if(wSecs == 0)
-      wSecs = getBusySeconds(now);
-  }
-  //ScreenBuffer sb;
-  //g_pView->draw(pLabel, 
-  //  m_channels[cmdSlide]->getCurrentSpeed(), 
-  //  m_channels[cmdPan]->getCurrentSpeed(), 
-  //  m_channels[cmdTilt]->getCurrentSpeed(), 
-  //  wSecs,
-  //  &sb);
-  //sb.draw(&g_lcd);
-  // send it to remote over the network here...
-  long lPos = m_channels[chPan]->getMotorPosition();
-  float flSpeed = m_channels[chPan]->getMotorSpeed();
-  View::g_pActiveView->update(now);
-  m_ulToUpdateDisplay = now + ulDisplayUpdateInterval; 
-} */
-
+  return (m_ulCompletionExpiration > now) ?
+         (unsigned)((m_ulCompletionExpiration - now) / 1000) :
+         0;
+}
 

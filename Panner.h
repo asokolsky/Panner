@@ -11,6 +11,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <climits>
 
 #include <ILI9341_t3.h>
 #include <Wire.h>
@@ -24,9 +25,9 @@ typedef signed char schar_t;
 //#include "ThumbStick.h"
 #include "Keypad.h"
 #include "Stepper.h"
+#include "CommandInterpreter.h"
 #include "Views.h"
 #include "Views2.h"
-#include "CommandInterpreter.h"
 //#include "SerialCommand.h"
 #include "Stepper.h"
 

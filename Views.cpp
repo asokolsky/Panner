@@ -131,7 +131,7 @@ void View::onPosition()
  */
 void View::update(unsigned long now)
 {
-  DUMP("View::update()");
+  //DUMP("View::update()");
   if(m_bEraseBkgnd)
   {
     RECT rFill = m_position;
@@ -149,7 +149,7 @@ void View::update(unsigned long now)
   //
   // set defaults for use in the client area
   //
-  m_lcd.setFont(LiberationSans_18);  
+  m_lcd.setFont(LiberationSans_16);  
   m_lcd.setTextSize(1);
   m_lcd.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
   m_lcd.setCursor(m_rectClient.left, m_rectClient.top);
@@ -262,11 +262,17 @@ void View::drawSoftLabels(bool bEraseBkgnd)
 }
 
 /** dummy defaults, children to overwrite */
-void View::onKeyDown(uint8_t vk) {
+bool View::onKeyDown(uint8_t vk) {
+  return false;
 }
-void View::onLongKeyDown(uint8_t vk) {
+bool View::onKeyAutoRepeat(uint8_t vk) {
+  return false;
 }
-void View::onKeyUp(uint8_t vk) {
+bool View::onLongKeyDown(uint8_t vk) {
+  return false;
+}
+bool View::onKeyUp(uint8_t vk) {
+  return false;
 }
 
 /** updateClient implementation for Run or Paused view */
@@ -277,11 +283,12 @@ void View::updateClientRunOrPaused(unsigned long now, bool bExtendedInfo, const 
   y += m_lcd.fontLineSpace(); 
   
   printKeyVal(x, y, "Pan", g_pPanner->currentPosition(), false, "Speed", (long)g_pPanner->speed());
-  y += m_lcd.fontLineSpace();
+  y += m_lcd.fontLineSpace() + 2;
+  printKeyVal(x, y, "To", g_pPanner->targetPosition());
+  y += m_lcd.fontLineSpace() + 2;
 
   if(bExtendedInfo)
   {   
-    y += 2;  
     const char *pLabel = 0;
     unsigned wSecs = g_ci.getBusySeconds(now);
     if(g_ci.isResting()) {
@@ -290,6 +297,7 @@ void View::updateClientRunOrPaused(unsigned long now, bool bExtendedInfo, const 
       wSecs = (now < ulNext) ? ((ulNext - now) / 1000) : 0;
     } else if(g_ci.isWaitingForCompletion()) {
       pLabel = "Wait";
+      wSecs = g_ci.getWaitSeconds(now);
     } else if(g_ci.isPaused()) {
       pLabel = "Paused";
     } else {
@@ -300,9 +308,10 @@ void View::updateClientRunOrPaused(unsigned long now, bool bExtendedInfo, const 
   }
   if((pMsg != 0) && (pMsg[0] != '\0'))
   {
-    y = m_rectClient.bottom - m_lcd.fontLineSpace();
-    m_lcd.setTextColor(ILI9341_DARKGREY, ILI9341_BLACK);
-    printTextLeft(pMsg, y, /*const ILI9341_t3_font_t *pFont =*/ 0);
+    RECT r = m_rectClient;
+    r.top = r.bottom - m_lcd.fontLineSpace();    
+    m_lcd.printText(pMsg, ILI9341_DARKGREY, ILI9341_BLACK, r, Display::haLeft, Display::vaCenter, 0, false);      
+    //printTextLeft(pMsg, y);
     //y += m_lcd.fontLineSpace();
   } 
   //g_pPanner->DUMP();
@@ -386,7 +395,7 @@ void ModalDialog::drawTitleBar()
   //m_lcd.fillRect(rFill, ILI9341_BLACK);
 }
 
-void ModalDialog::onKeyUp(uint8_t vk)
+bool ModalDialog::onKeyUp(uint8_t vk)
 {
   DEBUG_PRINTLN("ModalDialog::onKeyUp");
   switch(vk) {
@@ -398,10 +407,11 @@ void ModalDialog::onKeyUp(uint8_t vk)
       m_iRes = IDOK;
       break;
     default:
-      return;
+      return false;
   }  
   // Close thge dialog and activate parent
   activate(m_zParent);
+  return true;
 }
 
 /**
@@ -430,6 +440,6 @@ MessageBox::MessageBox(const char *szTitle, uint16_t uType /* = MB_OK */) :
     
 void MessageBox::updateClient(unsigned long now)
 {
-  printTextCenter(m_strMessage.c_str(), m_rectClient.top + (m_rectClient.height()/2));
+  m_lcd.printText(m_strMessage.c_str(), m_lcd.getTextColor(), ILI9341_BLACK, m_rectClient, Display::haCenter, Display::vaCenter, 0, false);
 }
 

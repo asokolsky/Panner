@@ -13,6 +13,7 @@ const uint16_t WS_HSCROLL   =0x0010;
 const uint16_t WS_VSCROLL   =0x0020;
 const uint16_t WS_LEFTTEXT  =0x0100;
 const uint16_t WS_CENTERTEXT=0x0200;
+const uint16_t WS_HASFOCUS  =0x1000;
  /**
   *  Root object that can be displayed on the screen
   */
@@ -31,6 +32,15 @@ public:
   
   Widget(const ILI9341_t3_font_t *pFont = 0, uint16_t uStyle = 0) : m_pFont(pFont) {}
 
+  bool hasFocus() {
+    return (m_uStyle & WS_HASFOCUS) != 0;
+  }
+  void hasFocus(bool bHasFocus) {
+    if(bHasFocus)
+      m_uStyle |= WS_HASFOCUS;
+    else
+      m_uStyle &= ~WS_HASFOCUS;
+  }
   bool hasBorder() {
     return (m_uStyle & WS_BORDER) != 0;
   }
@@ -47,14 +57,6 @@ public:
    */
   virtual void onPosition();
 
-  /**
-   *  print text left-aligned in the m_position using current font
-   */
-  void printTextLeft(const char *szText, uint16_t y, const ILI9341_t3_font_t *pFont = 0);
-  /**
-   *  print text centered in the m_position using current font
-   */
-  void printTextCenter(const char *szText, uint16_t y, const ILI9341_t3_font_t *pFont = 0, int16_t *pDY = 0);
   /**
    *  Print Key: Val with ':' being at x
    */
@@ -77,7 +79,7 @@ public:
   }
 
 #ifdef DEBUG
-  void DUMP(const char *szText = 0);
+  virtual void DUMP(const char *szText = 0);
 #else
   void DUMP(const char *szText = 0) {}
 #endif
@@ -87,7 +89,7 @@ public:
 /**
  * Static Text Widget with no scroll
  */
-class TextWidget : public Widget
+/*class TextWidget : public Widget
 {
   std::string m_strText;
   
@@ -99,9 +101,9 @@ public:
     m_strText = msg; 
   }
   
-  /** Text is painted centered */
+  //Text is painted centered
   void draw();
-};
+};*/
 
 const int16_t LB_ERR = -1;
 
@@ -127,12 +129,15 @@ protected:
 public:
   std::vector<std::string> m_items;
 
-  ListWidget(uint16_t selectionMode, const ILI9341_t3_font_t *pFont = 0);
+  ListWidget(uint16_t selectionMode = smSingleSelection, const ILI9341_t3_font_t *pFont = 0);
 
   void clear() {
     m_items.clear();
   }
 
+  int16_t getSelectionMode() {
+    return m_selectionMode;
+  }
   int16_t getCurSel() {
     return m_iCurSel;
   }
@@ -142,77 +147,133 @@ public:
     m_iCurSel = iSel;
   }
   /** 
-   * makes sense only if m_selectionMode is smSingleSelection 
+   *  add an element to a list
    */
-  int16_t advanceSelection(int16_t iAdv = 1);
-  /** makes sense only if m_selectionMode is smNoSelection */
+  void push_back(const char str[]);
+
+  /**
+   * AdvanceSelection in the list of text items - simple!
+   */
+  virtual int16_t advanceSelection(int16_t iAdv = 1);
+  /** 
+   * makes sense only if m_selectionMode is smNoSelection 
+   */
   void scroll(int16_t iAdv = 1);
-  /** display/paint the list */
+  /** 
+   * display/paint the list 
+   */
   void draw();
-  /** called from draw to draw a single item */
-  virtual void drawItem(size_t i, int16_t y);
-  /** recalc the client rect */
+  /** 
+   * called from draw to draw a single item 
+   */
+  virtual void drawItem(size_t i, RECT &rLocation);
+  /** 
+   * recalc the client rect 
+   */
   void onPosition();
+
+#ifdef DEBUG
+  void DUMP(const char *szText = 0);
+#else
+  void DUMP(const char *szText = 0) {}
+#endif
+
 };
 
 /**
- *  Small drop down list.  
- *  When not dropped shows just a single item with an arrow down
+ *  Small list spinning in place
+ *  We differentiate between ListSpinnerWidget and its descendants NumberSpinnerWidget and NullSpinnerWidget
+ *  by value of m_selectionMode.
  */
-/*class DropDownListWidget : public ListWidget
-{
-  bool m_bDropped = false;
-  // RECT m_position and RECT m_rectClient are for closed state only;
-  RECT m_positionDropped;
-  RECT m_rectClientDropped;
-  
+class ListSpinnerWidget : public ListWidget
+{ 
 public:  
-  DropDownListWidget(const ILI9341_t3_font_t *pFont = 0) : ListWidget(smSingleSelection, pFont) {}
-
-  void dropDown() {
-    m_bDropped = true;
-  }
-  void dropClose() {
-    m_bDropped = true;    
-  } */
+  ListSpinnerWidget(const ILI9341_t3_font_t *pFont = 0) : ListWidget(smSingleSelection, pFont) {}
   
-  /** */
-  //void draw();
+  /** draw itself */
+  void draw();
   /** the height is determined by the Widget font and can not be changed */
-  //void onPosition();
-//};
+  void onPosition();
+  /**
+   * AdvanceSelection in the list of text strings or number spinner!
+   */
+  int16_t advanceSelection(int16_t iAdv /*= 1*/);
+};
+
+/**
+ * Widget for input of numerical values
+ */
+class NumberSpinnerWidget : public ListSpinnerWidget
+{
+public:  
+  NumberSpinnerWidget(int16_t val) : ListSpinnerWidget() 
+  {
+    m_selectionMode = smMultiSelection; // this will mark ListSpinnerWidget as a NumberSpinnerWidget
+    m_iCurSel = val;
+  }
+};
+
+/**
+ * Dummy class to NOT be used directly.
+ */
+class NullSpinnerWidget : public ListSpinnerWidget
+{
+public:  
+  NullSpinnerWidget() : ListSpinnerWidget() 
+  { 
+    m_selectionMode = smNoSelection;
+  }
+};
 
 /**
  *  List of any one of:
  *    null for empty space
  *    string for plain text
- *    pair of key (string) value (number or enum - one of)
+ *    pair of key (string) & value, which can be either number or enum
  */
 class KeyValueListWidget : public ListWidget
 {
-public:  
+public:
   // std::vector<std::string> m_items; - this holds keys
   /** values associated with keys from m_items */
-  std::map<std::string, long> m_values;
-
+  std::vector<ListSpinnerWidget> m_values;
+  
   KeyValueListWidget(const ILI9341_t3_font_t *pFont = 0) : ListWidget(smSingleSelection, pFont) {}
 
   /** reset content */
   void clear();
-  /** add a Key/Value pair to the KeyValueListWidget */
-  void push_back(std::string key, long val);
-  /** get the value of the currently selected key */
-  long getCurValue();
-  /** 
-   * set the value of the currently selected key.  
-   * Return LB_ERR in case of error 
-   */
-  int16_t setCurValue(long lVal); 
-  /** just show a single item */
-  void drawItem(size_t i, int16_t y); 
-  /** most work done here */
-  void drawItem(std::string &key, long lVal, int16_t y, bool bSelected);
 
+  /** 
+   *  add just a text
+   */
+  void push_back(const char key[]);
+  /** 
+   *  add a Key/Value pair to the KeyValueListWidget 
+   */
+  void push_back(const char key[], int16_t val);
+  /** 
+   *  add a Key/ListValue pair to the KeyValueListWidget 
+   */
+  void push_back(const char key[], ListSpinnerWidget &val);
+  
+  /** 
+   * get the value of the currently selected key 
+   * Returns 0 if none.
+   */
+  ListSpinnerWidget *getCurValue();
+  
+  /** 
+   * get the value of the given key
+   */
+  ListSpinnerWidget *getValue(const char key[]);
+  /** 
+   * get the value of the given key
+   */
+  int16_t getNumericValue(const char key[]);
+  
+  /** just show a single item */
+  void drawItem(size_t i, RECT &rLocation);
+  
   /** 
    * advance selection ignoring non-adjustable items 
    * Return LB_ERR in case of error 

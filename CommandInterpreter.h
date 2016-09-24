@@ -10,11 +10,19 @@ struct Command
 {
   schar_t m_channel;         // control/slide/pan/tilt/zoom/focus/shutter...
   schar_t m_command;         // channel-specific command
-  schar_t m_speed;           // also carries information on direction and speed in %: -100%..100%
+  //schar_t m_speed;           // also carries information on direction and speed in %: -100%..100%
   union {
-    unsigned long m_uDuration; // in milli seconds
-    long m_lPosition;               // signed position for stepper
+    /** unsigned duration (in milli seconds) or speed (in steps/sec or %) */
+    unsigned long m_uValue; 
+    long m_lPosition;           // signed position for stepper
   };
+
+#ifdef DEBUG
+  void DUMP(const char *szText = 0);
+#else
+  void DUMP(const char *szText = 0) {}
+#endif
+  
 };
 
 
@@ -35,7 +43,7 @@ const schar_t chMax = 2; // the # of channels!  This is array size!
 /**
  *  Control channel commands
  */
-/** Nore really a Command but the end marker */
+/** Not really a Command but the end marker */
 const schar_t cmdControlNone = 0;
 const schar_t cmdNone = 0;
  
@@ -57,34 +65,52 @@ const schar_t cmdControlWaitForCompletion = 2;
 const schar_t cmdControlBeginLoop = 3;
 const schar_t cmdControlEndLoop = 4;
  
+/**
+ *  Pan/Tilt/Slide channel Commands
+ */
 
 /** Command to move to relative position m_lPosition */
 const schar_t cmdGo = 1;
 /** Command to move to absolute position m_lPosition */
 const schar_t cmdGoTo = 2;
+/** Command to move to a user-defined waypoint */
+const schar_t cmdGoToWaypoint = 3;
+/** 
+ *  Command to set max speed for the channel (if appropriate) 
+ *  In steps/sec for steppers
+ *  of % for DC motors
+ */
+const schar_t cmdSetMaxSpeed = 10;
+/** 
+ *  Command to set acceleration (if appropriate)
+ *  In steps/sec2 for steppers
+ */
+const schar_t cmdSetAcceleration = 11;
 
 /** */
+
 
 /**
  * Main Interface Class
  */
+#if 0 
 class CommandInterpreter
 {
 public:
   virtual void begin();
-  virtual void beginRun(schar_t cmd, schar_t iSpeed, unsigned long ulDuration);
+  virtual void beginRun(schar_t cmd, /*schar_t iSpeed,*/ unsigned long ulDuration);
 
   /** external API of this class */
-  virtual void beginCommand(schar_t cmd, schar_t cSpeed, unsigned long ulDuration);
+  virtual void beginCommand(schar_t cmd, /*schar_t cSpeed,*/ unsigned long ulDuration);
   /**
   * iCmd is actually a channel #
   * to be called from interrupt handler or in response to kb
   */
   virtual void stopCommand(schar_t cCmd);
   /** adjust speed */
-  virtual void adjustCommandSpeed(schar_t ch, schar_t cSpeedAdjustment);
+  //virtual void adjustCommandSpeed(schar_t ch, schar_t cSpeedAdjustment);
   /** Duration adjustment in seconds */
-  virtual void adjustCommandDuration(schar_t ch, schar_t cmd, int iDurationAdjustment);
+  //virtual void adjustCommandDuration(schar_t ch, schar_t cmd, int iDurationAdjustment);
 
   virtual void stopRun();
 
@@ -102,6 +128,7 @@ public:
 };
 
 extern CommandInterpreter *g_pCommandInterpreter;
+#endif
 
 /**
 * (abstract) channel for slide, pan or tilt or zoom
@@ -117,7 +144,7 @@ protected:
   */
   unsigned long m_ulNext;
   /** setpoint - where we want for the ultimate motor speed to be, in signed % */
-  schar_t m_cSpeed = 0;
+  //schar_t m_cSpeed = 0;
 
   Stepper m_motor;
 
@@ -128,9 +155,9 @@ public:
   unsigned long getNext() {
     return m_ulNext;
   }
-  schar_t getSpeed() {
+  /*schar_t getSpeed() {
     return m_cSpeed;
-  }
+  }*/
   float getMotorSpeed() {
     return m_motor.speed();
   }
@@ -187,11 +214,11 @@ public:
   /**
     * Handle a GUI request
     */
-  void adjustCommandSpeed(schar_t iSpeedAdjustment);
+  //void adjustCommandSpeed(schar_t iSpeedAdjustment);
   /**
   * Handle a GUI request
   */
-  void adjustCommandDuration(schar_t iChangeSecs);
+  //void adjustCommandDuration(schar_t iChangeSecs);
 
   Stepper *getMotor() {
     return &m_motor;
@@ -203,7 +230,7 @@ public:
 /**
 * Main Interface Class for Controller
 */
-class PannerCommandInterpreter : public CommandInterpreter
+class PannerCommandInterpreter //: public CommandInterpreter
 {
 public:
   /**
@@ -215,8 +242,14 @@ public:
 
   /** external APIs of this class */
   void begin();
-  void beginRun(schar_t cmd, schar_t iSpeed, unsigned long ulDuration);
+  void beginRun(schar_t cmd, /*schar_t iSpeed,*/ unsigned long ulDuration);
   void beginRun(Command *p);
+  /** 
+   * Called from loop()
+   * Times tick, update interpreter status
+   * return true to continue running
+   * return false to end the run
+   */
   bool continueRun(unsigned long now);
   void endRun();
 
@@ -242,9 +275,9 @@ public:
 
 
   /** external API of this class */
-  void beginCommand(schar_t cmd, schar_t cSpeed, unsigned long ulDuration);
+  void beginCommand(schar_t cmd, /*schar_t cSpeed,*/ unsigned long ulDuration);
   /** adjust speed */
-  void adjustCommandSpeed(schar_t ch, schar_t cSpeedAdjustment);
+  //void adjustCommandSpeed(schar_t ch, schar_t cSpeedAdjustment);
   /** Duration adjustment in seconds */
   void adjustCommandDuration(schar_t ch, schar_t cmd, int iDurationAdjustment);
 
@@ -259,15 +292,22 @@ public:
   unsigned long getNext() {
     return m_ulNext;
   }
-  
+  /** 
+   * find out for how long the first busy channel will be busy
+   */  
   unsigned getBusySeconds(unsigned long now);
+  /** 
+   * how much more wait for completion will last
+   */
+  unsigned getWaitSeconds(unsigned long now);
 
+  /** Are we resting? */
   boolean isResting() {
     return (m_ulNext > 0);
   }
-
+  /** Are we waiting for completion? */
   boolean isWaitingForCompletion() {
-    return m_bWaitingForCompletion;
+    return (m_ulCompletionExpiration > 0);
   }
 
   Stepper *getPanner() {
@@ -278,12 +318,14 @@ public:
 private:
   void beginCommand(Command *p, unsigned long now);
 
-  /** cmdWaitForCompletion command handler */
-  void beginWaitForCompletion();
+  /** cmdWaitForCompletion command handler - begin it */
+  void beginWaitForCompletion(unsigned long ulDuration, unsigned long now);
+  /** cmdWaitForCompletion command handler - complete it */
   void endWaitForCompletion();
 
   /** cmdRest command handler */
   void beginRest(unsigned long ulDuration, unsigned long now);
+  /** cmdRest command handler */
   void endRest();
 
   /** cmdBeginLoop command handler */
@@ -312,7 +354,7 @@ private:
   /** when we were paused */
   unsigned long m_ulPaused = 0;
   /** we are waiting for command(s) to be completed. */
-  boolean m_bWaitingForCompletion = false;
+  unsigned long m_ulCompletionExpiration = 0;
 };
 
 extern PannerCommandInterpreter g_ci;

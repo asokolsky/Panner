@@ -85,19 +85,29 @@ bool Keypad::getAndDispatchKey(unsigned long ulNow)
   if(ulNow < m_ulBounceSubsided)
     return false;
   
+  bool bRes = false;
   uint8_t vk = getKey();
-  if(vk == m_bOldKey) { 
+  if(vk == m_bOldKey) 
+  {
     if(vk == VK_NONE)
       return false;
+    // fire auto repeat logic here
+    if((m_ulToFireAutoRepeat == 0) || (ulNow < m_ulToFireAutoRepeat))
+    {
+      ;
+    }
+    else
+    {
+      m_ulToFireAutoRepeat = ulNow + s_iAutoRepeatDelay;
+      DEBUG_PRINT("onKeyAutoRepeat vk="); DEBUG_PRINT(getKeyName(vk)); DEBUG_PRINTLN("");
+      bRes = View::g_pActiveView->onKeyAutoRepeat(vk);      
+    }      
     // fire long key logic here
     if((m_ulToFireLongKey == 0) || (ulNow < m_ulToFireLongKey))
-      return false;
+      return bRes;
     m_ulToFireLongKey = 0;
-    DEBUG_PRINT("onLongKeyDown vk=");
-    DEBUG_PRINT(getKeyName(vk));
-    DEBUG_PRINTLN("");
-    View::g_pActiveView->onLongKeyDown(vk);
-    return true;
+    DEBUG_PRINT("onLongKeyDown vk="); DEBUG_PRINT(getKeyName(vk)); DEBUG_PRINTLN("");
+    return View::g_pActiveView->onLongKeyDown(vk) || bRes;
   }
   // vk != m_cOldKey
   if(m_ulBounceSubsided == 0) {
@@ -107,13 +117,10 @@ bool Keypad::getAndDispatchKey(unsigned long ulNow)
   if(m_bOldKey == VK_NONE) 
   {
     m_ulToFireLongKey = ulNow + s_iLongKeyDelay;
+    m_ulToFireAutoRepeat = ulNow + s_iAutoRepeatDelay;
     m_ulBounceSubsided = 0;
-    DEBUG_PRINT("onKeyDown vk=");
-    DEBUG_PRINT(getKeyName(vk));
-    DEBUG_PRINT(" m_bOldKey=");
-    DEBUG_PRINT(getKeyName(m_bOldKey));
-    DEBUG_PRINTLN("");
-    View::g_pActiveView->onKeyDown(vk);
+    DEBUG_PRINT("onKeyDown vk="); DEBUG_PRINT(getKeyName(vk)); DEBUG_PRINT(" m_bOldKey="); DEBUG_PRINT(getKeyName(m_bOldKey)); DEBUG_PRINTLN("");
+    bRes = View::g_pActiveView->onKeyDown(vk);
   }
   else if(vk != VK_NONE)
   {
@@ -122,17 +129,12 @@ bool Keypad::getAndDispatchKey(unsigned long ulNow)
   }
   else
   {
-    m_ulToFireLongKey = 0;
-    m_ulBounceSubsided = 0;
-    DEBUG_PRINT("onKeyUp vk=");
-    DEBUG_PRINT(getKeyName(vk));
-    DEBUG_PRINT(" m_bOldKey=");
-    DEBUG_PRINT(getKeyName(m_bOldKey));
-    DEBUG_PRINTLN("");
-    View::g_pActiveView->onKeyUp(m_bOldKey);
+    m_ulToFireAutoRepeat = m_ulToFireLongKey = m_ulBounceSubsided = 0;
+    DEBUG_PRINT("onKeyUp vk="); DEBUG_PRINT(getKeyName(vk)); DEBUG_PRINT(" m_bOldKey="); DEBUG_PRINT(getKeyName(m_bOldKey)); DEBUG_PRINTLN("");
+    bRes = View::g_pActiveView->onKeyUp(m_bOldKey);
   }
   m_bOldKey = vk;
-  return true;
+  return bRes;
 }
 
 

@@ -46,7 +46,7 @@ const uint8_t pinPanDirection = 6;
  * Globals: Main command interpreter
  */
 PannerCommandInterpreter g_ci(pinPanStep, pinPanDirection, pinPanEnable);  // pan pinStep, pinDirection, pinEnable
-CommandInterpreter *g_pCommandInterpreter = &g_ci;
+//CommandInterpreter *g_pCommandInterpreter = &g_ci;
 
 /**
  * Globals: Serial Port object
