@@ -480,4 +480,16 @@ int16_t KeyValueListWidget::getNumericValue(const char key[])
   return p->getCurSel();
 }
 
+/** 
+ * get the value by index
+ */
+int16_t KeyValueListWidget::getNumericValue(int16_t i)
+{
+  if((i < 0) || (i >= (int16_t)m_values.size()))
+    return LB_ERR;
+  ListSpinnerWidget *p = &m_values[i];
+  if(p->getSelectionMode() != smMultiSelection)
+    return LB_ERR;
+  return p->getCurSel();
+}
 

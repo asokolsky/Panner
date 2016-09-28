@@ -4,7 +4,7 @@
  * Command Debug Support
  */
 #ifdef DEBUG
-void Command::DUMP(const char *szText)
+void Command::DUMP(const char *szText) const
 {
   if(szText != 0) {
     DEBUG_PRINT(szText);

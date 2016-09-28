@@ -1,5 +1,6 @@
 #include "Panner.h"
 #include "BatteryMonitor.h"
+#include <EEPROM.h>
 #include <font_LiberationSans.h>
 #include <font_AwesomeF000.h>
 #include <font_AwesomeF080.h>
@@ -13,11 +14,6 @@
 /**
  * Globals: views
  */
-const int iPannerSlowSpeed = 15;
-int g_iPannerSlowSpeed = iPannerSlowSpeed;
-const int iPannerFastSpeed = 3*iPannerSlowSpeed;
-int g_iPannerFastSpeed = iPannerFastSpeed;
-
 SettingsView g_settingsView;
 ControlView g_controlView;
 WaypointsView g_waypointsView;
@@ -25,6 +21,9 @@ EditView g_editView;
 RunView g_runView;
 PausedRunView g_pausedRunView;
 AboutView g_aboutView;
+
+PersistentSettings g_settings;
+
 
 /**
  * Globals: commands to run at startup
@@ -57,7 +56,6 @@ static const char szPanSlowSpeed[] = "Pan Slow Speed";
 static const char szPanMaxSpeed[] = "Pan Max Speed";
 static const char szPanAcceleration[] = "Pan Acceleration";
 
-
 /**
  * 
  */
@@ -70,7 +68,28 @@ SettingsView::SettingsView() :
   m_settings.hasBorder(false);
   addChild(&m_settings);
   m_resetConfirmation.m_strMessage = "Reset all settings?";
+
+  // restore g_settings from EEPROM
+  EEPROM.get(iEEaddress, g_settings);
+  if((g_settings.m_signature[0] != 'P') || (g_settings.m_signature[0] != '0'))
+    factoryResetSettings();
 }
+
+void SettingsView::factoryResetSettings()
+{
+  DEBUG_PRINTLN("factoryResetSettings()");
+  g_settings.m_signature[0] = 'P';
+  g_settings.m_signature[1] = '0';  
+  g_settings.m_uPannerSlowSpeed = 15;
+  g_settings.m_uPannerFastSpeed = 3*15;
+  g_settings.m_uPannerMaxSpeed = 50;
+  g_settings.m_uPannerAcceleration = 15;
+  if(g_pPanner != 0) {
+    g_pPanner->setMaxSpeed(g_settings.m_uPannerMaxSpeed);
+    g_pPanner->setAcceleration(g_settings.m_uPannerAcceleration);
+  }
+}
+
   
 /** Long press on central click pops up a Reset confirmation dialog */
 bool SettingsView::onLongKeyDown(uint8_t vk)
@@ -150,13 +169,18 @@ bool SettingsView::onKeyUp(uint8_t vk)
       activate(&g_aboutView);
       break;
     case VK_SOFTB: {
-      // save settings!
-      g_iPannerSlowSpeed = m_settings.getNumericValue(szPanSlowSpeed);
-      g_iPannerFastSpeed = g_iPannerSlowSpeed * 3;
+      // save settings!     
+      g_settings.m_uPannerSlowSpeed = m_settings.getNumericValue(szPanSlowSpeed);
+      g_settings.m_uPannerFastSpeed = 3 * g_settings.m_uPannerSlowSpeed;
       //
-      g_pPanner->setMaxSpeed(m_settings.getNumericValue(szPanMaxSpeed));
+      g_settings.m_uPannerMaxSpeed = m_settings.getNumericValue(szPanMaxSpeed);
+      g_pPanner->setMaxSpeed(g_settings.m_uPannerMaxSpeed);
       //
-      g_pPanner->setAcceleration(m_settings.getNumericValue(szPanAcceleration));
+      g_settings.m_uPannerAcceleration = m_settings.getNumericValue(szPanAcceleration);
+      g_pPanner->setAcceleration(g_settings.m_uPannerAcceleration);
+      //
+      EEPROM.put(iEEaddress, g_settings);
+      
       //    
       activate(((g_pPreviousView == &g_aboutView) || (g_pPreviousView == &m_resetConfirmation)) ? 
                &g_controlView : 
@@ -178,18 +202,14 @@ void SettingsView::onActivate(View *pPrevActive)
   if((pPrevActive == &m_resetConfirmation) && (m_resetConfirmation.getResult() == IDOK))
   {
     // the Reset Confirmation MessageBox was just closed.  Reset confirmed!
-    g_iPannerSlowSpeed = iPannerSlowSpeed;
-    g_iPannerFastSpeed = iPannerFastSpeed;
-    g_pPanner->setMaxSpeed(uPannerMaxSpeed);
-    g_pPanner->setAcceleration(uPannerAcceleration);
-    
+    factoryResetSettings();    
   }
   // clear the listBox
   m_settings.clear();
   // fill m_settings
   {
     m_settings.push_back(" Direct Control");
-    m_settings.push_back(szPanSlowSpeed, g_iPannerSlowSpeed);
+    m_settings.push_back(szPanSlowSpeed, (long)g_settings.m_uPannerSlowSpeed);
     m_settings.push_back(" Runtime");
     m_settings.push_back(szPanMaxSpeed, (long)g_pPanner->maxSpeed());
     m_settings.push_back(szPanAcceleration, (long)g_pPanner->getAcceleration());
@@ -314,11 +334,11 @@ bool ControlView::onKeyDown(uint8_t vk)
     case VK_LEFT:
       // start pan left
       DEBUG_PRINTLN("ControlView::onKeyDown(VK_LEFT): start pan left");
-      g_pPanner->setSpeed((float)g_iPannerSlowSpeed);
+      g_pPanner->setSpeed((float)g_settings.m_uPannerSlowSpeed);
       break;
     case VK_RIGHT:
       // start pan right
-      g_pPanner->setSpeed((float) - g_iPannerSlowSpeed);
+      g_pPanner->setSpeed((float) - g_settings.m_uPannerSlowSpeed);
       DEBUG_PRINTLN("ControlView::onKeyDown(VK_RIGHT): start pan right");
       break;
     default:
@@ -333,12 +353,12 @@ bool ControlView::onLongKeyDown(uint8_t vk)
     case VK_LEFT:
       // start fast pan left
       DEBUG_PRINTLN("ControlView::onLongKeyDown(VK_LEFT): start fast pan left");
-      g_pPanner->setSpeed((float)g_iPannerFastSpeed);
+      g_pPanner->setSpeed((float)g_settings.m_uPannerFastSpeed);
       break;
     case VK_RIGHT:
       // start fast pan right
       DEBUG_PRINTLN("ControlView::onLongKeyDown(VK_RIGHT): start fast pan right");
-      g_pPanner->setSpeed((float) - g_iPannerFastSpeed);
+      g_pPanner->setSpeed((float) - g_settings.m_uPannerFastSpeed);
       break;
     default:
       return false;
@@ -431,7 +451,7 @@ bool WaypointsView::onKeyDown(uint8_t vk)
       if(LB_ERR != iSel) {
         std::string s = m_wpoints.m_items[iSel];
         std::string ss = s.substr(0, 1);
-        g_pPanner->moveToWayPoint(ss);
+        g_pPanner->moveToWayPoint(ss.c_str());
       }
       break;
     }
@@ -628,7 +648,17 @@ bool EditView::onKeyUp(uint8_t vk)
       break;      
     case VK_SOFTB:
       DEBUG_PRINTLN("EditView::onKeyUp(VK_SOFTB): switch to Run view");
-      activate(&g_runView);
+      // save the program
+      if(saveProgram(m_steps, cmds))
+      {
+        activate(&g_runView);
+      }
+      else
+      {
+        DEBUG_PRINTLN("EditView::onKeyUp(VK_SOFTB): Can't run this!");
+        ;
+      
+      }
       break;      
     default:
       //DEBUG_PRINT("EditView::onKeyUp "); DEBUG_PRINTDEC(vk); DEBUG_PRINTLN("");
@@ -637,7 +667,10 @@ bool EditView::onKeyUp(uint8_t vk)
   return true;
 }
 
-void EditView::populate(KeyValueListWidget &steps, Command *pCmds)
+/** 
+ * go through commands and populate the steps widget 
+ */
+void EditView::populateWidget(const Command *pCmds, KeyValueListWidget &steps)
 {
   steps.clear();
   
@@ -664,7 +697,7 @@ void EditView::populate(KeyValueListWidget &steps, Command *pCmds)
             steps.push_back(szEndLoop);
             break;
           default:
-            pCmds->DUMP("populate() ABNORMAL EXIT in chControl!");
+            pCmds->DUMP("populateWidget() ABNORMAL EXIT in chControl!");
             return;
         }
         break;
@@ -694,15 +727,79 @@ void EditView::populate(KeyValueListWidget &steps, Command *pCmds)
             steps.push_back(szSetAcceleration, pCmds->m_uValue);
             break;
           default:
-            pCmds->DUMP("populate() ABNORMAL EXIT in chPan!");
+            pCmds->DUMP("populateWidget() ABNORMAL EXIT in chPan!");
             return;
         }
         break;
       default:
-        pCmds->DUMP("populate() ABNORMAL EXIT in unknown channel!");
+        pCmds->DUMP("populateWidget() ABNORMAL EXIT in unknown channel!");
         return;
     }    
   }  
+}
+
+/** walk through the steps widget and save commands */
+bool EditView::saveProgram(KeyValueListWidget &steps, Command cmds[])
+{
+  for(size_t i = 0; i < m_steps.m_items.size(); i++)
+  {
+    switch(cmds[i].m_channel)
+    {
+      case chControl:
+        switch(cmds[i].m_command)
+        {
+          case cmdControlNone:
+            // graceful completion!
+            return true;
+          case cmdControlRest:
+          case cmdControlWaitForCompletion:
+            cmds[i].m_uValue = (unsigned long)steps.getNumericValue((int16_t)i);
+            break;
+          case cmdControlBeginLoop:
+            //
+            break;
+          case cmdControlEndLoop:
+            //
+            break;
+          default:
+            cmds[i].DUMP("saveProgram() ABNORMAL EXIT in chControl - unknown command!");
+            return false;
+        }
+        break;
+      case chPan:
+        switch(cmds[i].m_command)
+        {
+          case cmdControlNone:
+            // graceful completion!
+            return true;
+          case cmdGo:
+          case cmdGoTo:
+            cmds[i].m_lPosition = (long)steps.getNumericValue((int16_t)i);
+            break;
+          case cmdGoToWaypoint: {
+            ListSpinnerWidget *p = &steps.m_values[i];
+            int16_t iSel = p->getCurSel();
+            if((iSel < 0) || (iSel >= (int16_t)p->m_items.size()))
+              return false;
+            char ch = p->m_items[iSel][0];
+            cmds[i].m_lPosition = (long)ch;
+            break;
+          }
+          case cmdSetMaxSpeed:
+          case cmdSetAcceleration:
+            cmds[i].m_lPosition = (unsigned long)steps.getNumericValue((int16_t)i);
+            break;
+          default:
+            cmds[i].DUMP("populateWidget() ABNORMAL EXIT in chPan - unknown command!");
+            return false;
+        }
+        break;
+      default:
+        cmds[i].DUMP("saveProgram() ABNORMAL EXIT - unknown channel!");
+        return false;
+    }    
+  }
+  return true;
 }
 
 void EditView::onActivate(View *pPrevActive)
@@ -712,7 +809,7 @@ void EditView::onActivate(View *pPrevActive)
   DEBUG_PRINTLN("EditView::onActivate()");
 
   // fill the m_steps from cmds
-  populate(m_steps, cmds);
+  populateWidget(cmds, m_steps);
 
   g_pPanner->enable(false);  
 }

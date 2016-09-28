@@ -20,8 +20,8 @@ public:
   //
   std::map<std::string, long> m_wayPoints;
 
-  void moveToWayPoint(const std::string &s) {
-    long int lPos = m_wayPoints[s];
+  void moveToWayPoint(const char wp[]) {
+    long int lPos = m_wayPoints[wp];
     moveTo(lPos);
   }
   float getAcceleration() {
@@ -32,10 +32,6 @@ private:
   bool m_bEnabled = false;
 };
 
-//extern Stepper g_panner;
-
-const uint16_t uPannerMaxSpeed = 50;
-const uint16_t uPannerAcceleration = 15;
 
 #endif
 

@@ -270,6 +270,10 @@ public:
    * get the value of the given key
    */
   int16_t getNumericValue(const char key[]);
+  /** 
+   * get the value by index
+   */
+  int16_t getNumericValue(int16_t i);
   
   /** just show a single item */
   void drawItem(size_t i, RECT &rLocation);

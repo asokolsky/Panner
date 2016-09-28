@@ -2,6 +2,28 @@
  * Project-specific Views and Dialogs
  */
 
+/** EEPROM address where persistent settings are stored */
+const int iEEaddress = 0;
+
+/**
+ * Persistent settings to be stored in EEPROM
+ */
+struct PersistentSettings
+{ 
+  /** signature */
+  union {
+  uint16_t m_uSignature;
+  char m_signature[2];
+  };
+  /** Panner slow speed in the direct control screen */
+  uint16_t m_uPannerSlowSpeed;
+  /** Panner speed in the direct control screen */
+  uint16_t m_uPannerFastSpeed;
+  /** Panner max speed */
+  uint16_t m_uPannerMaxSpeed;
+  /** Panner acceleration */
+  uint16_t m_uPannerAcceleration;
+};
 
 /**
  * Settings view class
@@ -24,6 +46,9 @@ public:
 
   /** also handles WaypointDefinitionDialog results */
   void onActivate(View *pPrevActive);
+
+  /** reset settings to factory defaults */
+  void factoryResetSettings();  
 };
 
  
@@ -122,7 +147,10 @@ public:
 
   void onActivate(View *pPrevActive);
 private:
-  void populate(KeyValueListWidget &steps, Command *pCmds);
+  /** go through commands and populate the steps widget */
+  void populateWidget(const Command *pCmds, KeyValueListWidget &steps);
+  /** walk through the steps widget and save commands */
+  bool saveProgram(KeyValueListWidget &steps, Command cmds[]);
 };
 
 

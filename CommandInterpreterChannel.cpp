@@ -28,6 +28,12 @@ void CommandInterpreterChannel::beginCommand(Command *p, unsigned long now)
     case cmdGoTo:
       m_motor.moveTo(p->m_lPosition);
       break;
+    case cmdGoToWaypoint: {
+      char szKey [] = " ";
+      szKey[0] = (char)p->m_lPosition;
+      m_motor.moveToWayPoint(szKey);
+      break;
+    }
     case cmdSetMaxSpeed:
       m_motor.setMaxSpeed((float)p->m_uValue);
       break;    
