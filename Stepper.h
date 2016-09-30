@@ -24,6 +24,9 @@ public:
     long int lPos = m_wayPoints[wp];
     moveTo(lPos);
   }
+  float getMaxSpeed() {
+    return _maxSpeed;
+  }
   float getAcceleration() {
     return _acceleration;
   }
