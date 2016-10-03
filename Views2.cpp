@@ -211,7 +211,7 @@ void SettingsView::onActivate(View *pPrevActive)
     m_settings.push_back(" Direct Control");
     m_settings.push_back(szPanSlowSpeed, (long)g_settings.m_uPannerSlowSpeed);
     m_settings.push_back(" Runtime");
-    m_settings.push_back(szPanMaxSpeed, (long)g_pPanner->getMaxSpeed());
+    m_settings.push_back(szPanMaxSpeed, (long)g_pPanner->maxSpeed());
     m_settings.push_back(szPanAcceleration, (long)g_pPanner->getAcceleration());
     m_settings.setCurSel(1);
   }

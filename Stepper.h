@@ -9,10 +9,13 @@ public:
   Stepper(uint8_t pinStep, uint8_t pinDirection, uint8_t pinEnable = 0xFF);
 
   void enable(bool bEnable = true);
-  bool isEnabled() { return m_bEnabled; }
+  
+  bool isEnabled() const { 
+    return m_bEnabled; 
+  }
 
 #ifdef DEBUG
-  void DUMP(const char *szText = 0);
+  void DUMP(const char *szText = 0) const;
 #else
   void DUMP(const char *szText = 0) {}
 #endif
@@ -24,10 +27,7 @@ public:
     long int lPos = m_wayPoints[wp];
     moveTo(lPos);
   }
-  float getMaxSpeed() {
-    return _maxSpeed;
-  }
-  float getAcceleration() {
+  float getAcceleration() const {
     return _acceleration;
   }
 

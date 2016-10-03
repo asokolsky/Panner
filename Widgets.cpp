@@ -17,13 +17,10 @@ void Widget::draw()
   m_lcd.fillRect(m_rectClient, ILI9341_CYAN);
 }
 
-void Widget::setPosition(int16_t left, int16_t top, int16_t right, int16_t bottom) 
+void Widget::setPosition(const RECT &rLoc)
 {
   //if((left == m_position.left) && (m_position.top == top) && (m_position.right == right) && (m_position.bottom == bottom)) return;
-  m_position.left = left;
-  m_position.top = top;
-  m_position.right = right;
-  m_position.bottom = bottom;
+  m_position = rLoc;
   onPosition();
 }
 

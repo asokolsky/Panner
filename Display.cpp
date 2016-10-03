@@ -7,7 +7,7 @@ const uint8_t pinDC = 9;
  *  RECT Class Implementation
  */
 
-bool RECT::doesIntersect(RECT &r)
+bool RECT::doesIntersect(const RECT &r) const
 {
  // If one rectangle is on left side of other
  if(left > r.right || r.left > right)
@@ -18,7 +18,7 @@ bool RECT::doesIntersect(RECT &r)
   return true;
 }
 
-RECT RECT::intersect(RECT &r)
+RECT RECT::intersect(const RECT &r) const
 {
   RECT res;
   res.top = max(top, r.top);
@@ -30,7 +30,7 @@ RECT RECT::intersect(RECT &r)
 
  
 #ifdef DEBUG
-void RECT::DUMP(const char *szText /* = 0*/) 
+void RECT::DUMP(const char *szText /* = 0*/) const
 {
   if(szText != 0) {
     DEBUG_PRINT(szText);
@@ -176,7 +176,7 @@ void Display::printText(
 
 
 #ifdef DEBUG
-void Display::DUMP(const char *szText /* = 0*/)
+void Display::DUMP(const char *szText /* = 0*/) const
 {
   if(szText != 0) {
     DEBUG_PRINT(szText);

@@ -11,7 +11,7 @@ public:
   POINT() {}
   
 #ifdef DEBUG
-  void DUMP(const char *szText = 0);
+  void DUMP(const char *szText = 0) const;
 #else
   void DUMP(const char *szText = 0) {}
 #endif
@@ -27,10 +27,10 @@ public:
   int16_t right;
   int16_t bottom;
 
-  int16_t width() {
+  int16_t width() const {
     return right - left;
   }
-  int16_t height() {
+  int16_t height() const {
     return bottom - top;
   }
   void inflate(int16_t px = 1) {
@@ -45,11 +45,11 @@ public:
     right -= px;
     bottom -= px;
   }
-  bool doesIntersect(RECT &r);
-  RECT intersect(RECT &r);
+  bool doesIntersect(const RECT &r) const;
+  RECT intersect(const RECT &r) const;
 
 #ifdef DEBUG
-  void DUMP(const char *szText = 0);
+  void DUMP(const char *szText = 0) const;
 #else
   void DUMP(const char *szText = 0) {}
 #endif
@@ -61,10 +61,10 @@ class Display: public ILI9341_t3
 public: 
   Display();
 
-  void setClipRect(RECT &r) {
+  void setClipRect(const RECT &r) {
     _clipx1 = r.left; _clipy1 = r.top; _clipx2 = r.right; _clipy2 = r.bottom;
   }
-  RECT getClipRect() 
+  RECT getClipRect() const
   {
     RECT r;
     r.left = _clipx1; r.top = _clipy1; r.right = _clipx2; r.bottom = _clipy2;
@@ -75,18 +75,14 @@ public:
   }
   
 
-  void fillRect(RECT &r, uint16_t color = ILI9341_BLACK) {
+  void fillRect(const RECT &r, uint16_t color = ILI9341_BLACK) {
     if(color != ILI9341_BLACK) {
       DEBUG_PRINT("fillRect color:"); DEBUG_PRINTHEX(color); r.DUMP(" r:");
     }
     ILI9341_t3::fillRect(r.left, r.top, r.width(), r.height(), color);
   }
 
-  /*void fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color = ILI9341_BLACK) {
-    ILI9341_t3::fillRect(x, y, w, h, color);
-  }*/
-
-  const ILI9341_t3_font_t *getFont() {
+  const ILI9341_t3_font_t *getFont() const {
     return font;
   }
 
@@ -104,16 +100,16 @@ public:
   
   /**
    * Print text with appropriate alignement in rLocation.
-   * rLocation.bottom can be 0 if va == vaTop
+   * rLocation.bottom can be 0 if va == vaTop - in this case rLocation.bottom will be changed/set
    */
   void printText(const char *szText, uint16_t c, uint16_t bg, RECT &rLoc, HorizontalAlignment ha, VerticalAlignment va = vaTop, const ILI9341_t3_font_t *pFont = 0, bool bEraseBkgnd = false);
   
-  uint16_t getTextColor() {
+  uint16_t getTextColor() const {
     return textcolor;
   }
 
 #ifdef DEBUG
-  void DUMP(const char *szText = 0);
+  void DUMP(const char *szText = 0) const;
 #else
   void DUMP(const char *szText = 0) {}
 #endif

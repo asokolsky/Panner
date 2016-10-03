@@ -45,7 +45,11 @@ View::View(const char *szTitle,
   if(m_fontSoftA == 0) m_fontSoftA = &LiberationSans_16;
   if(m_fontSoftB == 0) m_fontSoftB = &LiberationSans_16;
   if(m_fontNav == 0) m_fontNav = &LiberationSans_16;
-  setPosition(0, 0, m_lcd.height(), m_lcd.width());  // the order is important!
+  m_position.top = 0;
+  m_position.left = 0;
+  m_position.bottom = m_lcd.width(); // the order is important! 
+  m_position.right = m_lcd.height();
+  setPosition(m_position);  
 }
 
 /**
@@ -86,16 +90,18 @@ void View::activate(View *p)
 void View::onDeActivate(View *pNewActive)
 {
   DEBUG_PRINTLN("View::onDeActivate");
-  /*RECT rFill = m_position;
-  rFill.bottom -= iBottomBarHeight;
-  m_lcd.fillRect(rFill, ILI9341_BLACK);*/
 }
 
 void View::onActivate(View *pPrevActive)
 {
   DEBUG_PRINTLN("View::onActivate");
   m_lcd.resetClipRect();
-  setPosition(0, 0, m_lcd.width(), m_lcd.height()); // done in the constructor but let's reiterate
+  RECT rPos;
+  rPos.top = 0;
+  rPos.left = 0;
+  rPos.right = m_lcd.width();
+  rPos.bottom = m_lcd.height();
+  setPosition(rPos); // done in the constructor but let's reiterate
   // erase the entire background
   m_bEraseBkgnd = true;
 }
@@ -421,8 +427,11 @@ void ModalDialog::onActivate(View *pPrevActive)
 {
   m_iRes = IDUNKNOWN;
   m_zParent = pPrevActive;
-  if(pPrevActive != 0)
-    setPosition(pPrevActive->m_position.left, pPrevActive->m_position.top + iTitleBarHeight, pPrevActive->m_position.right, pPrevActive->m_position.bottom);
+  if(pPrevActive != 0) {
+    RECT rPos = pPrevActive->m_position;
+    rPos.top += iTitleBarHeight;
+    setPosition(rPos);
+  }
   // erase the entire background
   m_bEraseBkgnd = true;
   //RECT rFill = m_position;

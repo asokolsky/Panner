@@ -32,7 +32,7 @@ public:
   
   Widget(const ILI9341_t3_font_t *pFont = 0, uint16_t uStyle = 0) : m_pFont(pFont) {}
 
-  bool hasFocus() {
+  bool hasFocus() const {
     return (m_uStyle & WS_HASFOCUS) != 0;
   }
   void hasFocus(bool bHasFocus) {
@@ -41,7 +41,7 @@ public:
     else
       m_uStyle &= ~WS_HASFOCUS;
   }
-  bool hasBorder() {
+  bool hasBorder() const {
     return (m_uStyle & WS_BORDER) != 0;
   }
   void hasBorder(bool bHasBorder) {
@@ -62,11 +62,10 @@ public:
    */
   void printKeyVal(uint16_t x, uint16_t y, const char *szKey1, long lVal1, bool bSelected = false, const char *szKey2 = 0, long lVal2 = 0);
   
-
-  void setPosition(int16_t left, int16_t top, int16_t right, int16_t bottom);
-  void setPosition(RECT &r) {
-    setPosition(r.left, r.top, r.right, r.bottom);
-  }
+  /** 
+   * move the widget here.  Will change m_position and trigger on Position 
+   */
+  void setPosition(const RECT &r);
 
   void setFont(const ILI9341_t3_font_t *pFont = 0) {
     m_pFont = pFont; 

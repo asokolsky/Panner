@@ -21,7 +21,7 @@ void Stepper::enable(bool bEnable)
 }
 
 #ifdef DEBUG
-void Stepper::DUMP(const char *szText /*= 0*/)
+void Stepper::DUMP(const char *szText /*= 0*/) const
 {
   if(szText != 0) {
     DEBUG_PRINT(szText);
