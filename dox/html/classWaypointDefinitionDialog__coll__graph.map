@@ -1,0 +1,10 @@
+<map id="WaypointDefinitionDialog" name="WaypointDefinitionDialog">
+<area shape="rect" id="node2" href="$classModalDialog.html" title="ModalDialog" alt="" coords="176,500,271,527"/>
+<area shape="rect" id="node3" href="$classView.html" title="View" alt="" coords="213,402,263,429"/>
+<area shape="rect" id="node4" href="$classWidget.html" title="Widget" alt="" coords="196,207,259,234"/>
+<area shape="rect" id="node12" href="$classListWidget.html" title="ListWidget" alt="" coords="87,304,171,331"/>
+<area shape="rect" id="node5" href="$classRECT.html" title="RECT" alt="" coords="198,96,257,123"/>
+<area shape="rect" id="node6" href="$classStepper.html" title="Stepper" alt="" coords="430,304,497,331"/>
+<area shape="rect" id="node9" title="STL class. " alt="" coords="83,96,163,123"/>
+<area shape="rect" id="node10" title="STL class. " alt="" coords="60,5,187,47"/>
+</map>

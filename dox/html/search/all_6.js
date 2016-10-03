@@ -1,7 +1,14 @@
 var searchData=
 [
-  ['isbusy',['isBusy',['../classCommandInterpreter.html#a03aa03ea8b21d99fe1e78600c11eba50',1,'CommandInterpreter::isBusy()'],['../classCommandInterpreterChannel.html#a25704647bac8319ada14697f81b1c0d9',1,'CommandInterpreterChannel::isBusy()'],['../classPannerCommandInterpreter.html#aa104aeb5b1d174e9a138e732822db422',1,'PannerCommandInterpreter::isBusy()']]],
-  ['ispaused',['isPaused',['../classPannerCommandInterpreter.html#a9a51343fd0faa5c75f1dc7a5f3c1daea',1,'PannerCommandInterpreter']]],
-  ['isreadytoendcommand',['isReadyToEndCommand',['../classCommandInterpreterChannel.html#a6b564d4436d651861579c35deceb4a68',1,'CommandInterpreterChannel']]],
-  ['isrunning',['isRunning',['../classPannerCommandInterpreter.html#a44c529b8776b4da5098858f35f5a5b7e',1,'PannerCommandInterpreter']]]
+  ['g_5fpactiveview',['g_pActiveView',['../classView.html#aebb01d98b5e9c762f0ad14b081853f3e',1,'View']]],
+  ['g_5fppreviousview',['g_pPreviousView',['../classView.html#a8b24837660101cba0169bf617cfea867',1,'View']]],
+  ['getanddispatchkey',['getAndDispatchKey',['../classKeypad.html#ab493ecc597df3cc40c2018a32fc19fdf',1,'Keypad']]],
+  ['getbusyseconds',['getBusySeconds',['../classPannerCommandInterpreter.html#afaab90753cf25a465362be710cc812e1',1,'PannerCommandInterpreter']]],
+  ['getcurvalue',['getCurValue',['../classKeyValueListWidget.html#a87d0ee8a8dac3779c874d58666043d0c',1,'KeyValueListWidget']]],
+  ['getgauge',['getGauge',['../classBatteryMonitor.html#aaf54f4ef596aac9ef51594ec37219e1b',1,'BatteryMonitor']]],
+  ['getkey',['getKey',['../classKeypad.html#a70d17ae9daf88d4f11d222a8b2b3ce9c',1,'Keypad']]],
+  ['getmotor',['getMotor',['../classCommandInterpreterChannel.html#a3f832ebd1172e28faf0fe92a6c5f8589',1,'CommandInterpreterChannel']]],
+  ['getnumericvalue',['getNumericValue',['../classKeyValueListWidget.html#aee575015315c8826e5b18e1a4b761ebd',1,'KeyValueListWidget::getNumericValue(const char key[])'],['../classKeyValueListWidget.html#a2c905d48fdba6e5886a7555e05162ed9',1,'KeyValueListWidget::getNumericValue(int16_t i)']]],
+  ['getvalue',['getValue',['../classKeyValueListWidget.html#a9042567508345d7e3f28f0bc06004b0d',1,'KeyValueListWidget']]],
+  ['getwaitseconds',['getWaitSeconds',['../classPannerCommandInterpreter.html#a0b09af5508dbe2fffc6c9f6a5ec3ece7',1,'PannerCommandInterpreter']]]
 ];

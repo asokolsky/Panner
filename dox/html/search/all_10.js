@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['view',['View',['../classView.html',1,'View'],['../classView.html#ab0478133b872f9e0d36e67f371351a0a',1,'View::View()']]]
+  ['tick',['tick',['../classCommandInterpreterChannel.html#a8084a42c6ecc0428e1805fe122daa789',1,'CommandInterpreterChannel']]]
 ];

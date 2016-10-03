@@ -102,13 +102,31 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 Inheritance diagram for View:</div>
 <div class="dyncontent">
 <div class="center"><img src="classView__inherit__graph.png" border="0" usemap="#View_inherit__map" alt="Inheritance graph"/></div>
-<!-- MAP 0 -->
+<map name="View_inherit__map" id="View_inherit__map">
+<area shape="rect" id="node3" href="classAboutView.html" title="AboutView" alt="" coords="231,5,317,32"/>
+<area shape="rect" id="node4" href="classControlView.html" title="ControlView" alt="" coords="227,56,321,83"/>
+<area shape="rect" id="node5" href="classEditView.html" title="EditView" alt="" coords="237,107,311,133"/>
+<area shape="rect" id="node6" href="classModalDialog.html" title="ModalDialog" alt="" coords="227,157,321,184"/>
+<area shape="rect" id="node9" href="classPausedRunView.html" title="PausedRunView" alt="" coords="215,208,333,235"/>
+<area shape="rect" id="node10" href="classRunView.html" title="RunView" alt="" coords="237,259,311,285"/>
+<area shape="rect" id="node11" href="classSettingsView.html" title="SettingsView" alt="" coords="225,309,323,336"/>
+<area shape="rect" id="node12" href="classWaypointsView.html" title="WaypointsView" alt="" coords="217,360,331,387"/>
+<area shape="rect" id="node2" href="classWidget.html" title="Widget" alt="" coords="5,183,68,209"/>
+<area shape="rect" id="node7" href="classMessageBox.html" title="MessageBox" alt="" coords="417,132,515,159"/>
+<area shape="rect" id="node8" href="classWaypointDefinitionDialog.html" title="WaypointDefinitionDialog" alt="" coords="381,183,551,209"/>
+</map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <div class="dynheader">
 Collaboration diagram for View:</div>
 <div class="dyncontent">
 <div class="center"><img src="classView__coll__graph.png" border="0" usemap="#View_coll__map" alt="Collaboration graph"/></div>
-<!-- MAP 1 -->
+<map name="View_coll__map" id="View_coll__map">
+<area shape="rect" id="node2" href="classWidget.html" title="Widget" alt="" coords="15,207,77,234"/>
+<area shape="rect" id="node3" href="classRECT.html" title="RECT" alt="" coords="17,96,75,123"/>
+<area shape="rect" id="node4" href="classStepper.html" title="Stepper" alt="" coords="206,304,273,331"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="267,96,347,123"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="244,5,371,47"/>
+</map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
@@ -119,14 +137,17 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a02778e3849f73870e604ba30033790ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a038a2c035eaddfdfad069f3f3a37ee2a"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classView.html#a038a2c035eaddfdfad069f3f3a37ee2a">onActivate</a> (<a class="el" href="classView.html">View</a> *pPrevActive)</td></tr>
 <tr class="separator:a038a2c035eaddfdfad069f3f3a37ee2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa14d5edb8ce9669e426cc98497917754"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classView.html#aa14d5edb8ce9669e426cc98497917754">onKeyDown</a> (uint8_t vk)</td></tr>
-<tr class="separator:aa14d5edb8ce9669e426cc98497917754"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af767aa5a313bcc68c57d7155606b6f3a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af767aa5a313bcc68c57d7155606b6f3a"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>onLongKeyDown</b> (uint8_t vk)</td></tr>
-<tr class="separator:af767aa5a313bcc68c57d7155606b6f3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afeb9a3cdc9a57904f37ac03e3bd0f776"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afeb9a3cdc9a57904f37ac03e3bd0f776"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>onKeyUp</b> (uint8_t vk)</td></tr>
-<tr class="separator:afeb9a3cdc9a57904f37ac03e3bd0f776"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2036550660189f27111fe51b1200412d"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classView.html#a2036550660189f27111fe51b1200412d">onKeyDown</a> (uint8_t vk)</td></tr>
+<tr class="separator:a2036550660189f27111fe51b1200412d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aab0ed2bb5bed1f8aff1beb680ab3cf57"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aab0ed2bb5bed1f8aff1beb680ab3cf57"></a>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>onKeyAutoRepeat</b> (uint8_t vk)</td></tr>
+<tr class="separator:aab0ed2bb5bed1f8aff1beb680ab3cf57"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9e3fa02734e2b27ce3fc1ea4414cf856"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9e3fa02734e2b27ce3fc1ea4414cf856"></a>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>onLongKeyDown</b> (uint8_t vk)</td></tr>
+<tr class="separator:a9e3fa02734e2b27ce3fc1ea4414cf856"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4a7bd0726e13d16229565fff4bb9c0e6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4a7bd0726e13d16229565fff4bb9c0e6"></a>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>onKeyUp</b> (uint8_t vk)</td></tr>
+<tr class="separator:a4a7bd0726e13d16229565fff4bb9c0e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a95bef592b598499c631a2f928d7c38f4"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classView.html#a95bef592b598499c631a2f928d7c38f4">loop</a> (unsigned long now)</td></tr>
 <tr class="separator:a95bef592b598499c631a2f928d7c38f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1fcc974f72ddfbfac53ddf23287ffdb4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classView.html#a1fcc974f72ddfbfac53ddf23287ffdb4">onPosition</a> ()</td></tr>
@@ -144,26 +165,24 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>DUMP</b> (const char 
 <tr class="memitem:af351a1bbd174f7e8a61d0b430e112468 inherit pub_methods_classWidget"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af351a1bbd174f7e8a61d0b430e112468"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>Widget</b> (const ILI9341_t3_font_t *pFont=0, uint16_t uStyle=0)</td></tr>
 <tr class="separator:af351a1bbd174f7e8a61d0b430e112468 inherit pub_methods_classWidget"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a74614fd48068d2696a34b03bfe012421 inherit pub_methods_classWidget"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a74614fd48068d2696a34b03bfe012421"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>hasBorder</b> ()</td></tr>
-<tr class="separator:a74614fd48068d2696a34b03bfe012421 inherit pub_methods_classWidget"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3c370eec3a600d512094d37d581abb5b inherit pub_methods_classWidget"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3c370eec3a600d512094d37d581abb5b"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>hasFocus</b> () const </td></tr>
+<tr class="separator:a3c370eec3a600d512094d37d581abb5b inherit pub_methods_classWidget"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af764a9546ba88b769ffca8706a0ae00f inherit pub_methods_classWidget"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af764a9546ba88b769ffca8706a0ae00f"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>hasFocus</b> (bool bHasFocus)</td></tr>
+<tr class="separator:af764a9546ba88b769ffca8706a0ae00f inherit pub_methods_classWidget"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abeae6a2da9b8ce6dc189b347fcae76c4 inherit pub_methods_classWidget"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abeae6a2da9b8ce6dc189b347fcae76c4"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>hasBorder</b> () const </td></tr>
+<tr class="separator:abeae6a2da9b8ce6dc189b347fcae76c4 inherit pub_methods_classWidget"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a30ee0ed64135405b60fa6e27b132f24a inherit pub_methods_classWidget"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a30ee0ed64135405b60fa6e27b132f24a"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>hasBorder</b> (bool bHasBorder)</td></tr>
 <tr class="separator:a30ee0ed64135405b60fa6e27b132f24a inherit pub_methods_classWidget"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6ea4feac4bdee76a57d666d7241f7422 inherit pub_methods_classWidget"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classWidget.html#a6ea4feac4bdee76a57d666d7241f7422">draw</a> ()</td></tr>
 <tr class="separator:a6ea4feac4bdee76a57d666d7241f7422 inherit pub_methods_classWidget"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adacf8ec6cafc019b515be7c6eb34b881 inherit pub_methods_classWidget"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classWidget.html#adacf8ec6cafc019b515be7c6eb34b881">printTextLeft</a> (const char *szText, uint16_t y, const ILI9341_t3_font_t *pFont=0)</td></tr>
-<tr class="separator:adacf8ec6cafc019b515be7c6eb34b881 inherit pub_methods_classWidget"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2475adf8bd512f963f709700d2be9c32 inherit pub_methods_classWidget"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classWidget.html#a2475adf8bd512f963f709700d2be9c32">printTextCenter</a> (const char *szText, uint16_t y, const ILI9341_t3_font_t *pFont=0, int16_t *pDY=0)</td></tr>
-<tr class="separator:a2475adf8bd512f963f709700d2be9c32 inherit pub_methods_classWidget"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa09399f2018f6719506dea3e6abb7498 inherit pub_methods_classWidget"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classWidget.html#aa09399f2018f6719506dea3e6abb7498">printKeyVal</a> (uint16_t x, uint16_t y, const char *szKey1, long lVal1, bool bSelected=false, const char *szKey2=0, long lVal2=0)</td></tr>
 <tr class="separator:aa09399f2018f6719506dea3e6abb7498 inherit pub_methods_classWidget"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a653b78564c7d9fd2ad5df525f607b782 inherit pub_methods_classWidget"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a653b78564c7d9fd2ad5df525f607b782"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>setPosition</b> (int16_t left, int16_t top, int16_t right, int16_t bottom)</td></tr>
-<tr class="separator:a653b78564c7d9fd2ad5df525f607b782 inherit pub_methods_classWidget"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a69a3ff2f46b6bd87a7d9b00149e130f4 inherit pub_methods_classWidget"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a69a3ff2f46b6bd87a7d9b00149e130f4"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>setPosition</b> (<a class="el" href="classRECT.html">RECT</a> &amp;r)</td></tr>
-<tr class="separator:a69a3ff2f46b6bd87a7d9b00149e130f4 inherit pub_methods_classWidget"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1c07541825cdc1071864643ccfb7c996 inherit pub_methods_classWidget"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classWidget.html#a1c07541825cdc1071864643ccfb7c996">setPosition</a> (const <a class="el" href="classRECT.html">RECT</a> &amp;r)</td></tr>
+<tr class="separator:a1c07541825cdc1071864643ccfb7c996 inherit pub_methods_classWidget"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3d1573846ae9b0cf39865c493159d666 inherit pub_methods_classWidget"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3d1573846ae9b0cf39865c493159d666"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>setFont</b> (const ILI9341_t3_font_t *pFont=0)</td></tr>
 <tr class="separator:a3d1573846ae9b0cf39865c493159d666 inherit pub_methods_classWidget"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -482,7 +501,7 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 <p>view activation call-back </p>
 
-<p>Reimplemented in <a class="el" href="classModalDialog.html#a6d046fcfeedd08f7a4464e17a617c976">ModalDialog</a>, <a class="el" href="classAboutView.html#a19ccd59b9923775504f9413d249a7f65">AboutView</a>, <a class="el" href="classPausedRunView.html#a5b34a84084d3d70faa2310d411cda3be">PausedRunView</a>, <a class="el" href="classRunView.html#a439ae2d0ee65fe15a3d4efdb243bbd50">RunView</a>, <a class="el" href="classEditView.html#a3af4ba2a6e841f41ba3b91933947e453">EditView</a>, <a class="el" href="classWaypointsView.html#aa3f7b399e20d88ff5e0b9259c9d6c53d">WaypointsView</a>, <a class="el" href="classControlView.html#a1e91db7f46b74142c6d37f8ec2a413ab">ControlView</a>, <a class="el" href="classWaypointDefinitionDialog.html#a468b62200d9bf4eb08abc6787610ee64">WaypointDefinitionDialog</a>, and <a class="el" href="classSettingsView.html#a0bb7f5554bf976fd847adf57252227a3">SettingsView</a>.</p>
+<p>Reimplemented in <a class="el" href="classAboutView.html#a19ccd59b9923775504f9413d249a7f65">AboutView</a>, <a class="el" href="classPausedRunView.html#a5b34a84084d3d70faa2310d411cda3be">PausedRunView</a>, <a class="el" href="classModalDialog.html#a6d046fcfeedd08f7a4464e17a617c976">ModalDialog</a>, <a class="el" href="classRunView.html#a439ae2d0ee65fe15a3d4efdb243bbd50">RunView</a>, <a class="el" href="classEditView.html#a3af4ba2a6e841f41ba3b91933947e453">EditView</a>, <a class="el" href="classWaypointsView.html#aa3f7b399e20d88ff5e0b9259c9d6c53d">WaypointsView</a>, <a class="el" href="classControlView.html#a1e91db7f46b74142c6d37f8ec2a413ab">ControlView</a>, <a class="el" href="classWaypointDefinitionDialog.html#a468b62200d9bf4eb08abc6787610ee64">WaypointDefinitionDialog</a>, and <a class="el" href="classSettingsView.html#a0bb7f5554bf976fd847adf57252227a3">SettingsView</a>.</p>
 
 </div>
 </div>
@@ -511,7 +530,7 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="aa14d5edb8ce9669e426cc98497917754"></a>
+<a class="anchor" id="a2036550660189f27111fe51b1200412d"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -519,7 +538,7 @@ Additional Inherited Members</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void View::onKeyDown </td>
+          <td class="memname">bool View::onKeyDown </td>
           <td>(</td>
           <td class="paramtype">uint8_t&#160;</td>
           <td class="paramname"><em>vk</em></td><td>)</td>
@@ -535,7 +554,7 @@ Additional Inherited Members</h2></td></tr>
 <p>analog keyboard APIs where vk is one of VK_xxx</p>
 <p>dummy defaults, children to overwrite </p>
 
-<p>Reimplemented in <a class="el" href="classWaypointsView.html#ac5d8f662faba2b587e2a04ebeba3923c">WaypointsView</a>, and <a class="el" href="classControlView.html#a76a79ef834f8ca26dc868d214934bcad">ControlView</a>.</p>
+<p>Reimplemented in <a class="el" href="classWaypointsView.html#aef77485d62a6c4cbd65623011ae472da">WaypointsView</a>, and <a class="el" href="classControlView.html#a73e30ee2139d8eec357fcb1d6a6364e8">ControlView</a>.</p>
 
 </div>
 </div>

@@ -1,10 +1,12 @@
 var searchData=
 [
-  ['scroll',['scroll',['../classListWidget.html#a69d5c9821d0465789764b6b3cee4dcdd',1,'ListWidget']]],
-  ['setcurvalue',['setCurValue',['../classKeyValueListWidget.html#a8a16d41181c48c16dc97378833c391ba',1,'KeyValueListWidget']]],
-  ['settingsview',['SettingsView',['../classSettingsView.html',1,'']]],
-  ['setup',['setup',['../classDisplay.html#ada73f4cecc58feafaecdb9e77747747d',1,'Display::setup()'],['../classView.html#a3c73429d2457fb422875200dc55a0b8d',1,'View::setup()']]],
-  ['stepper',['Stepper',['../classStepper.html',1,'']]],
-  ['stopcommand',['stopCommand',['../classCommandInterpreter.html#ac060bc3f7f87aec03a89e6b09cb1aa92',1,'CommandInterpreter::stopCommand()'],['../classCommandInterpreterChannel.html#ab1630a180f13ce8f060ddda9b48f1602',1,'CommandInterpreterChannel::stopCommand()'],['../classPannerCommandInterpreter.html#a189bcb9162727018a542ed5db640d58f',1,'PannerCommandInterpreter::stopCommand()']]],
-  ['stoprun',['stopRun',['../classPannerCommandInterpreter.html#ac00eca8598274e9dac93ad52bafc928d',1,'PannerCommandInterpreter']]]
+  ['pannercommandinterpreter',['PannerCommandInterpreter',['../classPannerCommandInterpreter.html',1,'PannerCommandInterpreter'],['../classPannerCommandInterpreter.html#a9d784736385b752909ba30ea7b6ff111',1,'PannerCommandInterpreter::PannerCommandInterpreter()']]],
+  ['pausecommand',['pauseCommand',['../classCommandInterpreterChannel.html#a7354a31c8e93b71bb1339b5dd189dafc',1,'CommandInterpreterChannel']]],
+  ['pausedrunview',['PausedRunView',['../classPausedRunView.html',1,'PausedRunView'],['../classPausedRunView.html#a7c457c799ce0b09fcd7c570dc5a318b7',1,'PausedRunView::PausedRunView()']]],
+  ['pauserun',['pauseRun',['../classPannerCommandInterpreter.html#a99d6c899d9a47585221ebaaeeb54babe',1,'PannerCommandInterpreter']]],
+  ['persistentsettings',['PersistentSettings',['../structPersistentSettings.html',1,'']]],
+  ['point',['POINT',['../classPOINT.html',1,'']]],
+  ['printkeyval',['printKeyVal',['../classWidget.html#aa09399f2018f6719506dea3e6abb7498',1,'Widget']]],
+  ['printtext',['printText',['../classDisplay.html#ae95226086f1f13cd92b3d117cb350f1b',1,'Display']]],
+  ['push_5fback',['push_back',['../classListWidget.html#a20facf5d04c29c3f9b97d79dd1d230ba',1,'ListWidget::push_back()'],['../classKeyValueListWidget.html#adbddf191b0aae37ee510398d2fda6004',1,'KeyValueListWidget::push_back(const char key[])'],['../classKeyValueListWidget.html#ad30a377478dd092c891b4f11e8d64a6e',1,'KeyValueListWidget::push_back(const char key[], int16_t val)'],['../classKeyValueListWidget.html#a4e5068381ba4cb9160f54698f25f42a0',1,'KeyValueListWidget::push_back(const char key[], ListSpinnerWidget &amp;val)']]]
 ];

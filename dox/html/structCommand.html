@@ -84,6 +84,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!-- top -->
 <div class="header">
   <div class="summary">
+<a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-attribs">Public Attributes</a> &#124;
 <a href="structCommand-members.html">List of all members</a>  </div>
   <div class="headertitle">
@@ -93,6 +94,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 <p><code>#include &lt;<a class="el" href="CommandInterpreter_8h_source.html">CommandInterpreter.h</a>&gt;</code></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
+Public Member Functions</h2></td></tr>
+<tr class="memitem:ac338500684b4124a783738ae829027f7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structCommand.html#ac338500684b4124a783738ae829027f7">DUMP</a> (const char *szText=0)</td></tr>
+<tr class="separator:ac338500684b4124a783738ae829027f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a7fc42755d44e107fb5d357deb6c356a7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7fc42755d44e107fb5d357deb6c356a7"></a>
@@ -101,14 +107,10 @@ schar_t&#160;</td><td class="memItemRight" valign="bottom"><b>m_channel</b></td>
 <tr class="memitem:a5442d4579e96734d5e7d54e44b291914"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5442d4579e96734d5e7d54e44b291914"></a>
 schar_t&#160;</td><td class="memItemRight" valign="bottom"><b>m_command</b></td></tr>
 <tr class="separator:a5442d4579e96734d5e7d54e44b291914"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a05781ac2dda1ca504dcf113546d985fc"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a05781ac2dda1ca504dcf113546d985fc"></a>
-schar_t&#160;</td><td class="memItemRight" valign="bottom"><b>m_speed</b></td></tr>
-<tr class="separator:a05781ac2dda1ca504dcf113546d985fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac1bcb117b23c4e156422ef40da64410e"><td class="memItemLeft" ><a class="anchor" id="ac1bcb117b23c4e156422ef40da64410e"></a>
 union {</td></tr>
-<tr class="memitem:a1ee5999671cb03be6d7bb7ece425a4f3"><td class="memItemLeft" >
-&#160;&#160;&#160;unsigned long&#160;&#160;&#160;<b>m_uDuration</b></td></tr>
-<tr class="separator:a1ee5999671cb03be6d7bb7ece425a4f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa4e4eae55fe4a09c1a9b493e1d282bbe"><td class="memItemLeft" >&#160;&#160;&#160;unsigned long&#160;&#160;&#160;<a class="el" href="structCommand.html#ac1186bb4fc1ab57d2ee5efed4ef2c49a">m_uValue</a></td></tr>
+<tr class="separator:aa4e4eae55fe4a09c1a9b493e1d282bbe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a823ac5d7291c526951d14d9526f869ed"><td class="memItemLeft" >
 &#160;&#160;&#160;long&#160;&#160;&#160;<b>m_lPosition</b></td></tr>
 <tr class="separator:a823ac5d7291c526951d14d9526f869ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -117,8 +119,49 @@ union {</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Interpreter for commands to slide/pan/tilt/zoom/activateShutter for photo/video camera </p>
-</div><hr/>The documentation for this struct was generated from the following file:<ul>
+</div><h2 class="groupheader">Member Function Documentation</h2>
+<a class="anchor" id="ac338500684b4124a783738ae829027f7"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Command::DUMP </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>szText</em> = <code>0</code></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p><a class="el" href="structCommand.html">Command</a> Debug Support </p>
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a class="anchor" id="ac1186bb4fc1ab57d2ee5efed4ef2c49a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">unsigned long Command::m_uValue</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>unsigned duration (in milli seconds) or speed (in steps/sec or %) </p>
+
+</div>
+</div>
+<hr/>The documentation for this struct was generated from the following files:<ul>
 <li><a class="el" href="CommandInterpreter_8h_source.html">CommandInterpreter.h</a></li>
+<li>CommandInterpreter.cpp</li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

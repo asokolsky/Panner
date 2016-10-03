@@ -85,6 +85,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pro-methods">Protected Member Functions</a> &#124;
+<a href="#pro-attribs">Protected Attributes</a> &#124;
 <a href="classKeypad-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">Keypad Class Reference</div>  </div>
@@ -99,6 +101,26 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:adcd0c0588dead8ef59fbdecff0bbfd57"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab493ecc597df3cc40c2018a32fc19fdf"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classKeypad.html#ab493ecc597df3cc40c2018a32fc19fdf">getAndDispatchKey</a> (unsigned long now)</td></tr>
 <tr class="separator:ab493ecc597df3cc40c2018a32fc19fdf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
+Protected Member Functions</h2></td></tr>
+<tr class="memitem:a70d17ae9daf88d4f11d222a8b2b3ce9c"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classKeypad.html#a70d17ae9daf88d4f11d222a8b2b3ce9c">getKey</a> ()</td></tr>
+<tr class="separator:a70d17ae9daf88d4f11d222a8b2b3ce9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
+Protected Attributes</h2></td></tr>
+<tr class="memitem:a9a7e37b3bd96dc80d47bad71a36fedcd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9a7e37b3bd96dc80d47bad71a36fedcd"></a>
+uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>m_bPin</b></td></tr>
+<tr class="separator:a9a7e37b3bd96dc80d47bad71a36fedcd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae39b77234a7b6187eea2a8c40e278954"><td class="memItemLeft" align="right" valign="top">unsigned long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classKeypad.html#ae39b77234a7b6187eea2a8c40e278954">m_ulToFireLongKey</a> = 0</td></tr>
+<tr class="separator:ae39b77234a7b6187eea2a8c40e278954"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8c1c14df9415936ee532135db6eb0e79"><td class="memItemLeft" align="right" valign="top">unsigned long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classKeypad.html#a8c1c14df9415936ee532135db6eb0e79">m_ulToFireAutoRepeat</a> = 0</td></tr>
+<tr class="separator:a8c1c14df9415936ee532135db6eb0e79"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad67d9c0c041d4ccbf44dd65497c44569"><td class="memItemLeft" align="right" valign="top">unsigned long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classKeypad.html#ad67d9c0c041d4ccbf44dd65497c44569">m_ulBounceSubsided</a> = 0</td></tr>
+<tr class="separator:ad67d9c0c041d4ccbf44dd65497c44569"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeada7a48398292b08c70ae590ffa38c7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aeada7a48398292b08c70ae590ffa38c7"></a>
+uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>m_bOldKey</b> = VK_NONE</td></tr>
+<tr class="separator:aeada7a48398292b08c70ae590ffa38c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Main interface class for an analog keyboard as used in a common LCD &amp; keypad Arduino shield. Such a keyboard is just a voltage divider connected to a single analog inpup pin. Provides for debounce which is important on fast muCPUs, e.g. Teensy. </p>
@@ -134,7 +156,95 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>call this from the main loop passing to it the result of millis(); It will call pView-&gt;onKeyDown(uint8_t vk); pView-&gt;onKeyUp(uint8_t vk); pView-&gt;onLongKeyDown(uint8_t vk); </p>
+<p>Call this from the main loop passing to it the result of millis(); It will call pView-&gt;onKeyDown(uint8_t vk); pView-&gt;onKeyAutoRepeat(uint8_t vk); pView-&gt;onLongKeyDown(uint8_t vk); pView-&gt;onKeyUp(uint8_t vk); Returns: true if key wasdispatched and processed (then screen redraw is needed!), false otherwise. </p>
+
+</div>
+</div>
+<a class="anchor" id="a70d17ae9daf88d4f11d222a8b2b3ce9c"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint8_t Keypad::getKey </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>get one of VK_xxx </p>
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a class="anchor" id="ad67d9c0c041d4ccbf44dd65497c44569"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">unsigned long Keypad::m_ulBounceSubsided = 0</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>when bouncing subsides </p>
+
+</div>
+</div>
+<a class="anchor" id="a8c1c14df9415936ee532135db6eb0e79"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">unsigned long Keypad::m_ulToFireAutoRepeat = 0</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>when to fire key auto repeat </p>
+
+</div>
+</div>
+<a class="anchor" id="ae39b77234a7b6187eea2a8c40e278954"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">unsigned long Keypad::m_ulToFireLongKey = 0</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>when to fire long key </p>
 
 </div>
 </div>

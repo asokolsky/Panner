@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['textwidget',['TextWidget',['../classTextWidget.html',1,'']]]
+  ['settingsview',['SettingsView',['../classSettingsView.html',1,'']]],
+  ['stepper',['Stepper',['../classStepper.html',1,'']]]
 ];

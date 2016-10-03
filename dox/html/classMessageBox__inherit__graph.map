@@ -1,0 +1,5 @@
+<map id="MessageBox" name="MessageBox">
+<area shape="rect" id="node2" href="$classModalDialog.html" title="ModalDialog" alt="" coords="7,155,102,181"/>
+<area shape="rect" id="node3" href="$classView.html" title="View" alt="" coords="29,80,80,107"/>
+<area shape="rect" id="node4" href="$classWidget.html" title="Widget" alt="" coords="23,5,86,32"/>
+</map>

@@ -97,7 +97,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 Collaboration diagram for CommandInterpreterChannel:</div>
 <div class="dyncontent">
 <div class="center"><img src="classCommandInterpreterChannel__coll__graph.png" border="0" usemap="#CommandInterpreterChannel_coll__map" alt="Collaboration graph"/></div>
-<!-- MAP 0 -->
+<map name="CommandInterpreterChannel_coll__map" id="CommandInterpreterChannel_coll__map">
+<area shape="rect" id="node2" href="classStepper.html" title="Stepper" alt="" coords="70,289,137,316"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="163,96,243,123"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="140,5,267,47"/>
+</map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
@@ -107,9 +111,6 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ac9cf759d2e77f3d36d4d19bc9839d421"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac9cf759d2e77f3d36d4d19bc9839d421"></a>
 unsigned long&#160;</td><td class="memItemRight" valign="bottom"><b>getNext</b> ()</td></tr>
 <tr class="separator:ac9cf759d2e77f3d36d4d19bc9839d421"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa0910c09c0ea9e20ce10551e5450a0dd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa0910c09c0ea9e20ce10551e5450a0dd"></a>
-schar_t&#160;</td><td class="memItemRight" valign="bottom"><b>getSpeed</b> ()</td></tr>
-<tr class="separator:aa0910c09c0ea9e20ce10551e5450a0dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac7bdf947080f2af5c9d2abb2b62b7872"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac7bdf947080f2af5c9d2abb2b62b7872"></a>
 float&#160;</td><td class="memItemRight" valign="bottom"><b>getMotorSpeed</b> ()</td></tr>
 <tr class="separator:ac7bdf947080f2af5c9d2abb2b62b7872"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -141,26 +142,18 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>endCommands</b> ()</t
 <tr class="separator:a25704647bac8319ada14697f81b1c0d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8084a42c6ecc0428e1805fe122daa789"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCommandInterpreterChannel.html#a8084a42c6ecc0428e1805fe122daa789">tick</a> (unsigned long now)</td></tr>
 <tr class="separator:a8084a42c6ecc0428e1805fe122daa789"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0d7201e942a25c80b96b776135f0a397"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCommandInterpreterChannel.html#a0d7201e942a25c80b96b776135f0a397">adjustCommandSpeed</a> (schar_t iSpeedAdjustment)</td></tr>
-<tr class="separator:a0d7201e942a25c80b96b776135f0a397"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adca70be46188686625de103dd6250ff2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCommandInterpreterChannel.html#adca70be46188686625de103dd6250ff2">adjustCommandDuration</a> (schar_t iChangeSecs)</td></tr>
-<tr class="separator:adca70be46188686625de103dd6250ff2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3f832ebd1172e28faf0fe92a6c5f8589"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3f832ebd1172e28faf0fe92a6c5f8589"></a>
-<a class="el" href="classStepper.html">Stepper</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>getMotor</b> ()</td></tr>
+<tr class="memitem:a3f832ebd1172e28faf0fe92a6c5f8589"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classStepper.html">Stepper</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCommandInterpreterChannel.html#a3f832ebd1172e28faf0fe92a6c5f8589">getMotor</a> ()</td></tr>
 <tr class="separator:a3f832ebd1172e28faf0fe92a6c5f8589"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
 <tr class="memitem:ae85c3cc14052a0f807e93240385408c3"><td class="memItemLeft" align="right" valign="top">unsigned long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCommandInterpreterChannel.html#ae85c3cc14052a0f807e93240385408c3">m_ulNext</a></td></tr>
 <tr class="separator:ae85c3cc14052a0f807e93240385408c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1c07478f125b3f1a9352274e3b4f0d56"><td class="memItemLeft" align="right" valign="top">schar_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCommandInterpreterChannel.html#a1c07478f125b3f1a9352274e3b4f0d56">m_cSpeed</a> = 0</td></tr>
-<tr class="separator:a1c07478f125b3f1a9352274e3b4f0d56"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab30a0a93554e2c24489403401b5ead58"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab30a0a93554e2c24489403401b5ead58"></a>
-<a class="el" href="classStepper.html">Stepper</a>&#160;</td><td class="memItemRight" valign="bottom"><b>m_motor</b></td></tr>
+<tr class="memitem:ab30a0a93554e2c24489403401b5ead58"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classStepper.html">Stepper</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCommandInterpreterChannel.html#ab30a0a93554e2c24489403401b5ead58">m_motor</a></td></tr>
 <tr class="separator:ab30a0a93554e2c24489403401b5ead58"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>(abstract) channel for slide, pan or tilt or zoom uses a motor may implement trapezoidal speed profile on the DC motor </p>
+<div class="textblock"><p>Main Interface Class (abstract) channel for slide, pan or tilt or zoom uses a motor may implement trapezoidal speed profile on the DC motor </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a class="anchor" id="a0774e874bafa3c127c85080803b69960"></a>
 <div class="memitem">
@@ -196,40 +189,6 @@ Protected Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a class="anchor" id="adca70be46188686625de103dd6250ff2"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void CommandInterpreterChannel::adjustCommandDuration </td>
-          <td>(</td>
-          <td class="paramtype">schar_t&#160;</td>
-          <td class="paramname"><em>iChangeSecs</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Handle a GUI request </p>
-
-</div>
-</div>
-<a class="anchor" id="a0d7201e942a25c80b96b776135f0a397"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void CommandInterpreterChannel::adjustCommandSpeed </td>
-          <td>(</td>
-          <td class="paramtype">schar_t&#160;</td>
-          <td class="paramname"><em>iSpeedAdjustment</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Handle a GUI request </p>
-
-</div>
-</div>
 <a class="anchor" id="a63136282070f2014f5bd6fa40cdc4e8a"></a>
 <div class="memitem">
 <div class="memproto">
@@ -286,6 +245,30 @@ Protected Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 <p>may communicate with hardware </p>
+
+</div>
+</div>
+<a class="anchor" id="a3f832ebd1172e28faf0fe92a6c5f8589"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classStepper.html">Stepper</a>* CommandInterpreterChannel::getMotor </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Handle a GUI request Handle a GUI request </p>
 
 </div>
 </div>
@@ -407,7 +390,7 @@ Protected Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
-<a class="anchor" id="a1c07478f125b3f1a9352274e3b4f0d56"></a>
+<a class="anchor" id="ab30a0a93554e2c24489403401b5ead58"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -415,7 +398,7 @@ Protected Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">schar_t CommandInterpreterChannel::m_cSpeed = 0</td>
+          <td class="memname"><a class="el" href="classStepper.html">Stepper</a> CommandInterpreterChannel::m_motor</td>
         </tr>
       </table>
   </td>

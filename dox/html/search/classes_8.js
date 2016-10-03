@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['pannercommandinterpreter',['PannerCommandInterpreter',['../classPannerCommandInterpreter.html',1,'']]],
-  ['pausedrunview',['PausedRunView',['../classPausedRunView.html',1,'']]],
-  ['point',['POINT',['../classPOINT.html',1,'']]]
+  ['nullspinnerwidget',['NullSpinnerWidget',['../classNullSpinnerWidget.html',1,'']]],
+  ['numberspinnerwidget',['NumberSpinnerWidget',['../classNumberSpinnerWidget.html',1,'']]]
 ];

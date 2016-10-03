@@ -1,0 +1,7 @@
+<map id="ListWidget" name="ListWidget">
+<area shape="rect" id="node3" href="$classKeyValueListWidget.html" title="KeyValueListWidget" alt="" coords="5,155,145,181"/>
+<area shape="rect" id="node4" href="$classListSpinnerWidget.html" title="ListSpinnerWidget" alt="" coords="170,155,298,181"/>
+<area shape="rect" id="node2" href="$classWidget.html" title="Widget" alt="" coords="123,5,185,32"/>
+<area shape="rect" id="node5" href="$classNullSpinnerWidget.html" title="NullSpinnerWidget" alt="" coords="86,229,217,256"/>
+<area shape="rect" id="node6" href="$classNumberSpinnerWidget.html" title="NumberSpinnerWidget" alt="" coords="240,229,393,256"/>
+</map>

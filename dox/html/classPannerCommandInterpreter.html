@@ -92,18 +92,6 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="contents">
 
 <p><code>#include &lt;<a class="el" href="CommandInterpreter_8h_source.html">CommandInterpreter.h</a>&gt;</code></p>
-<div class="dynheader">
-Inheritance diagram for PannerCommandInterpreter:</div>
-<div class="dyncontent">
-<div class="center"><img src="classPannerCommandInterpreter__inherit__graph.png" border="0" usemap="#PannerCommandInterpreter_inherit__map" alt="Inheritance graph"/></div>
-<!-- MAP 0 -->
-<center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
-<div class="dynheader">
-Collaboration diagram for PannerCommandInterpreter:</div>
-<div class="dyncontent">
-<div class="center"><img src="classPannerCommandInterpreter__coll__graph.png" border="0" usemap="#PannerCommandInterpreter_coll__map" alt="Collaboration graph"/></div>
-<!-- MAP 1 -->
-<center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -111,9 +99,9 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a9d784736385b752909ba30ea7b6ff111"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab790ce542de001dfb02599de147cec82"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPannerCommandInterpreter.html#ab790ce542de001dfb02599de147cec82">begin</a> ()</td></tr>
 <tr class="separator:ab790ce542de001dfb02599de147cec82"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a73bf57f746dd0d6f389058219dbb8e76"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a73bf57f746dd0d6f389058219dbb8e76"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>beginRun</b> (schar_t cmd, schar_t iSpeed, unsigned long ulDuration)</td></tr>
-<tr class="separator:a73bf57f746dd0d6f389058219dbb8e76"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab9490fb76016be92bb2804cdfc192713"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab9490fb76016be92bb2804cdfc192713"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>beginRun</b> (schar_t cmd, unsigned long ulDuration)</td></tr>
+<tr class="separator:ab9490fb76016be92bb2804cdfc192713"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1d6092383e50aafeabe3f6afebc8d61c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1d6092383e50aafeabe3f6afebc8d61c"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>beginRun</b> (<a class="el" href="structCommand.html">Command</a> *p)</td></tr>
 <tr class="separator:a1d6092383e50aafeabe3f6afebc8d61c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -134,10 +122,8 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>endRun</b> ()</td></t
 <tr class="separator:a9a51343fd0faa5c75f1dc7a5f3c1daea"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa104aeb5b1d174e9a138e732822db422"><td class="memItemLeft" align="right" valign="top">boolean&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPannerCommandInterpreter.html#aa104aeb5b1d174e9a138e732822db422">isBusy</a> (schar_t cChannel)</td></tr>
 <tr class="separator:aa104aeb5b1d174e9a138e732822db422"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a80ecbb74b8b67744f98a20293ad197ba"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPannerCommandInterpreter.html#a80ecbb74b8b67744f98a20293ad197ba">beginCommand</a> (schar_t cmd, schar_t cSpeed, unsigned long ulDuration)</td></tr>
-<tr class="separator:a80ecbb74b8b67744f98a20293ad197ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1c6b48dc0297f00d36dfea4d69a67087"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPannerCommandInterpreter.html#a1c6b48dc0297f00d36dfea4d69a67087">adjustCommandSpeed</a> (schar_t ch, schar_t cSpeedAdjustment)</td></tr>
-<tr class="separator:a1c6b48dc0297f00d36dfea4d69a67087"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0f974b6f65550b2dce3be064889401c5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPannerCommandInterpreter.html#a0f974b6f65550b2dce3be064889401c5">beginCommand</a> (schar_t cmd, unsigned long ulDuration)</td></tr>
+<tr class="separator:a0f974b6f65550b2dce3be064889401c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a14df1c7fb9e109682db53ba1e5d4065f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPannerCommandInterpreter.html#a14df1c7fb9e109682db53ba1e5d4065f">adjustCommandDuration</a> (schar_t ch, schar_t cmd, int iDurationAdjustment)</td></tr>
 <tr class="separator:a14df1c7fb9e109682db53ba1e5d4065f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a189bcb9162727018a542ed5db640d58f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPannerCommandInterpreter.html#a189bcb9162727018a542ed5db640d58f">stopCommand</a> (schar_t cCmd)</td></tr>
@@ -147,11 +133,11 @@ unsigned long&#160;</td><td class="memItemRight" valign="bottom"><b>getNext</b> 
 <tr class="separator:ae53a575f94e8968c5855a6d391252414"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afaab90753cf25a465362be710cc812e1"><td class="memItemLeft" align="right" valign="top">unsigned&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPannerCommandInterpreter.html#afaab90753cf25a465362be710cc812e1">getBusySeconds</a> (unsigned long now)</td></tr>
 <tr class="separator:afaab90753cf25a465362be710cc812e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab2a243d81e7fed4668e06297f7321c4f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab2a243d81e7fed4668e06297f7321c4f"></a>
-boolean&#160;</td><td class="memItemRight" valign="bottom"><b>isResting</b> ()</td></tr>
+<tr class="memitem:a0b09af5508dbe2fffc6c9f6a5ec3ece7"><td class="memItemLeft" align="right" valign="top">unsigned&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPannerCommandInterpreter.html#a0b09af5508dbe2fffc6c9f6a5ec3ece7">getWaitSeconds</a> (unsigned long now)</td></tr>
+<tr class="separator:a0b09af5508dbe2fffc6c9f6a5ec3ece7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab2a243d81e7fed4668e06297f7321c4f"><td class="memItemLeft" align="right" valign="top">boolean&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPannerCommandInterpreter.html#ab2a243d81e7fed4668e06297f7321c4f">isResting</a> ()</td></tr>
 <tr class="separator:ab2a243d81e7fed4668e06297f7321c4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae807ac4f93e5401194627de4f5978813"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae807ac4f93e5401194627de4f5978813"></a>
-boolean&#160;</td><td class="memItemRight" valign="bottom"><b>isWaitingForCompletion</b> ()</td></tr>
+<tr class="memitem:ae807ac4f93e5401194627de4f5978813"><td class="memItemLeft" align="right" valign="top">boolean&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPannerCommandInterpreter.html#ae807ac4f93e5401194627de4f5978813">isWaitingForCompletion</a> ()</td></tr>
 <tr class="separator:ae807ac4f93e5401194627de4f5978813"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af5c0e88023f370da726194c1f31c73fd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af5c0e88023f370da726194c1f31c73fd"></a>
 <a class="el" href="classStepper.html">Stepper</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>getPanner</b> ()</td></tr>
@@ -190,7 +176,7 @@ boolean&#160;</td><td class="memItemRight" valign="bottom"><b>isWaitingForComple
       </table>
 </div><div class="memdoc">
 <p>Call this according to your connections.</p>
-<p><a class="el" href="classCommandInterpreter.html">CommandInterpreter</a> implementation </p>
+<p>CommandInterpreter implementation </p>
 
 </div>
 </div>
@@ -198,9 +184,6 @@ boolean&#160;</td><td class="memItemRight" valign="bottom"><b>isWaitingForComple
 <a class="anchor" id="a14df1c7fb9e109682db53ba1e5d4065f"></a>
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">void PannerCommandInterpreter::adjustCommandDuration </td>
@@ -226,61 +209,14 @@ boolean&#160;</td><td class="memItemRight" valign="bottom"><b>isWaitingForComple
           <td></td><td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
-<p>Duration adjustment in seconds </p>
-
-<p>Reimplemented from <a class="el" href="classCommandInterpreter.html#adc07263368f4840b4e9603e02bd24e90">CommandInterpreter</a>.</p>
-
-</div>
-</div>
-<a class="anchor" id="a1c6b48dc0297f00d36dfea4d69a67087"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void PannerCommandInterpreter::adjustCommandSpeed </td>
-          <td>(</td>
-          <td class="paramtype">schar_t&#160;</td>
-          <td class="paramname"><em>ch</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">schar_t&#160;</td>
-          <td class="paramname"><em>cSpeedAdjustment</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>adjust speed </p>
-
-<p>Reimplemented from <a class="el" href="classCommandInterpreter.html#a82d5d496b15c5308099b48efb3155b49">CommandInterpreter</a>.</p>
+<p>adjust speed Duration adjustment in seconds </p>
 
 </div>
 </div>
 <a class="anchor" id="ab790ce542de001dfb02599de147cec82"></a>
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">void PannerCommandInterpreter::begin </td>
@@ -289,37 +225,21 @@ boolean&#160;</td><td class="memItemRight" valign="bottom"><b>isWaitingForComple
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 <p>external APIs of this class</p>
 <p>external APIs </p>
 
-<p>Reimplemented from <a class="el" href="classCommandInterpreter.html">CommandInterpreter</a>.</p>
-
 </div>
 </div>
-<a class="anchor" id="a80ecbb74b8b67744f98a20293ad197ba"></a>
+<a class="anchor" id="a0f974b6f65550b2dce3be064889401c5"></a>
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">void PannerCommandInterpreter::beginCommand </td>
           <td>(</td>
           <td class="paramtype">schar_t&#160;</td>
           <td class="paramname"><em>cmd</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">schar_t&#160;</td>
-          <td class="paramname"><em>cSpeed</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -333,16 +253,9 @@ boolean&#160;</td><td class="memItemRight" valign="bottom"><b>isWaitingForComple
           <td></td><td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 <p>external API of this class</p>
 <p>External API </p>
-
-<p>Reimplemented from <a class="el" href="classCommandInterpreter.html#a25aac0c37d05a1b3db1fd2070a5b06d0">CommandInterpreter</a>.</p>
 
 </div>
 </div>
@@ -360,7 +273,6 @@ boolean&#160;</td><td class="memItemRight" valign="bottom"><b>isWaitingForComple
       </table>
 </div><div class="memdoc">
 <p>Called from loop() Times tick, update interpreter status return true to continue running return false to end the run </p>
-<p>DEBUG_PRINT("PannerCommandInterpreter::continueRun now="); DEBUG_PRINTDEC(now); DEBUG_PRINTLN("");</p>
 
 </div>
 </div>
@@ -381,12 +293,26 @@ boolean&#160;</td><td class="memItemRight" valign="bottom"><b>isWaitingForComple
 
 </div>
 </div>
+<a class="anchor" id="a0b09af5508dbe2fffc6c9f6a5ec3ece7"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">unsigned PannerCommandInterpreter::getWaitSeconds </td>
+          <td>(</td>
+          <td class="paramtype">unsigned long&#160;</td>
+          <td class="paramname"><em>now</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>how much more wait for completion will last </p>
+
+</div>
+</div>
 <a class="anchor" id="aa104aeb5b1d174e9a138e732822db422"></a>
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">boolean PannerCommandInterpreter::isBusy </td>
@@ -396,15 +322,8 @@ boolean&#160;</td><td class="memItemRight" valign="bottom"><b>isWaitingForComple
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 <p>is this channel busy? </p>
-
-<p>Reimplemented from <a class="el" href="classCommandInterpreter.html#a03aa03ea8b21d99fe1e78600c11eba50">CommandInterpreter</a>.</p>
 
 </div>
 </div>
@@ -424,13 +343,35 @@ boolean&#160;</td><td class="memItemRight" valign="bottom"><b>isWaitingForComple
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 <p>is this command interpreter paused? </p>
 
-<p>Reimplemented from <a class="el" href="classCommandInterpreter.html">CommandInterpreter</a>.</p>
+</div>
+</div>
+<a class="anchor" id="ab2a243d81e7fed4668e06297f7321c4f"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">boolean PannerCommandInterpreter::isResting </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Are we resting? </p>
 
 </div>
 </div>
@@ -450,22 +391,41 @@ boolean&#160;</td><td class="memItemRight" valign="bottom"><b>isWaitingForComple
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 <p>is this command interpreter interpreting commands? </p>
 
-<p>Reimplemented from <a class="el" href="classCommandInterpreter.html">CommandInterpreter</a>.</p>
+</div>
+</div>
+<a class="anchor" id="ae807ac4f93e5401194627de4f5978813"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">boolean PannerCommandInterpreter::isWaitingForCompletion </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Are we waiting for completion? </p>
 
 </div>
 </div>
 <a class="anchor" id="a99d6c899d9a47585221ebaaeeb54babe"></a>
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">void PannerCommandInterpreter::pauseRun </td>
@@ -474,24 +434,14 @@ boolean&#160;</td><td class="memItemRight" valign="bottom"><b>isWaitingForComple
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 <p>suspend the run, can resume </p>
-
-<p>Reimplemented from <a class="el" href="classCommandInterpreter.html#a659900c55b5c404588ac97f6a3073ed6">CommandInterpreter</a>.</p>
 
 </div>
 </div>
 <a class="anchor" id="a273f4c3b15deda478da57706c13b65b1"></a>
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">void PannerCommandInterpreter::resumeRun </td>
@@ -500,24 +450,14 @@ boolean&#160;</td><td class="memItemRight" valign="bottom"><b>isWaitingForComple
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 <p>resume the run </p>
-
-<p>Reimplemented from <a class="el" href="classCommandInterpreter.html#aa266d44084b84b030fa64d4a755c5962">CommandInterpreter</a>.</p>
 
 </div>
 </div>
 <a class="anchor" id="a189bcb9162727018a542ed5db640d58f"></a>
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">void PannerCommandInterpreter::stopCommand </td>
@@ -527,24 +467,14 @@ boolean&#160;</td><td class="memItemRight" valign="bottom"><b>isWaitingForComple
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 <p>iCmd is actually a channel # to be called from interrupt handler or in response to kb </p>
-
-<p>Reimplemented from <a class="el" href="classCommandInterpreter.html#ac060bc3f7f87aec03a89e6b09cb1aa92">CommandInterpreter</a>.</p>
 
 </div>
 </div>
 <a class="anchor" id="ac00eca8598274e9dac93ad52bafc928d"></a>
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">void PannerCommandInterpreter::stopRun </td>
@@ -553,16 +483,9 @@ boolean&#160;</td><td class="memItemRight" valign="bottom"><b>isWaitingForComple
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 <p>stop processing commands</p>
 <p>force stop processing commands </p>
-
-<p>Reimplemented from <a class="el" href="classCommandInterpreter.html">CommandInterpreter</a>.</p>
 
 </div>
 </div>

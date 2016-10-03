@@ -1,0 +1,6 @@
+<map id="ModalDialog" name="ModalDialog">
+<area shape="rect" id="node4" href="$classMessageBox.html" title="MessageBox" alt="" coords="5,229,104,256"/>
+<area shape="rect" id="node5" href="$classWaypointDefinitionDialog.html" title="WaypointDefinitionDialog" alt="" coords="129,229,298,256"/>
+<area shape="rect" id="node2" href="$classView.html" title="View" alt="" coords="108,80,159,107"/>
+<area shape="rect" id="node3" href="$classWidget.html" title="Widget" alt="" coords="102,5,165,32"/>
+</map>

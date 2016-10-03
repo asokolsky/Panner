@@ -1,9 +1,24 @@
 var searchData=
 [
-  ['onactivate',['onActivate',['../classView.html#a038a2c035eaddfdfad069f3f3a37ee2a',1,'View::onActivate()'],['../classModalDialog.html#a6d046fcfeedd08f7a4464e17a617c976',1,'ModalDialog::onActivate()'],['../classSettingsView.html#a0bb7f5554bf976fd847adf57252227a3',1,'SettingsView::onActivate()'],['../classWaypointDefinitionDialog.html#a468b62200d9bf4eb08abc6787610ee64',1,'WaypointDefinitionDialog::onActivate()'],['../classControlView.html#a1e91db7f46b74142c6d37f8ec2a413ab',1,'ControlView::onActivate()'],['../classWaypointsView.html#aa3f7b399e20d88ff5e0b9259c9d6c53d',1,'WaypointsView::onActivate()'],['../classEditView.html#a3af4ba2a6e841f41ba3b91933947e453',1,'EditView::onActivate()'],['../classRunView.html#a439ae2d0ee65fe15a3d4efdb243bbd50',1,'RunView::onActivate()'],['../classPausedRunView.html#a5b34a84084d3d70faa2310d411cda3be',1,'PausedRunView::onActivate()'],['../classAboutView.html#a19ccd59b9923775504f9413d249a7f65',1,'AboutView::onActivate()']]],
-  ['ondeactivate',['onDeActivate',['../classView.html#a02778e3849f73870e604ba30033790ec',1,'View']]],
-  ['onkeydown',['onKeyDown',['../classView.html#aa14d5edb8ce9669e426cc98497917754',1,'View::onKeyDown()'],['../classControlView.html#a76a79ef834f8ca26dc868d214934bcad',1,'ControlView::onKeyDown()'],['../classWaypointsView.html#ac5d8f662faba2b587e2a04ebeba3923c',1,'WaypointsView::onKeyDown()']]],
-  ['onkeyup',['onKeyUp',['../classModalDialog.html#ac8dff6b7d30df4214b9fef8cb3f0460a',1,'ModalDialog::onKeyUp()'],['../classWaypointDefinitionDialog.html#ac7467f622d79f7ece6302f43930278c6',1,'WaypointDefinitionDialog::onKeyUp()'],['../classControlView.html#a9adfe8dc4754428e0b05f4df3b908f1a',1,'ControlView::onKeyUp()'],['../classEditView.html#a1465c06607966f096f82b05f73f1058f',1,'EditView::onKeyUp()'],['../classRunView.html#a32d4217a12d32d7012c0681fd6b8f398',1,'RunView::onKeyUp()'],['../classPausedRunView.html#a8f1bde609e8f1ee53bd6260b65a6129e',1,'PausedRunView::onKeyUp()'],['../classAboutView.html#a9091280c351a9f95c895787af6595cf5',1,'AboutView::onKeyUp()']]],
-  ['onlongkeydown',['onLongKeyDown',['../classSettingsView.html#a9080f25cf43ad3e1c922e9dff99884a0',1,'SettingsView::onLongKeyDown()'],['../classControlView.html#ab942441746471d3559c313b089e07469',1,'ControlView::onLongKeyDown()']]],
-  ['onposition',['onPosition',['../classView.html#a1fcc974f72ddfbfac53ddf23287ffdb4',1,'View::onPosition()'],['../classWidget.html#a72cc843fb71610daad64e3bd5a46e07e',1,'Widget::onPosition()'],['../classListWidget.html#a075cf7f02e00ff53e9093cf5c1daf6e8',1,'ListWidget::onPosition()']]]
+  ['m_5fgauge',['m_gauge',['../classBatteryMonitor.html#a20467aa917f5862430ca481fee1d03c5',1,'BatteryMonitor']]],
+  ['m_5ficursel',['m_iCurSel',['../classListWidget.html#a482b8940ff2bc03f676028bdb2ba82d3',1,'ListWidget']]],
+  ['m_5fmotor',['m_motor',['../classCommandInterpreterChannel.html#ab30a0a93554e2c24489403401b5ead58',1,'CommandInterpreterChannel']]],
+  ['m_5fpfont',['m_pFont',['../classWidget.html#a4c2aeccdd55b253bda823ff368e69124',1,'Widget']]],
+  ['m_5fposition',['m_position',['../classWidget.html#a56eb2307db5f08be404b1f5ca0626551',1,'Widget']]],
+  ['m_5frectclient',['m_rectClient',['../classWidget.html#a923bd157c9cb06893eedaf277264614f',1,'Widget']]],
+  ['m_5fselectionmode',['m_selectionMode',['../classListWidget.html#ab5273e744a32959da35cec988cf545c1',1,'ListWidget']]],
+  ['m_5fulbouncesubsided',['m_ulBounceSubsided',['../classKeypad.html#ad67d9c0c041d4ccbf44dd65497c44569',1,'Keypad']]],
+  ['m_5fulnext',['m_ulNext',['../classCommandInterpreterChannel.html#ae85c3cc14052a0f807e93240385408c3',1,'CommandInterpreterChannel']]],
+  ['m_5fultofireautorepeat',['m_ulToFireAutoRepeat',['../classKeypad.html#a8c1c14df9415936ee532135db6eb0e79',1,'Keypad']]],
+  ['m_5fultofirelongkey',['m_ulToFireLongKey',['../classKeypad.html#ae39b77234a7b6187eea2a8c40e278954',1,'Keypad']]],
+  ['m_5fultoupdate',['m_ulToUpdate',['../classView.html#af0fdb182ebd9f40241da4d63edc015b2',1,'View']]],
+  ['m_5fupanneracceleration',['m_uPannerAcceleration',['../structPersistentSettings.html#a6dc6b2deae6100ec9b1887fe69bb4a0a',1,'PersistentSettings']]],
+  ['m_5fupannerfastspeed',['m_uPannerFastSpeed',['../structPersistentSettings.html#a926a3a8e47fb055f7163d06e37cfae65',1,'PersistentSettings']]],
+  ['m_5fupannermaxspeed',['m_uPannerMaxSpeed',['../structPersistentSettings.html#a4c3a50c1155ef9adcf16898476e8497d',1,'PersistentSettings']]],
+  ['m_5fupannerslowspeed',['m_uPannerSlowSpeed',['../structPersistentSettings.html#ab7ead10eee5a04225cd4834a8f4f241f',1,'PersistentSettings']]],
+  ['m_5fuvalue',['m_uValue',['../structCommand.html#ac1186bb4fc1ab57d2ee5efed4ef2c49a',1,'Command']]],
+  ['m_5fvalues',['m_values',['../classKeyValueListWidget.html#af71e3927b7723e5a472efe9b1222da34',1,'KeyValueListWidget']]],
+  ['m_5fzparent',['m_zParent',['../classView.html#a73b7e306f887e34e55fb6c4438629782',1,'View']]],
+  ['messagebox',['MessageBox',['../classMessageBox.html',1,'MessageBox'],['../classMessageBox.html#a3870c34a6b5966aad1c243f76991563d',1,'MessageBox::MessageBox()']]],
+  ['modaldialog',['ModalDialog',['../classModalDialog.html',1,'ModalDialog'],['../classModalDialog.html#a6f634b11031c8098bc543895ade79eed',1,'ModalDialog::ModalDialog(const char *szTitle, const ILI9341_t3_font_t *fontSoftA, const char *szSoftALabel, const ILI9341_t3_font_t *fontNav, const char *szNavLabel, const ILI9341_t3_font_t *fontSoftB, const char *szSoftBLabel)'],['../classModalDialog.html#a3ea4f95d04136f01588720961f145c43',1,'ModalDialog::ModalDialog(const char *szTitle, uint16_t uType=MB_OK)']]]
 ];

@@ -94,19 +94,25 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a01a7e0152ad3edec35226199a6f0c6ab"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a01a7e0152ad3edec35226199a6f0c6ab"></a>
-int16_t&#160;</td><td class="memItemRight" valign="bottom"><b>width</b> ()</td></tr>
-<tr class="separator:a01a7e0152ad3edec35226199a6f0c6ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2145ef8eec74c8c9b18467cd13258f98"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2145ef8eec74c8c9b18467cd13258f98"></a>
-int16_t&#160;</td><td class="memItemRight" valign="bottom"><b>height</b> ()</td></tr>
-<tr class="separator:a2145ef8eec74c8c9b18467cd13258f98"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abc7af5102b096e597a1f8dd5832381e2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abc7af5102b096e597a1f8dd5832381e2"></a>
+int16_t&#160;</td><td class="memItemRight" valign="bottom"><b>width</b> () const </td></tr>
+<tr class="separator:abc7af5102b096e597a1f8dd5832381e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad1709645c654792d137aadcbcc76a5d4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad1709645c654792d137aadcbcc76a5d4"></a>
+int16_t&#160;</td><td class="memItemRight" valign="bottom"><b>height</b> () const </td></tr>
+<tr class="separator:ad1709645c654792d137aadcbcc76a5d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac434894d1316bdc5231cad91e7fcb981"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac434894d1316bdc5231cad91e7fcb981"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>inflate</b> (int16_t px=1)</td></tr>
 <tr class="separator:ac434894d1316bdc5231cad91e7fcb981"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aada3ff2112447a9cd9ca128a56c68567"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aada3ff2112447a9cd9ca128a56c68567"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>deflate</b> (int16_t px=1)</td></tr>
 <tr class="separator:aada3ff2112447a9cd9ca128a56c68567"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a125961fb6def3a95383dc97ff00e5798"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classRECT.html#a125961fb6def3a95383dc97ff00e5798">DUMP</a> (const char *szText=0)</td></tr>
+<tr class="memitem:afd2a8064960574b5d25e7a7d239df3f6"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classRECT.html#afd2a8064960574b5d25e7a7d239df3f6">doesIntersect</a> (const <a class="el" href="classRECT.html">RECT</a> &amp;r) const </td></tr>
+<tr class="separator:afd2a8064960574b5d25e7a7d239df3f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0726fb0f98eba7027d9e551479dea50a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0726fb0f98eba7027d9e551479dea50a"></a>
+<a class="el" href="classRECT.html">RECT</a>&#160;</td><td class="memItemRight" valign="bottom"><b>intersect</b> (const <a class="el" href="classRECT.html">RECT</a> &amp;r) const </td></tr>
+<tr class="separator:a0726fb0f98eba7027d9e551479dea50a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a125961fb6def3a95383dc97ff00e5798"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a125961fb6def3a95383dc97ff00e5798"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>DUMP</b> (const char *szText=0)</td></tr>
 <tr class="separator:a125961fb6def3a95383dc97ff00e5798"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
@@ -125,26 +131,18 @@ int16_t&#160;</td><td class="memItemRight" valign="bottom"><b>bottom</b></td></t
 <tr class="separator:a5fbb75fc2c8b5386cbc9725021896597"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a class="anchor" id="a125961fb6def3a95383dc97ff00e5798"></a>
+<a class="anchor" id="afd2a8064960574b5d25e7a7d239df3f6"></a>
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void RECT::DUMP </td>
+          <td class="memname">bool RECT::doesIntersect </td>
           <td>(</td>
-          <td class="paramtype">const char *&#160;</td>
-          <td class="paramname"><em>szText</em> = <code>0</code></td><td>)</td>
-          <td></td>
+          <td class="paramtype">const <a class="el" href="classRECT.html">RECT</a> &amp;&#160;</td>
+          <td class="paramname"><em>r</em></td><td>)</td>
+          <td> const</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 <p><a class="el" href="classRECT.html">RECT</a> Class Implementation </p>
 
@@ -152,7 +150,7 @@ int16_t&#160;</td><td class="memItemRight" valign="bottom"><b>bottom</b></td></t
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
 <li><a class="el" href="Display_8h_source.html">Display.h</a></li>
-<li>Widgets.cpp</li>
+<li>Display.cpp</li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
