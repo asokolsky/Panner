@@ -70,7 +70,7 @@ SettingsView::SettingsView() :
   m_resetConfirmation.m_strMessage = "Reset all settings?";
 
   // restore g_settings from EEPROM
-  EEPROM.get(iEEaddress, g_settings);
+  //EEPROM.get(iEEaddress, g_settings);
   if((g_settings.m_signature[0] != 'P') || (g_settings.m_signature[0] != '0'))
     factoryResetSettings();
 }
