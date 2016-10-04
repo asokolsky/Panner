@@ -1,6 +1,6 @@
 #include "Panner.h"
 #include "BatteryMonitor.h"
-#include <EEPROM.h>
+//#include <EEPROM.h>
 #include <font_LiberationSans.h>
 #include <font_AwesomeF000.h>
 #include <font_AwesomeF080.h>
@@ -179,7 +179,7 @@ bool SettingsView::onKeyUp(uint8_t vk)
       g_settings.m_uPannerAcceleration = m_settings.getNumericValue(szPanAcceleration);
       g_pPanner->setAcceleration(g_settings.m_uPannerAcceleration);
       //
-      EEPROM.put(iEEaddress, g_settings);
+      //EEPROM.put(iEEaddress, g_settings);
       
       //    
       activate(((g_pPreviousView == &g_aboutView) || (g_pPreviousView == &m_resetConfirmation)) ? 
