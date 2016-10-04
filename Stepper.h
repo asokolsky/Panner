@@ -27,6 +27,11 @@ public:
     long int lPos = m_wayPoints[wp];
     moveTo(lPos);
   }
+  /** simple accessor */
+  float getMaxSpeed() const {
+    return _maxSpeed;
+  }
+  /** simple accessor */
   float getAcceleration() const {
     return _acceleration;
   }

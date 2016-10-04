@@ -78,7 +78,7 @@ public:
   }
 
 #ifdef DEBUG
-  virtual void DUMP(const char *szText = 0);
+  virtual void DUMP(const char *szText = 0) const;
 #else
   void DUMP(const char *szText = 0) {}
 #endif

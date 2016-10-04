@@ -25,7 +25,7 @@ void Widget::setPosition(const RECT &rLoc)
 }
 
 #ifdef DEBUG
-void Widget::DUMP(const char *szText /*= 0*/)
+void Widget::DUMP(const char *szText /*= 0*/) const
 {
   if(szText != 0) {
     DEBUG_PRINT(szText);
