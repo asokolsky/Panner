@@ -215,7 +215,6 @@ void SettingsView::onActivate(View *pPrevActive)
     m_settings.push_back(szPanAcceleration, (long)g_pPanner->getAcceleration());
     m_settings.setCurSel(1);
   }
-
   g_pPanner->enable(false);
 }
 
