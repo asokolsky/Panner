@@ -65,12 +65,12 @@ public:
   /** 
    * move the widget here.  Will change m_position and trigger on Position 
    */
-  void setPosition(const RECT &r);
+  void setPosition(const RECT r);
 
   void setFont(const ILI9341_t3_font_t *pFont = 0) {
     m_pFont = pFont; 
   }
-  const ILI9341_t3_font_t *getFont() {
+  const ILI9341_t3_font_t *getFont() const {
     return m_pFont;
   }
   unsigned char getLineSpace() {
@@ -165,7 +165,7 @@ public:
   /** 
    * called from draw to draw a single item 
    */
-  virtual void drawItem(size_t i, RECT &rLocation);
+  virtual void drawItem(size_t i, RECT rLocation);
   /** 
    * recalc the client rect 
    */
@@ -275,7 +275,7 @@ public:
   int16_t getNumericValue(int16_t i);
   
   /** just show a single item */
-  void drawItem(size_t i, RECT &rLocation);
+  void drawItem(size_t i, RECT rLocation);
   
   /** 
    * advance selection ignoring non-adjustable items 

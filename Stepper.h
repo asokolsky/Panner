@@ -23,10 +23,12 @@ public:
   //
   std::map<std::string, long> m_wayPoints;
 
-  void moveToWayPoint(const char wp[]) {
-    long int lPos = m_wayPoints[wp];
-    moveTo(lPos);
-  }
+  /** 
+   *  Move to one of the defined waypoints
+   *  Ignore if such waypoint does not exist.
+   */
+  void moveToWayPoint(const char wp[]);
+  
   /** simple accessor */
   float getMaxSpeed() const {
     return _maxSpeed;

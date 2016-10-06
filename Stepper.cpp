@@ -6,19 +6,29 @@ Stepper::Stepper(uint8_t pinStep, uint8_t pinDirection, uint8_t pinEnable) :
 {
   _enableInverted = true;
   setEnablePin(pinEnable);
-  //setMaxSpeed(uPannerMaxSpeed);
-  //setAcceleration(uPannerAcceleration);
+  setMaxSpeed(50); // uPannerMaxSpeed);
+  setAcceleration(20); // uPannerAcceleration);
 }
 
 
 void Stepper::enable(bool bEnable)
 {
-  DEBUG_PRINT("Stepper::enable(");
-  DEBUG_PRINTDEC(bEnable);
-  DEBUG_PRINTLN(")");
+  DEBUG_PRINT("Stepper::enable(");  DEBUG_PRINTDEC(bEnable);  DEBUG_PRINTLN(")");
   digitalWrite(_enablePin, bEnable ? (HIGH ^ _enableInverted) : (LOW ^ _enableInverted));
   m_bEnabled = bEnable;
 }
+
+void Stepper::moveToWayPoint(const char wp[]) 
+{
+  DEBUG_PRINT("Stepper::moveToWayPoint(");  DEBUG_PRINT(wp);  DEBUG_PRINTLN(")");
+  if(wp == 0)
+    return;
+  if(m_wayPoints.count(wp) == 0)
+    return;
+  long lPos = m_wayPoints[wp];
+  moveTo(lPos);
+}
+
 
 #ifdef DEBUG
 void Stepper::DUMP(const char *szText /*= 0*/) const

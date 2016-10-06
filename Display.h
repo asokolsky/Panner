@@ -45,8 +45,8 @@ public:
     right -= px;
     bottom -= px;
   }
-  bool doesIntersect(const RECT &r) const;
-  RECT intersect(const RECT &r) const;
+  bool doesIntersect(const RECT r) const;
+  RECT intersect(const RECT r) const;
 
 #ifdef DEBUG
   void DUMP(const char *szText = 0) const;
@@ -61,7 +61,7 @@ class Display: public ILI9341_t3
 public: 
   Display();
 
-  void setClipRect(const RECT &r) {
+  void setClipRect(const RECT r) {
     _clipx1 = r.left; _clipy1 = r.top; _clipx2 = r.right; _clipy2 = r.bottom;
   }
   RECT getClipRect() const
@@ -75,7 +75,7 @@ public:
   }
   
 
-  void fillRect(const RECT &r, uint16_t color = ILI9341_BLACK) {
+  void fillRect(const RECT r, uint16_t color = ILI9341_BLACK) {
     if(color != ILI9341_BLACK) {
       DEBUG_PRINT("fillRect color:"); DEBUG_PRINTHEX(color); r.DUMP(" r:");
     }
@@ -93,7 +93,7 @@ public:
   const uint16_t uButtonLabelColor = ILI9341_YELLOW;
   const uint16_t uButtonFaceColor = ILI9341_BLACK; // ILI9341_DARKGREEN;
 
-  void drawButton(const RECT &rButton, const ILI9341_t3_font_t *pFont, const char *szLabel, bool bEraseBkgnd);
+  void drawButton(const RECT rButton, const ILI9341_t3_font_t *pFont, const char *szLabel, bool bEraseBkgnd);
 
   enum HorizontalAlignment { haLeft, haCenter, haRight };
   enum VerticalAlignment { vaTop, vaCenter, vaBottom };
@@ -102,7 +102,7 @@ public:
    * Print text with appropriate alignement in rLocation.
    * rLocation.bottom can be 0 if va == vaTop - in this case rLocation.bottom will be changed/set
    */
-  void printText(const char *szText, uint16_t c, uint16_t bg, RECT &rLoc, HorizontalAlignment ha, VerticalAlignment va = vaTop, const ILI9341_t3_font_t *pFont = 0, bool bEraseBkgnd = false);
+  void printText(const char *szText, uint16_t c, uint16_t bg, RECT rLoc, HorizontalAlignment ha, VerticalAlignment va = vaTop, const ILI9341_t3_font_t *pFont = 0, bool bEraseBkgnd = false);
   
   uint16_t getTextColor() const {
     return textcolor;

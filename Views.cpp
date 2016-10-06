@@ -47,8 +47,8 @@ View::View(const char *szTitle,
   if(m_fontNav == 0) m_fontNav = &LiberationSans_16;
   m_position.top = 0;
   m_position.left = 0;
-  m_position.bottom = m_lcd.width(); // the order is important! 
-  m_position.right = m_lcd.height();
+  m_position.bottom = 240; // m_lcd.width(); // the order is important! 
+  m_position.right = 320; // m_lcd.height();
   setPosition(m_position);  
 }
 

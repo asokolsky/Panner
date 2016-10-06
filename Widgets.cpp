@@ -17,7 +17,7 @@ void Widget::draw()
   m_lcd.fillRect(m_rectClient, ILI9341_CYAN);
 }
 
-void Widget::setPosition(const RECT &rLoc)
+void Widget::setPosition(const RECT rLoc)
 {
   //if((left == m_position.left) && (m_position.top == top) && (m_position.right == right) && (m_position.bottom == bottom)) return;
   m_position = rLoc;
@@ -217,7 +217,7 @@ void ListWidget::draw()
   m_lcd.setClipRect(rectOldClip);
 }
 
-void ListWidget::drawItem(size_t iItem, RECT &rLoc)
+void ListWidget::drawItem(size_t iItem, RECT rLoc)
 {
   m_lcd.printText(m_items[iItem].c_str(), m_lcd.getTextColor(), ILI9341_BLACK, rLoc, Display::haLeft, Display::vaCenter, 0, false);
   if(iItem == (size_t)m_iCurSel)
@@ -405,7 +405,7 @@ void KeyValueListWidget::push_back(const char key[], ListSpinnerWidget &val)
   m_values.push_back(val);
 }
 
-void KeyValueListWidget::drawItem(size_t i, RECT &rLoc)
+void KeyValueListWidget::drawItem(size_t i, RECT rLoc)
 {
   i = (size_t)sanitize((int16_t)i);
   if(m_values[i].getSelectionMode() == smNoSelection)

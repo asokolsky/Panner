@@ -7,7 +7,7 @@ const uint8_t pinDC = 9;
  *  RECT Class Implementation
  */
 
-bool RECT::doesIntersect(const RECT &r) const
+bool RECT::doesIntersect(const RECT r) const
 {
  // If one rectangle is on left side of other
  if(left > r.right || r.left > right)
@@ -18,7 +18,7 @@ bool RECT::doesIntersect(const RECT &r) const
   return true;
 }
 
-RECT RECT::intersect(const RECT &r) const
+RECT RECT::intersect(const RECT r) const
 {
   RECT res;
   res.top = max(top, r.top);
@@ -67,7 +67,7 @@ void Display::setup()
   setTextWrap(false);
 }
 
-void Display::drawButton(const RECT &rButton, const ILI9341_t3_font_t *pFont, const char *szLabel, bool bEraseBkgnd)
+void Display::drawButton(const RECT rButton, const ILI9341_t3_font_t *pFont, const char *szLabel, bool bEraseBkgnd)
 { 
   RECT rLoc = rButton;
   setClipRect(rLoc);
@@ -84,7 +84,7 @@ void Display::drawButton(const RECT &rButton, const ILI9341_t3_font_t *pFont, co
 void Display::printText(
   const char *szText, 
   uint16_t c, uint16_t bg, 
-  RECT &rLocation, 
+  RECT rLocation, 
   HorizontalAlignment ha, 
   VerticalAlignment va /*= vaTop*/, 
   const ILI9341_t3_font_t *pFont /*= 0*/, 
