@@ -47,8 +47,10 @@ public:
   /** also handles WaypointDefinitionDialog results */
   void onActivate(View *pPrevActive);
 
+  /** restore g_settings from EEPROM */
+  static void restoreSettings();
   /** reset settings to factory defaults */
-  void factoryResetSettings();  
+  static void factoryResetSettings();  
 };
 
  

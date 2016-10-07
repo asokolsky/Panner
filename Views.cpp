@@ -59,6 +59,8 @@ void View::setup()
 {
   m_lcd.setup();
   g_pPanner = g_ci.getPanner();
+
+  SettingsView::restoreSettings();
 }
 
 /** 

@@ -68,8 +68,11 @@ SettingsView::SettingsView() :
   m_settings.hasBorder(false);
   addChild(&m_settings);
   m_resetConfirmation.m_strMessage = "Reset all settings?";
+}
 
-  // restore g_settings from EEPROM
+/** restore g_settings from EEPROM */
+void SettingsView::restoreSettings()
+{
   //EEPROM.get(iEEaddress, g_settings);
   if((g_settings.m_signature[0] != 'P') || (g_settings.m_signature[0] != '0'))
     factoryResetSettings();
