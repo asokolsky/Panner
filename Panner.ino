@@ -62,7 +62,9 @@ void setup()
   DEBUG_PRINTLN("Panner test!");
 
   g_batteryMonitor.update(millis());
-  
+
+  g_settings.restore();
+
   View::setup();
   View::activate(&g_controlView);
 

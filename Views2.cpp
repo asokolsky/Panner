@@ -22,9 +22,6 @@ RunView g_runView;
 PausedRunView g_pausedRunView;
 AboutView g_aboutView;
 
-PersistentSettings g_settings;
-
-
 /**
  * Globals: commands to run at startup
  */
@@ -70,30 +67,6 @@ SettingsView::SettingsView() :
   m_resetConfirmation.m_strMessage = "Reset all settings?";
 }
 
-/** restore g_settings from EEPROM */
-void SettingsView::restoreSettings()
-{
-  //EEPROM.get(iEEaddress, g_settings);
-  if((g_settings.m_signature[0] != 'P') || (g_settings.m_signature[0] != '0'))
-    factoryResetSettings();
-}
-
-void SettingsView::factoryResetSettings()
-{
-  DEBUG_PRINTLN("factoryResetSettings()");
-  g_settings.m_signature[0] = 'P';
-  g_settings.m_signature[1] = '0';  
-  g_settings.m_uPannerSlowSpeed = 15;
-  g_settings.m_uPannerFastSpeed = 3*15;
-  g_settings.m_uPannerMaxSpeed = 50;
-  g_settings.m_uPannerAcceleration = 15;
-  if(g_pPanner != 0) {
-    g_pPanner->setMaxSpeed(g_settings.m_uPannerMaxSpeed);
-    g_pPanner->setAcceleration(g_settings.m_uPannerAcceleration);
-  }
-}
-
-  
 /** Long press on central click pops up a Reset confirmation dialog */
 bool SettingsView::onLongKeyDown(uint8_t vk)
 {
@@ -175,15 +148,9 @@ bool SettingsView::onKeyUp(uint8_t vk)
       // save settings!     
       g_settings.m_uPannerSlowSpeed = m_settings.getNumericValue(szPanSlowSpeed);
       g_settings.m_uPannerFastSpeed = 3 * g_settings.m_uPannerSlowSpeed;
-      //
-      g_settings.m_uPannerMaxSpeed = m_settings.getNumericValue(szPanMaxSpeed);
-      g_pPanner->setMaxSpeed(g_settings.m_uPannerMaxSpeed);
-      //
-      g_settings.m_uPannerAcceleration = m_settings.getNumericValue(szPanAcceleration);
-      g_pPanner->setAcceleration(g_settings.m_uPannerAcceleration);
-      //
-      //EEPROM.put(iEEaddress, g_settings);
-      
+      g_pPanner->setMaxSpeed(g_settings.m_uPannerMaxSpeed = m_settings.getNumericValue(szPanMaxSpeed));
+      g_pPanner->setAcceleration(g_settings.m_uPannerAcceleration = m_settings.getNumericValue(szPanAcceleration));
+      g_settings.save();
       //    
       activate(((g_pPreviousView == &g_aboutView) || (g_pPreviousView == &m_resetConfirmation)) ? 
                &g_controlView : 
@@ -205,7 +172,9 @@ void SettingsView::onActivate(View *pPrevActive)
   if((pPrevActive == &m_resetConfirmation) && (m_resetConfirmation.getResult() == IDOK))
   {
     // the Reset Confirmation MessageBox was just closed.  Reset confirmed!
-    factoryResetSettings();    
+    g_settings.factoryReset();
+    g_pPanner->setMaxSpeed(g_settings.m_uPannerMaxSpeed);
+    g_pPanner->setAcceleration(g_settings.m_uPannerAcceleration);
   }
   // clear the listBox
   m_settings.clear();

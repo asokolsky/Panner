@@ -26,6 +26,7 @@ typedef signed char schar_t;
 #include "Keypad.h"
 #include "Stepper.h"
 #include "CommandInterpreter.h"
+#include "PersistentSettings.h"
 #include "Views.h"
 #include "Views2.h"
 //#include "SerialCommand.h"

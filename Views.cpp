@@ -59,8 +59,11 @@ void View::setup()
 {
   m_lcd.setup();
   g_pPanner = g_ci.getPanner();
+  if(g_pPanner != 0) {
+    g_pPanner->setMaxSpeed(g_settings.m_uPannerMaxSpeed);
+    g_pPanner->setAcceleration(g_settings.m_uPannerAcceleration);
+  }
 
-  SettingsView::restoreSettings();
 }
 
 /** 

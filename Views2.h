@@ -2,29 +2,6 @@
  * Project-specific Views and Dialogs
  */
 
-/** EEPROM address where persistent settings are stored */
-const int iEEaddress = 0;
-
-/**
- * Persistent settings to be stored in EEPROM
- */
-struct PersistentSettings
-{ 
-  /** signature */
-  union {
-  uint16_t m_uSignature;
-  char m_signature[2];
-  };
-  /** Panner slow speed in the direct control screen */
-  uint16_t m_uPannerSlowSpeed;
-  /** Panner speed in the direct control screen */
-  uint16_t m_uPannerFastSpeed;
-  /** Panner max speed */
-  uint16_t m_uPannerMaxSpeed;
-  /** Panner acceleration */
-  uint16_t m_uPannerAcceleration;
-};
-
 /**
  * Settings view class
  */
@@ -46,11 +23,6 @@ public:
 
   /** also handles WaypointDefinitionDialog results */
   void onActivate(View *pPrevActive);
-
-  /** restore g_settings from EEPROM */
-  static void restoreSettings();
-  /** reset settings to factory defaults */
-  static void factoryResetSettings();  
 };
 
  
