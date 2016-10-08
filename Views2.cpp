@@ -207,9 +207,17 @@ WaypointDefinitionDialog::WaypointDefinitionDialog() :
 
 /** 
  * fill m_wpoints from  std::map<std::string, long> g_pPanner->m_wayPoints; 
+ * szName is the name of the selected waypoint if not NULL
  */
-static int16_t fill(ListWidget &list, const std::map<std::string, long> &wayPoints)
+static int16_t fill(ListWidget &list, const std::map<std::string, long> &wayPoints, const char szName[4])
 {
+  char szWaypoint[5];
+  if(szName == 0)
+    szWaypoint[0] = '\0';
+  else {
+    memcpy(szWaypoint, szName, 4);
+    szWaypoint[4] = 0;
+  }
   // clear the listBox
   list.clear();
   int16_t i = 0;
@@ -219,6 +227,8 @@ static int16_t fill(ListWidget &list, const std::map<std::string, long> &wayPoin
     char s[80];
     sprintf(s, "%s: %li", x.first.c_str(), x.second);
     list.push_back(s);
+    if(x.first.compare(szWaypoint) == 0)
+      list.setCurSel(i);
     i++;
   }
   return i;
@@ -251,7 +261,7 @@ void WaypointDefinitionDialog::onActivate(View *pPrevActive)
   m_wpoints.setPosition(r); 
 
   // fill ListWidget m_wpoints from  std::map<std::string, long> g_pPanner->m_wayPoints;
-  fill(m_wpoints, g_pPanner->m_wayPoints);
+  fill(m_wpoints, g_pPanner->m_wayPoints, 0);
   // add new label
   {
     char s[] = " ";
@@ -526,7 +536,7 @@ void WaypointsView::onActivate(View *pPrevActive)
     }
   }
   // fill ListWidget m_wpoints from  std::map<std::string, long> g_pPanner->m_wayPoints;
-  fill(m_wpoints, g_pPanner->m_wayPoints);
+  fill(m_wpoints, g_pPanner->m_wayPoints, 0);
 
   g_pPanner->enable(true);
 }
@@ -687,7 +697,7 @@ void EditView::populateWidget(const Command *pCmds, KeyValueListWidget &steps)
           case cmdGoToWaypoint: {
             ListSpinnerWidget wayPoints;
             // fill ListWidget m_wpoints from  std::map<std::string, long> g_pPanner->m_wayPoints;
-            fill(wayPoints, g_pPanner->m_wayPoints);
+            fill(wayPoints, g_pPanner->m_wayPoints, pCmds->m_szParam);
             steps.push_back(szGoTo, wayPoints);
             break;
           }
@@ -752,8 +762,8 @@ bool EditView::saveProgram(KeyValueListWidget &steps, Command cmds[])
             int16_t iSel = p->getCurSel();
             if((iSel < 0) || (iSel >= (int16_t)p->m_items.size()))
               return false;
-            char ch = p->m_items[iSel][0];
-            cmds[i].m_lPosition = (long)ch;
+            cmds[i].m_szParam[0] = p->m_items[iSel][0];
+            cmds[i].m_szParam[1] = '\0';
             break;
           }
           case cmdSetMaxSpeed:

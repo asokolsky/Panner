@@ -13,8 +13,11 @@ struct Command
   //schar_t m_speed;           // also carries information on direction and speed in %: -100%..100%
   union {
     /** unsigned duration (in milli seconds) or speed (in steps/sec or %) */
-    unsigned long m_uValue; 
-    long m_lPosition;           // signed position for stepper
+    unsigned long m_uValue;
+    /** signed position for stepper */ 
+    long m_lPosition;
+    /** e.g. name of the waypoint */
+    char m_szParam[4];
   };
 
 #ifdef DEBUG
