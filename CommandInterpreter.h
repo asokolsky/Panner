@@ -54,19 +54,19 @@ const schar_t cmdNone = 0;
  * not really a command but the absense of commands 
  * delay consideration of the next command for this many millis in m_uDuration
  */
-const schar_t cmdControlRest = 1;
+const schar_t cmdControlRest = 100;
 /** 
  * not really a command but a synchronization primitive
  * wait for all the channels to complete execution
  * either by time expiration m_uDuration or by exception such as endswitch
  */
-const schar_t cmdControlWaitForCompletion = 2;
+const schar_t cmdControlWaitForCompletion = 101;
 
 /**
  * Loop commands
  */
-const schar_t cmdControlBeginLoop = 3;
-const schar_t cmdControlEndLoop = 4;
+const schar_t cmdControlBeginLoop = 102;
+const schar_t cmdControlEndLoop = 103;
  
 /**
  *  Pan/Tilt/Slide channel Commands
@@ -278,11 +278,11 @@ public:
 
 
   /** external API of this class */
-  void beginCommand(schar_t cmd, /*schar_t cSpeed,*/ unsigned long ulDuration);
+  //void beginCommand(schar_t cmd, /*schar_t cSpeed,*/ unsigned long ulDuration);
   /** adjust speed */
   //void adjustCommandSpeed(schar_t ch, schar_t cSpeedAdjustment);
   /** Duration adjustment in seconds */
-  void adjustCommandDuration(schar_t ch, schar_t cmd, int iDurationAdjustment);
+  //void adjustCommandDuration(schar_t ch, schar_t cmd, int iDurationAdjustment);
 
   //void updateDisplay(unsigned long now);
 
@@ -320,21 +320,6 @@ public:
 
 private:
   void beginCommand(Command *p, unsigned long now);
-
-  /** cmdWaitForCompletion command handler - begin it */
-  void beginWaitForCompletion(unsigned long ulDuration, unsigned long now);
-  /** cmdWaitForCompletion command handler - complete it */
-  void endWaitForCompletion();
-
-  /** cmdRest command handler */
-  void beginRest(unsigned long ulDuration, unsigned long now);
-  /** cmdRest command handler */
-  void endRest();
-
-  /** cmdBeginLoop command handler */
-  void beginLoop(Command *p);
-  /** cmdEndLoop command handler */
-  Command *endLoop();
 
   boolean isReadyToEndRest(unsigned long now) {
     return (m_ulNext > 0) && (now >= m_ulNext);

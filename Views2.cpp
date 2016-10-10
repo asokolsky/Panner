@@ -231,6 +231,7 @@ static int16_t fill(ListWidget &list, const std::map<std::string, long> &wayPoin
       list.setCurSel(i);
     i++;
   }
+  DEBUG_PRINT("fill()=>"); DEBUG_PRINTDEC(i); DEBUG_PRINTLN("");
   return i;
 }
 
@@ -653,10 +654,11 @@ bool EditView::onKeyUp(uint8_t vk)
  */
 void EditView::populateWidget(const Command *pCmds, KeyValueListWidget &steps)
 {
+  DEBUG_PRINTLN("EditView::populateWidget");
   steps.clear();
-  
   for(;pCmds != 0; pCmds++)
   {
+    pCmds->DUMP("pCmds=");
     switch(pCmds->m_channel)
     {
       case chControl:
@@ -722,8 +724,10 @@ void EditView::populateWidget(const Command *pCmds, KeyValueListWidget &steps)
 /** walk through the steps widget and save commands */
 bool EditView::saveProgram(KeyValueListWidget &steps, Command cmds[])
 {
+  DEBUG_PRINTLN("EditView::saveProgram");
   for(size_t i = 0; i < m_steps.m_items.size(); i++)
   {
+    cmds[i].DUMP("cmds[i] before");
     switch(cmds[i].m_channel)
     {
       case chControl:
@@ -734,7 +738,7 @@ bool EditView::saveProgram(KeyValueListWidget &steps, Command cmds[])
             return true;
           case cmdControlRest:
           case cmdControlWaitForCompletion:
-            cmds[i].m_uValue = (unsigned long)steps.getNumericValue((int16_t)i);
+            cmds[i].m_uValue = 1000l * (unsigned long)steps.getNumericValue((int16_t)i);
             break;
           case cmdControlBeginLoop:
             //
@@ -779,6 +783,7 @@ bool EditView::saveProgram(KeyValueListWidget &steps, Command cmds[])
         cmds[i].DUMP("saveProgram() ABNORMAL EXIT - unknown channel!");
         return false;
     }    
+    cmds[i].DUMP("cmds[i] after");    
   }
   return true;
 }
