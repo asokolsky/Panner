@@ -53,31 +53,36 @@ static const char szSeparator[] = ": ";
  * and Val in ILI9341_WHITE
  * x is the position of the first ':'
  */
-void Widget::printKeyVal(uint16_t x, uint16_t y, const char *szKey1, long lVal1, bool bSelected, const char *szKey2, long lVal2)
+void Widget::printKeyVal(
+  uint16_t x, uint16_t y, 
+  const char *szKey1, long lVal1, 
+  bool bSelected, 
+  const char *szKey2, long lVal2)
 {
+  char szText[80];
+
   RECT rLocation;
   rLocation.left = m_rectClient.left;
   rLocation.right = x;
   rLocation.top = y;
   rLocation.bottom = 0;
   //rLocation.DUMP("Widget::printKeyVal rLocation");
-  
-  m_lcd.printText(szKey1, ILI9341_DARKGREY, ILI9341_BLACK, rLocation, Display::haRight, Display::vaTop);
-  m_lcd.setCursor(x, y);
-  m_lcd.print(szSeparator);
-  x += m_lcd.measureTextWidth(szSeparator);
-  
-  m_lcd.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
-  m_lcd.setCursor(x, y);
-  char szText[80];
+
+  sprintf(szText, "%s%s", szKey1, szSeparator); 
+  m_lcd.printText(szText, ILI9341_DARKGREY, ILI9341_BLACK, rLocation, Display::haRight, Display::vaTop);
+ 
+  rLocation.left = x;
+  rLocation.right = x + m_lcd.measureTextWidth("-0000");
   sprintf(szText, "%ld", lVal1);                     // print val1
-  m_lcd.print(szText);
-  if(bSelected) {
+  m_lcd.printText(szText, ILI9341_WHITE, ILI9341_BLACK, rLocation, Display::haLeft, Display::vaTop);
+
+  if(bSelected) 
+  {
     RECT r;
-    r.top = y-1;
-    r.bottom = r.top + m_lcd.fontLineSpace() + 1;
     r.left = x-1;
     r.right = r.left + m_lcd.measureTextWidth(szText) + 3;
+    r.top = y-1;
+    r.bottom = r.top + m_lcd.fontLineSpace() + 1;
     m_lcd.drawRect(r.left, r.top, r.width(), r.height(), ILI9341_DARKGREY);
     x += 3;
   }  
@@ -88,21 +93,13 @@ void Widget::printKeyVal(uint16_t x, uint16_t y, const char *szKey1, long lVal1,
     x = rLocation.right = (m_rectClient.width() / 4) * 3;         // position of second ':'
     //rLocation.top = y;
     //rLocation.bottom = 0;
-    m_lcd.printText(szKey2, ILI9341_DARKGREY, ILI9341_BLACK, rLocation, Display::haRight, Display::vaTop);
-    m_lcd.setCursor(x, y);
-    m_lcd.print(szSeparator);
-    x += m_lcd.measureTextWidth(szSeparator);  
-    m_lcd.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
-    m_lcd.setCursor(x, y);
-    sprintf(szText, "%ld", lVal2);
-    m_lcd.print(szText);                               // print val2
-    x += m_lcd.measureTextWidth(szText);
-  }
-  if(x < m_rectClient.right)
-  {
+    
+    sprintf(szText, "%s%s", szKey2, szSeparator);
+    m_lcd.printText(szText, ILI9341_DARKGREY, ILI9341_BLACK, rLocation, Display::haRight, Display::vaTop);   
     rLocation.left = x;
-    rLocation.right = m_rectClient.right;
-    m_lcd.fillRect(rLocation, ILI9341_BLACK);
+    rLocation.right = x + m_lcd.measureTextWidth("-0000");
+    sprintf(szText, "%ld", lVal2);
+    m_lcd.printText(szText, ILI9341_WHITE, ILI9341_BLACK, rLocation, Display::haLeft, Display::vaTop);
   }
 }
 
