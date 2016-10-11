@@ -783,7 +783,7 @@ bool EditView::saveProgram(KeyValueListWidget &steps, Command cmds[])
         cmds[i].DUMP("saveProgram() ABNORMAL EXIT - unknown channel!");
         return false;
     }    
-    cmds[i].DUMP("cmds[i] after");    
+    cmds[i].DUMP("cmds[i] after ");
   }
   return true;
 }

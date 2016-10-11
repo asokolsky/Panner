@@ -45,8 +45,7 @@ const uint8_t pinPanDirection = 6;
 /**
  * Globals: Main command interpreter
  */
-PannerCommandInterpreter g_ci(pinPanStep, pinPanDirection, pinPanEnable);  // pan pinStep, pinDirection, pinEnable
-//CommandInterpreter *g_pCommandInterpreter = &g_ci;
+CommandInterpreter g_ci(pinPanStep, pinPanDirection, pinPanEnable);  // pan pinStep, pinDirection, pinEnable
 
 /**
  * Globals: Serial Port object
@@ -69,11 +68,7 @@ void setup()
   View::activate(&g_controlView);
 
   //g_serialCommandInterpreter.begin();
-    
-  g_ci.begin();
 }
-
-//int freeMemory();
 
 void loop()
 {  
@@ -87,10 +82,6 @@ void loop()
   {
     bUpdateDisplay = true;
   } 
-  /*else if(g_thumbStick.getAndDispatchThumb(now)) 
-  {
-    bUpdateDisplay = true;
-  }*/
   /*else if(g_serialCommandInterpreter.available()) 
   {
     DEBUG_PRINTLN("Read a command from serial line!");   
@@ -104,17 +95,6 @@ void loop()
   //if(bUpdateDisplay) g_ci.updateDisplay(now);   
   if(bUpdateDisplay && View::g_pActiveView != 0)
     View::g_pActiveView->update(now);
-
-  /*static unsigned long ulTimeToDebugDump = 10000;
-  if(now > ulTimeToDebugDump)
-  {
-    ulTimeToDebugDump = now + 10000;
-    int iFreeMemory = freeMemory();
-    DEBUG_PRINTLN("freeMemory() => ");
-    DEBUG_PRINTDEC(iFreeMemory);
-    DEBUG_PRINTLN("");
-  }*/
-
 }
 
 

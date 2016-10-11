@@ -101,7 +101,7 @@ public:
   virtual void updateClient(unsigned long now);
 
 #ifdef DEBUG
-  void DUMP(const char *szText = 0);
+  void DUMP(const char *szText = 0) const;
 #else
   void DUMP(const char *szText = 0) {}
 #endif

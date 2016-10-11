@@ -8,10 +8,12 @@
 
 struct Command
 {
-  schar_t m_channel;         // control/slide/pan/tilt/zoom/focus/shutter...
-  schar_t m_command;         // channel-specific command
-  //schar_t m_speed;           // also carries information on direction and speed in %: -100%..100%
-  union {
+  /** control/slide/pan/tilt/zoom/focus/shutter... */
+  schar_t m_channel;
+  /** channel-specific command */         
+  schar_t m_command;
+  union 
+  {
     /** unsigned duration (in milli seconds) or speed (in steps/sec or %) */
     unsigned long m_uValue;
     /** signed position for stepper */ 
@@ -90,77 +92,23 @@ const schar_t cmdSetMaxSpeed = 10;
  */
 const schar_t cmdSetAcceleration = 11;
 
-/** */
-
 
 /**
- * Main Interface Class
- */
-#if 0 
-class CommandInterpreter
-{
-public:
-  virtual void begin();
-  virtual void beginRun(schar_t cmd, /*schar_t iSpeed,*/ unsigned long ulDuration);
-
-  /** external API of this class */
-  virtual void beginCommand(schar_t cmd, /*schar_t cSpeed,*/ unsigned long ulDuration);
-  /**
-  * iCmd is actually a channel #
-  * to be called from interrupt handler or in response to kb
-  */
-  virtual void stopCommand(schar_t cCmd);
-  /** adjust speed */
-  //virtual void adjustCommandSpeed(schar_t ch, schar_t cSpeedAdjustment);
-  /** Duration adjustment in seconds */
-  //virtual void adjustCommandDuration(schar_t ch, schar_t cmd, int iDurationAdjustment);
-
-  virtual void stopRun();
-
-  virtual boolean isRunning();
-  virtual boolean isPaused();
-  /** is this channel busy? */
-  virtual boolean isBusy(schar_t cChannel);
-
-  /** suspend the run, can resume */
-  virtual void pauseRun();
-  /** resume the run */
-  virtual void resumeRun();
-
-  //virtual void updateDisplay(unsigned long now);
-};
-
-extern CommandInterpreter *g_pCommandInterpreter;
-#endif
-
-/**
-* (abstract) channel for slide, pan or tilt or zoom
-*  uses a motor
+* Channel for slide, pan or tilt or zoom,  uses a motor,
 * may implement trapezoidal speed profile on the DC motor
 */
 class CommandInterpreterChannel
 {
 protected:
-  /**
-  * If a command is being executed on the channel this is when it will end in ms
-  * otherwise - 0
-  */
-  unsigned long m_ulNext;
-  /** setpoint - where we want for the ultimate motor speed to be, in signed % */
-  //schar_t m_cSpeed = 0;
-
+  /** 
+   * Object to interact with the physical motor 
+   */
   Stepper m_motor;
 
 public:
   CommandInterpreterChannel(uint8_t pinStep, uint8_t pinDirection, uint8_t pinEnable = 0xFF);
 
 
-  unsigned long getNext() {
-    return m_ulNext;
-  }
-  /*schar_t getSpeed() {
-    return m_cSpeed;
-  }*/
   float getMotorSpeed() {
     return m_motor.speed();
   }
@@ -168,60 +116,51 @@ public:
     return m_motor.currentPosition();
   }
 
-  void begin() {
-    //m_motor.begin();
-  }
-  void beginCommands();
-  void endCommands() {}
+  /**
+   * may communicate with hardware
+   * return true if the command is non-blocking
+   */
+  boolean beginCommand(const Command *p, unsigned long now);
+  /**
+   * may communicate with hardware
+   */
+  boolean endCommand();
 
   /**
-  * may communicate with hardware
-  */
-  virtual void beginCommand(Command *p, unsigned long now);
-  /**
-  * may communicate with hardware
-  */
-  virtual boolean endCommand();
-
-  /**
-  * may communicate with hardware
-  */
+   * may communicate with hardware
+   */
   void pauseCommand();
   /**
-  * may communicate with hardware
-  */
+   * may communicate with hardware
+   */
   void resumeCommand(unsigned long ulPauseDuration);
   /**
-  * mark command as ready to be completed
-  * actual hw communication is done in endCommand();
-  */
-  void stopCommand(unsigned long now) {
-    if (m_ulNext > 0)
-      m_ulNext = now;
-  }
+   * mark command as ready to be completed
+   * actual hw communication is done in endCommand();
+   */
+  /*void stopCommand(unsigned long now) {
+    //if (m_ulNext > 0) m_ulNext = now;
+  }*/
 
   /**
-  * Did we work long enough or did we hit an endswitch?
-  */
-  virtual boolean isReadyToEndCommand(unsigned long now);
+   * Did we work long enough or did we hit an endswitch?
+   */
+  boolean isReadyToEndCommand(unsigned long now) {
+    return !m_motor.run();
+  }
   /**
-  * command is being executed by hardware
-  */
-  boolean isBusy();
+   * command is being executed by hardware
+   */
+  boolean isBusy() {
+    return m_motor.run();
+  }
  
   /**
-  * allows for trapezoidal velocity profile implementation
-  */
-  void tick(unsigned long now);
-
-  /**
-    * Handle a GUI request
-    */
-  //void adjustCommandSpeed(schar_t iSpeedAdjustment);
-  /**
-  * Handle a GUI request
-  */
-  //void adjustCommandDuration(schar_t iChangeSecs);
+   * allows for trapezoidal velocity profile implementation
+   */
+  void tick(unsigned long now) {
+    m_motor.run();
+  }
 
   Stepper *getMotor() {
     return &m_motor;
@@ -233,19 +172,17 @@ public:
 /**
 * Main Interface Class for Controller
 */
-class PannerCommandInterpreter //: public CommandInterpreter
+class CommandInterpreter
 {
 public:
   /**
   * Call this according to your connections.
   */
-  PannerCommandInterpreter(uint8_t pinStep, uint8_t pinDirection, uint8_t pinEnable = 0xFF);
-  ~PannerCommandInterpreter() {}
+  CommandInterpreter(uint8_t pinStep, uint8_t pinDirection, uint8_t pinEnable = 0xFF);
+  ~CommandInterpreter() {}
 
 
-  /** external APIs of this class */
-  void begin();
-  void beginRun(schar_t cmd, /*schar_t iSpeed,*/ unsigned long ulDuration);
+  /** start executing an array of commands terminated with cmdNone */
   void beginRun(Command *p);
   /** 
    * Called from loop()
@@ -265,7 +202,7 @@ public:
   void resumeRun();
 
 
-  /** is this command interpreter interpreting commands? */
+  /** is this command interpreter still interpreting commands? */
   boolean isRunning() {
     return (m_pCommand != 0);
   }
@@ -278,22 +215,16 @@ public:
 
 
   /** external API of this class */
-  //void beginCommand(schar_t cmd, /*schar_t cSpeed,*/ unsigned long ulDuration);
-  /** adjust speed */
-  //void adjustCommandSpeed(schar_t ch, schar_t cSpeedAdjustment);
-  /** Duration adjustment in seconds */
-  //void adjustCommandDuration(schar_t ch, schar_t cmd, int iDurationAdjustment);
-
-  //void updateDisplay(unsigned long now);
 
   /**
   * iCmd is actually a channel #
   * to be called from interrupt handler or in response to kb
   */
-  void stopCommand(schar_t cCmd);
+  //void stopCommand(schar_t cCmd);
 
+  /** When the next command will be executed? */
   unsigned long getNext() {
-    return m_ulNext;
+    return m_ulRestExpiration;
   }
   /** 
    * find out for how long the first busy channel will be busy
@@ -306,7 +237,7 @@ public:
 
   /** Are we resting? */
   boolean isResting() {
-    return (m_ulNext > 0);
+    return (m_ulRestExpiration > 0);
   }
   /** Are we waiting for completion? */
   boolean isWaitingForCompletion() {
@@ -319,33 +250,30 @@ public:
 
 
 private:
-  void beginCommand(Command *p, unsigned long now);
+  void beginCommand(const Command *p, unsigned long now);
 
   boolean isReadyToEndRest(unsigned long now) {
-    return (m_ulNext > 0) && (now >= m_ulNext);
+    return (m_ulRestExpiration > 0) && (now >= m_ulRestExpiration);
   }
   /** get the total # of busy channels */
   char getBusyChannels();
 
   /** command currently being executed */
-  Command *m_pCommand = 0;
+  const Command *m_pCommand = 0;
   /** Loop command to jump back to when we encounter EndLoop */
-  Command *m_pBeginLoopCommand = 0;
+  const Command *m_pBeginLoopCommand = 0;
   /** array of interpreter channels such as slide/pan/tilt/zoom */
   CommandInterpreterChannel *m_channels[chMax];
+
   /** when to execute next command */
-  unsigned long m_ulNext = 0;
-  /** Display update interval */
-  //const unsigned long ulDisplayUpdateInterval = 900;
-  /** when the display will be updated */
-  //unsigned long m_ulToUpdateDisplay = 0;
+  unsigned long m_ulRestExpiration = 0;
   /** when we were paused */
   unsigned long m_ulPaused = 0;
-  /** we are waiting for command(s) to be completed. */
+  /** we are waiting for (channel) command(s) to be completed. */
   unsigned long m_ulCompletionExpiration = 0;
 };
 
-extern PannerCommandInterpreter g_ci;
+extern CommandInterpreter g_ci;
 
 #endif
 

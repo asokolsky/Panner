@@ -21,65 +21,41 @@ void Command::DUMP(const char *szText) const
 /**
  * CommandInterpreter implementation
  */
-PannerCommandInterpreter::PannerCommandInterpreter(uint8_t pinStep, uint8_t pinDirection, uint8_t pinEnable)
+CommandInterpreter::CommandInterpreter(uint8_t pinStep, uint8_t pinDirection, uint8_t pinEnable)
 {
   m_channels[chControl] = 0;
   m_channels[chPan] = new /*Pan*/ CommandInterpreterChannel(pinStep, pinDirection, pinEnable);
 }
 
-/** 
- * external APIs 
- */
-void PannerCommandInterpreter::begin() 
+
+void CommandInterpreter::beginRun(Command *p) 
 {
-  // begin for all channels.....
-  for(unsigned char i = 0; i < sizeof(m_channels)/sizeof(m_channels[0]); i++)
-    if(m_channels[i] != 0)
-      m_channels[i]->begin();
-}
-
-//
-// buffer for a sequence of one command
-//
-static Command cmds[] = {
-  {chControl, cmdControlNone, 0},
-  {chControl, cmdControlNone, 0},
-};
-
-void PannerCommandInterpreter::beginRun(schar_t cmd, unsigned long ulDuration)
-{
-  DEBUG_PRINTLN("PannerCommandInterpreter::beginRun");
-  cmds[0].m_command = cmd;
-  cmds[0].m_uValue = ulDuration;
-  beginRun(cmds);
-}
-
-void PannerCommandInterpreter::beginRun(Command *p) {
-  p->DUMP("PannerCommandInterpreter::beginRun");
-  // beginCommands for all channels.....
+  p->DUMP("CommandInterpreter::beginRun");
+  /* beginCommands for all channels.....
   for(unsigned char i = 0; i < sizeof(m_channels)/sizeof(m_channels[0]); i++)
     if(m_channels[i] != 0)
       m_channels[i]->beginCommands();
-
-  m_ulCompletionExpiration = 0;
+  */
+  m_ulRestExpiration = m_ulCompletionExpiration = 0;
   beginCommand(p, millis());
 }
 
-void PannerCommandInterpreter::endRun() {
-  DEBUG_PRINTLN("PannerCommandInterpreter::endRun");
-  m_ulCompletionExpiration = 0;
+void CommandInterpreter::endRun() 
+{
+  DEBUG_PRINTLN("CommandInterpreter::endRun");
+  m_ulRestExpiration = m_ulCompletionExpiration = 0;
   m_pCommand = 0;
-  m_ulNext = 0;
-
+  /*
   for(unsigned char i = 0; i < sizeof(m_channels)/sizeof(m_channels[0]); i++)
     if(m_channels[i] != 0)
-      m_channels[i]->endCommands();
+      m_channels[i]->endCommands(); */
 }
 
 /** force stop processing commands */
-void PannerCommandInterpreter::stopRun() {
-  DEBUG_PRINTLN("PannerCommandInterpreter::stopRun");
-  m_ulNext = m_ulPaused = m_ulCompletionExpiration = 0;
+void CommandInterpreter::stopRun() 
+{
+  DEBUG_PRINTLN("CommandInterpreter::stopRun");
+  m_ulRestExpiration = m_ulPaused = m_ulCompletionExpiration = 0;
   m_pCommand = 0;
     
   for(unsigned char i = 0; i < sizeof(m_channels)/sizeof(m_channels[0]); i++)
@@ -89,8 +65,9 @@ void PannerCommandInterpreter::stopRun() {
 
 
 /** suspend the run, can resume */
-void PannerCommandInterpreter::pauseRun() {
-  DEBUG_PRINTLN("PannerCommandInterpreter::pauseRun");
+void CommandInterpreter::pauseRun() 
+{
+  DEBUG_PRINTLN("CommandInterpreter::pauseRun");
   if(m_ulPaused != 0)
     return;
   m_ulPaused = millis();
@@ -101,8 +78,9 @@ void PannerCommandInterpreter::pauseRun() {
 }
 
 /** resume the run */
-void PannerCommandInterpreter::resumeRun() {
-  DEBUG_PRINTLN("PannerCommandInterpreter::resumeRun");
+void CommandInterpreter::resumeRun() 
+{
+  DEBUG_PRINTLN("CommandInterpreter::resumeRun");
   if(m_ulPaused == 0)
     return;
   unsigned long now = millis();
@@ -110,8 +88,8 @@ void PannerCommandInterpreter::resumeRun() {
   for(unsigned char i = 0; i < sizeof(m_channels)/sizeof(m_channels[0]); i++)
     if((m_channels[i] != 0) && m_channels[i]->isBusy())
       m_channels[i]->resumeCommand(ulPauseDuration);
-  if(m_ulNext != 0)
-    m_ulNext += ulPauseDuration;
+  if(m_ulRestExpiration != 0)
+    m_ulRestExpiration += ulPauseDuration;
   if(m_ulCompletionExpiration != 0)
     m_ulCompletionExpiration += ulPauseDuration;
   m_ulPaused = 0;
@@ -125,11 +103,11 @@ void PannerCommandInterpreter::resumeRun() {
  * return true to continue running
  * return false to end the run
  */
-bool PannerCommandInterpreter::continueRun(unsigned long now)
+bool CommandInterpreter::continueRun(unsigned long now)
 {
-  //DEBUG_PRINT("PannerCommandInterpreter::continueRun now="); DEBUG_PRINTDEC(now); DEBUG_PRINTLN("");
+  //DEBUG_PRINT("CommandInterpreter::continueRun now="); DEBUG_PRINTDEC(now); DEBUG_PRINTLN("");
   if(m_pCommand == 0) {
-    DEBUG_PRINTLN("PannerCommandInterpreter::continueRun m_pCommand==0");
+    DEBUG_PRINTLN("CommandInterpreter::continueRun m_pCommand==0");
     return false;
   }
   if(isPaused())
@@ -141,7 +119,8 @@ bool PannerCommandInterpreter::continueRun(unsigned long now)
   // tick thus giving an opportunity to do trapezoidal velocity profile...
   // end command if it is time to do so
   //
-  for(unsigned char i = 0; i < sizeof(m_channels)/sizeof(m_channels[0]); i++) {
+  for(unsigned char i = 0; i < sizeof(m_channels)/sizeof(m_channels[0]); i++) 
+  {
     if(m_channels[i] == 0)
       continue;
     if(m_channels[i]->isReadyToEndCommand(now)) {
@@ -159,21 +138,21 @@ bool PannerCommandInterpreter::continueRun(unsigned long now)
     // wait till all the commands are completed
     return (getBusyChannels() > 0);
   } else if(isResting()) {
-    DEBUG_PRINTLN("PannerCommandInterpreter::continueRun - isResting!");
+    DEBUG_PRINTLN("CommandInterpreter::continueRun - isResting!");
     if(!isReadyToEndRest(now))
       return true;
     //endRest();
-    m_ulNext = 0;
+    m_ulRestExpiration = 0;
   } else if(isWaitingForCompletion()) {
-    DEBUG_PRINTLN("PannerCommandInterpreter::continueRun - isWaitingForCompletion!");
+    DEBUG_PRINTLN("CommandInterpreter::continueRun - isWaitingForCompletion!");
     if(getBusyChannels() > 0)
       return true;
     //endWaitForCompletion();
     m_ulCompletionExpiration = 0;
   } else {
-    //DEBUG_PRINTLN("PannerCommandInterpreter::continueRun - not resting!");
+    //DEBUG_PRINTLN("CommandInterpreter::continueRun - not resting!");
     // is the channell needed for the next command already busy?
-    Command *p = m_pCommand + 1;
+    const Command *p = m_pCommand + 1;
     if(isBusy(p->m_channel))
         return true;
   } 
@@ -182,7 +161,8 @@ bool PannerCommandInterpreter::continueRun(unsigned long now)
   return true;
 }
 
-boolean PannerCommandInterpreter::isBusy(schar_t cChannel) {
+boolean CommandInterpreter::isBusy(schar_t cChannel) 
+{
   return isRunning()
     && (0 <= cChannel) 
     && (cChannel < chMax) 
@@ -191,7 +171,8 @@ boolean PannerCommandInterpreter::isBusy(schar_t cChannel) {
 }
 
 /** get the # of channels running command */
-char PannerCommandInterpreter::getBusyChannels() {
+char CommandInterpreter::getBusyChannels() 
+{
   char iRes = 0;
   for(unsigned char i = 0; i < sizeof(m_channels)/sizeof(m_channels[0]); i++)
     if((m_channels[i] != 0) && (m_channels[i]->isBusy()))
@@ -204,8 +185,9 @@ char PannerCommandInterpreter::getBusyChannels() {
  * execute the command pointed to by p
  * side effect - may change m_pCommand 
  */
-void PannerCommandInterpreter::beginCommand(Command *p, unsigned long now) {
-  DEBUG_PRINTLN("PannerCommandInterpreter::beginCommand");
+void CommandInterpreter::beginCommand(const Command *p, unsigned long now) 
+{
+  DEBUG_PRINTLN("CommandInterpreter::beginCommand");
   for(bool bContinue = true; bContinue;) 
   {
     m_pCommand = p;
@@ -218,7 +200,7 @@ void PannerCommandInterpreter::beginCommand(Command *p, unsigned long now) {
         {
           case cmdControlRest:
             //beginRest(p->m_uValue, now);
-            m_ulNext = now + p->m_uValue;
+            m_ulRestExpiration = now + p->m_uValue;
             bContinue = false;
             break;
           case cmdControlWaitForCompletion:
@@ -239,7 +221,7 @@ void PannerCommandInterpreter::beginCommand(Command *p, unsigned long now) {
           //case cmdNone:
           default:
             // melt the core here
-            DEBUG_PRINTLN("PannerCommandInterpreter::beginCommand - UNKNOWN control command!");  
+            DEBUG_PRINTLN("CommandInterpreter::beginCommand - UNKNOWN control command!");  
             return;
         }
         break;
@@ -250,18 +232,19 @@ void PannerCommandInterpreter::beginCommand(Command *p, unsigned long now) {
       //case chZoom:
         if(m_channels[ch] == 0) {
           // we are not equiped to handle this command!  Ignore it!
-          DEBUG_PRINTLN("PannerCommandInterpreter::beginCommand on 0 channel!  Ignoring..");
+          DEBUG_PRINTLN("CommandInterpreter::beginCommand on 0 channel!  Ignoring..");
           p++;
         } else {
-          m_channels[ch]->beginCommand(p, now);
-          bContinue = false;
+          bContinue = m_channels[ch]->beginCommand(p, now);
+          if(bContinue)
+            p++;
         }
         break;
         
       default:
         // melt the core here
-        return;
-      
+        DEBUG_PRINTLN("CommandInterpreter::beginCommand - UNKNOWN channel!");  
+        return;      
     }
   }
   //updateDisplay(now);
@@ -270,65 +253,25 @@ void PannerCommandInterpreter::beginCommand(Command *p, unsigned long now) {
 /** 
  * External API 
  */
-/*void PannerCommandInterpreter::beginCommand(schar_t cmd, unsigned long ulDuration) 
-{
-  DEBUG_PRINTLN("PannerCommandInterpreter::beginCommand");
-  cmds[0].m_command = cmd;
-  cmds[0].m_uValue = ulDuration;
-  beginCommand(cmds, millis());
-}*/
-
-/*void PannerCommandInterpreter::adjustCommandSpeed(schar_t ch, schar_t iSpeed) 
-{
-  DEBUG_PRINTLN("PannerCommandInterpreter::adjustCommandSpeed");
-  switch(ch) {
-    //case chSlide:
-    case chPan:
-    //case chTilt:
-      if(m_channels[ch] != 0)
-        m_channels[ch]->adjustCommandSpeed(iSpeed);
-      break;
-  }
-}*/
-
-/*void PannerCommandInterpreter::adjustCommandDuration(schar_t ch, schar_t iCmd, int iSecs) {
-  DEBUG_PRINTLN("PannerCommandInterpreter::adjustCommandDuration");
-  switch(ch) {
-    case chControl:
-      switch(iCmd)
-      {
-        case cmdControlRest:
-        case cmdControlWaitForCompletion:
-          stopRun();
-          break;
-      }
-      break;
-    //case chSlide:
-    case chPan:
-    //case chTilt:
-      if(m_channels[ch] != 0)
-        m_channels[ch]->adjustCommandDuration(iSecs);
-      break;
-  }
-}*/
 
 /** 
  * iCmd is actually a channel # 
  * to be called from interrupt handler or in response to kb
  */
-void PannerCommandInterpreter::stopCommand(schar_t iCmd) {
+/*void CommandInterpreter::stopCommand(schar_t iCmd) {
   if((iCmd < 0) || ((unsigned)iCmd) > sizeof(m_channels)/sizeof(m_channels[0]))
     return;
   if(m_channels[iCmd] == 0)
    return;
   m_channels[iCmd]->stopCommand(millis());
-}
+}*/
 
 /** 
  * find out for how long the first busy channel will be busy
  */
-word PannerCommandInterpreter::getBusySeconds(unsigned long now) {
+word CommandInterpreter::getBusySeconds(unsigned long now) {
   word wSecsRes = 0;
+  /*
   for(unsigned char i = 0; i < sizeof(m_channels)/sizeof(m_channels[0]); i++)
     if((m_channels[i] != 0) && m_channels[i]->isBusy()) {
       unsigned long ulNext = m_channels[i]->getNext();
@@ -338,13 +281,14 @@ word PannerCommandInterpreter::getBusySeconds(unsigned long now) {
           wSecsRes = wSecs;
       }
     }
+    */
   return wSecsRes;
 }
 
 /** 
  * how much more wait for completion will last
  */
-unsigned PannerCommandInterpreter::getWaitSeconds(unsigned long now) 
+unsigned CommandInterpreter::getWaitSeconds(unsigned long now) 
 {
   return (m_ulCompletionExpiration > now) ?
          (unsigned)((m_ulCompletionExpiration - now) / 1000) :

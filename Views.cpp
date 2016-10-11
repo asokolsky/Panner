@@ -329,11 +329,10 @@ void View::updateClientRunOrPaused(unsigned long now, bool bExtendedInfo, const 
 }
 
 #ifdef DEBUG
-void View::DUMP(const char *szText /*= 0*/)
+void View::DUMP(const char *szText /*= 0*/) const
 {
   Widget::DUMP(szText);
-  DEBUG_PRINT("View@"); DEBUG_PRINTDEC((int)this); 
-  DEBUG_PRINT(" m_szTitle="); DEBUG_PRINTLN(m_szTitle); 
+  DEBUG_PRINT("View@"); DEBUG_PRINTDEC((int)this); DEBUG_PRINT(" m_szTitle="); DEBUG_PRINTLN(m_szTitle); 
 }
 #endif
 
