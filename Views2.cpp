@@ -843,6 +843,10 @@ void RunView::updateClient(unsigned long now)
 
 void RunView::onActivate(View *pPrevActive)
 {
+  // support the default behaviour
+  View::onActivate(pPrevActive);
+  DEBUG_PRINTLN("RunView::onActivate()");
+  
   g_pPanner->enable(true);
   // (re)start command interpreter
   if(g_ci.isPaused())
@@ -911,6 +915,9 @@ void PausedRunView::updateClient(unsigned long now)
 
 void PausedRunView::onActivate(View *pPrevActive)
 {
+  // support the default behaviour
+  View::onActivate(pPrevActive);
+  DEBUG_PRINTLN("PausedRunView::onActivate()");
   if(g_ci.isRunning())
     g_ci.pauseRun();
   g_pPanner->enable(false);
