@@ -304,8 +304,7 @@ void View::updateClientRunOrPaused(unsigned long now, bool bExtendedInfo, const 
     unsigned wSecs = g_ci.getBusySeconds(now);
     if(g_ci.isResting()) {
       pLabel = "Rest";
-      unsigned long ulNext = g_ci.getNext();
-      wSecs = (now < ulNext) ? ((ulNext - now) / 1000) : 0;
+      wSecs = g_ci.getRestSeconds(now);
     } else if(g_ci.isWaitingForCompletion()) {
       pLabel = "Wait";
       wSecs = g_ci.getWaitSeconds(now);

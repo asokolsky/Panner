@@ -269,9 +269,8 @@ void CommandInterpreter::beginCommand(const Command *p, unsigned long now)
 /** 
  * find out for how long the first busy channel will be busy
  */
-word CommandInterpreter::getBusySeconds(unsigned long now) {
+/* word CommandInterpreter::getBusySeconds(unsigned long now) {
   word wSecsRes = 0;
-  /*
   for(unsigned char i = 0; i < sizeof(m_channels)/sizeof(m_channels[0]); i++)
     if((m_channels[i] != 0) && m_channels[i]->isBusy()) {
       unsigned long ulNext = m_channels[i]->getNext();
@@ -281,17 +280,28 @@ word CommandInterpreter::getBusySeconds(unsigned long now) {
           wSecsRes = wSecs;
       }
     }
-    */
   return wSecsRes;
-}
+}*/
 
 /** 
  * how much more wait for completion will last
  */
 unsigned CommandInterpreter::getWaitSeconds(unsigned long now) 
 {
-  return (m_ulCompletionExpiration > now) ?
-         (unsigned)((m_ulCompletionExpiration - now) / 1000) :
-         0;
+  if(m_ulCompletionExpiration <= 0)
+    return 0;
+  if(m_ulPaused > 0)
+    now = m_ulPaused;
+  return (unsigned)((m_ulCompletionExpiration - now) / 1000);
+}
+
+/** When the next command will be executed? */
+unsigned CommandInterpreter::getRestSeconds(unsigned long now) 
+{
+  if(m_ulRestExpiration <= 0)
+    return 0;
+  if(m_ulPaused > 0)
+    now = m_ulPaused;
+  return (unsigned)((m_ulRestExpiration - now) / 1000);
 }
 

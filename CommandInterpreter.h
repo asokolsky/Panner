@@ -223,17 +223,23 @@ public:
   //void stopCommand(schar_t cCmd);
 
   /** When the next command will be executed? */
-  unsigned long getNext() {
+  /*unsigned long getNext() {
     return m_ulRestExpiration;
-  }
+  }*/
   /** 
    * find out for how long the first busy channel will be busy
    */  
-  unsigned getBusySeconds(unsigned long now);
+  unsigned getBusySeconds(unsigned long now) { return 0; }
   /** 
    * how much more wait for completion will last
    */
   unsigned getWaitSeconds(unsigned long now);
+
+  /** 
+   * how much more rest will last? 
+   */
+  unsigned getRestSeconds(unsigned long now);
+  
 
   /** Are we resting? */
   boolean isResting() {
