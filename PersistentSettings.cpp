@@ -1,5 +1,5 @@
 #include "Panner.h"
-//#include <EEPROM.h>
+#include <EEPROM.h>
 
 
 PersistentSettings g_settings;
@@ -7,7 +7,7 @@ PersistentSettings g_settings;
 /** restore g_settings from EEPROM */
 bool PersistentSettings::restore()
 {
-  //EEPROM.get(iEEaddress, this);
+  EEPROM.get(iEEaddress, this);
   bool bRes = (m_signature[0] == 'P') && (m_signature[0] == '0');
   if(!bRes)
     factoryReset();
@@ -27,7 +27,7 @@ void PersistentSettings::factoryReset()
 
 bool PersistentSettings::save()
 {
-  //EEPROM.put(iEEaddress, g_settings);
+  EEPROM.put(iEEaddress, g_settings);
   return true;  
 }
 
