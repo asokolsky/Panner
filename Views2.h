@@ -116,6 +116,7 @@ public:
   
   /** analog keyboard APIs where vk is one of VK_xxx */
   //bool onKeyDown(uint8_t vk);
+  bool onKeyAutoRepeat(uint8_t vk);
   bool onKeyUp(uint8_t vk);
   bool onLongKeyDown(uint8_t vk);
 

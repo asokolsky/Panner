@@ -27,15 +27,15 @@ AboutView g_aboutView;
  */
 static Command cmds[] = 
 {
-  {chPan,     cmdSetMaxSpeed, 50},
+  {chPan,     cmdSetMaxSpeed, 20},
   {chPan,     cmdSetAcceleration, 10},
   {chControl, cmdControlBeginLoop, 0},
     {chPan,     cmdGoToWaypoint, 1},                 // go right
-    {chControl, cmdControlWaitForCompletion,  50000},  // wait for the movement to be completed for 50 sec
-    {chControl, cmdControlRest,  10000},  // rest for 10 sec
+    {chControl, cmdControlWaitForCompletion,  500000},  // wait for the movement to be completed for 50 sec
+    {chControl, cmdControlRest,  20000},  // rest for 10 sec
     {chPan,     cmdGoToWaypoint, 2},                // go left
-    {chControl, cmdControlWaitForCompletion,  50000},  // wait for the movement to be completed for 50 sec
-    {chControl, cmdControlRest,  10000},  // rest for 10 sec
+    {chControl, cmdControlWaitForCompletion,  500000},  // wait for the movement to be completed for 50 sec
+    {chControl, cmdControlRest,  20000},  // rest for 10 sec
   {chControl, cmdControlEndLoop, 0},
   {chControl, cmdControlNone,    0}
 };
@@ -585,6 +585,29 @@ bool EditView::onLongKeyDown(uint8_t vk)
       //DEBUG_PRINT("EditView::onLongKeyDown "); DEBUG_PRINTDEC(vk);  DEBUG_PRINTLN("");
       return false;
   }
+  return true;
+}
+
+bool EditView::onKeyAutoRepeat(uint8_t vk)
+{
+  switch(vk) {
+    case VK_UP: {
+      DEBUG_PRINTLN("EditView::onKeyAutoRepeat(VK_UP)");
+      ListSpinnerWidget *p = m_steps.getCurValue();
+      if(p != 0)
+        p->advanceSelection(1);
+      break;
+    }
+    case VK_DOWN: {
+      DEBUG_PRINTLN("EditView::onKeyAutoRepeat(VK_DOWN)");
+      ListSpinnerWidget *p = m_steps.getCurValue();
+      if(p != 0)
+        p->advanceSelection(-1);
+      break;
+    }
+    default:
+      return false;
+  }  
   return true;
 }
 
