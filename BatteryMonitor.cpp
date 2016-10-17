@@ -19,7 +19,7 @@ bool BatteryMonitor::update(unsigned long now)
   for(int i=0; i < 4; i++)
   {
     uint16_t intmp = analogRead(m_pin);
-    uReading = uReading + intmp;
+    uReading += intmp;
     //Serial.println(intmp);
     //delay(1);
   }
@@ -31,8 +31,8 @@ bool BatteryMonitor::update(unsigned long now)
     uReading = uReadingBatteryEmpty;
   else if(uReading > uReadingBatteryFull)
     uReading = uReadingBatteryFull;
-  //uint8_t gauge = map(uReading, uReadingBatteryEmpty, uReadingBatteryFull, 0, 100);
-  uint8_t gauge = (millis()/1000)%100;  
+  uint8_t gauge = map(uReading, uReadingBatteryEmpty, uReadingBatteryFull, 0, 100);
+  //uint8_t gauge = (now/1000)%100;  
   if(abs(gauge - m_gauge) > 4) { // ignore +-4%
     m_gauge = gauge;
     DEBUG_PRINT("BatteryMonitor::update m_gauge=");
