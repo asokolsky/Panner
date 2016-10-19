@@ -19,10 +19,12 @@ https://github.com/asokolsky/Panner/wiki
 ### Software
   * Add tilt and slide steppers
   * Replace AccelStepper with MultiStepper
+  * Add temperature-sensitive fan: LM35 sensor to PWM 12V fan
 
 ### Hardware
   * Add tilt and slide stepper drivers
   * Add step up DC converter between batteries and stepper drivers
+  * Add temperature-sensitive fan: LM35 sensor to PWM 12V fan
 
 ## DONE
 
