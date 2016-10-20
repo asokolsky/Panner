@@ -188,33 +188,14 @@ void View::updateClient(unsigned long now)
  */
 void View::drawTitleBar()
 {
-  /*DEBUG_PRINT("View::drawTitleBar(");
-  DEBUG_PRINT(m_szTitle);
-  DEBUG_PRINTLN(") => ");*/
-  //
-  // draw the title itself
-  //
-  m_lcd.setFont(LiberationSans_18);
-  //m_lcd.setTextSize(1);
-  m_lcd.setTextColor(ILI9341_YELLOW,ILI9341_BLACK);
-    
-  int16_t w = m_lcd.measureTextWidth(m_szTitle);
+  // DEBUG_PRINT("View::drawTitleBar("); DEBUG_PRINT(m_szTitle);  DEBUG_PRINTLN(")");
   RECT r;
   r.top = m_position.top + 2;
-  r.bottom = r.top + m_lcd.fontLineSpace();
+  r.bottom = 0;
   r.left = m_position.left + 2;
-  r.right = r.left + w;
-  
-  m_lcd.setCursor(r.left, r.top);
-  m_lcd.setClipRect(r);
-  m_lcd.print(m_szTitle);
-  m_lcd.ILI9341_t3::setClipRect();
-  // clear the space between end of the title and the battery icon
-  r.left = r.right;
   r.right = m_position.right - iBatteryWidth;
-  if(r.left < r.right)
-    m_lcd.fillRect(r, ILI9341_BLACK);
-
+  m_lcd.printText(m_szTitle, ILI9341_YELLOW, ILI9341_BLACK, r, Display::haLeft, Display::vaTop, &LiberationSans_18);
+  
   drawBattery(g_batteryMonitor.getGauge());
 }
 
@@ -241,13 +222,8 @@ void View::drawBattery(uint8_t iPcentFull)
   m_lcd.setTextColor((iPcentFull < 10) ? ILI9341_RED : ((iPcentFull > 90) ? ILI9341_GREEN: ILI9341_YELLOW),
                      ILI9341_BLACK);
 
-  //DEBUG_PRINT("Battery width: ");
-  //DEBUG_PRINTDEC(m_lcd.measureTextWidth(szText));
-  //DEBUG_PRINTLN("");  
-  int16_t x = m_lcd.width() - m_lcd.measureTextWidth(szText) - 1;
-  int16_t y = 0;
-  
-  m_lcd.setCursor(x, y);
+  //DEBUG_PRINT("Battery width: "); DEBUG_PRINTDEC(m_lcd.measureTextWidth(szText)); DEBUG_PRINTLN("");
+  m_lcd.setCursor(m_lcd.width() - m_lcd.measureTextWidth(szText) - 1, 0);
   m_lcd.print(szText);
 }
 
@@ -375,33 +351,13 @@ case MB_HELP
  */
 void ModalDialog::drawTitleBar()
 {
-  /*DEBUG_PRINT("ModalDialog::drawTitleBar(");
-  DEBUG_PRINT(m_szTitle);
-  DEBUG_PRINTLN(") => ");*/
-  
+  // DEBUG_PRINT("ModalDialog::drawTitleBar("); DEBUG_PRINT(m_szTitle); DEBUG_PRINTLN(")");
   m_lcd.drawLine(m_position.left, m_position.top, m_position.right, m_position.top, ILI9341_DARKGREY);
-  //
-  // draw the title itself
-  //
-  m_lcd.setFont(LiberationSans_18);
-  //m_lcd.setTextSize(1);
-  m_lcd.setTextColor(ILI9341_YELLOW,ILI9341_BLACK);
-  
-  int16_t w = m_lcd.measureTextWidth(m_szTitle);
-  int16_t x = m_position.left + ((m_position.width()-w)/2);
-  int16_t y = m_position.top + 3;
-  
-  RECT rFill;
-  rFill.top = y;
-  rFill.bottom = rFill.top + m_lcd.fontLineSpace();
-  rFill.left = m_position.left;
-  rFill.right = x;
-  //m_lcd.fillRect(rFill, ILI9341_BLACK);
-  m_lcd.setCursor(x, y);
-  m_lcd.print(m_szTitle);
-  rFill.left = x + w;
-  rFill.right = m_position.right;
-  //m_lcd.fillRect(rFill, ILI9341_BLACK);
+
+  RECT rLoc = m_position;
+  rLoc.top += 3;
+  rLoc.bottom = 0;
+  m_lcd.printText(m_szTitle, ILI9341_YELLOW, ILI9341_BLACK, rLoc, Display::haCenter, Display::vaTop, &LiberationSans_18);
 }
 
 bool ModalDialog::onKeyUp(uint8_t vk)
