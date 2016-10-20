@@ -837,17 +837,11 @@ bool RunView::onKeyUp(uint8_t vk)
   {
     case VK_SOFTA:
       DEBUG_PRINTLN("RunView::onKeyUp(VK_SOFTA): switch to Pause view");
-      // switch to Pause view
       activate(&g_pausedRunView);
-      // and suspend program execution here!
-      // ....
       break;
     case VK_SOFTB:
       DEBUG_PRINTLN("RunView::onKeyUp(VK_SOFTB): stop and back to edit");
-      // stop execution here!
-      // switch to Edit view
       activate(&g_editView);
-      // ....
       break;
     default:
       return false;
@@ -862,6 +856,9 @@ void RunView::updateClient(unsigned long now)
 {
   DEBUG_PRINTLN("RunView::updateClient()");
   updateClientRunOrPaused(now, true);
+  // if battery is low - pause the execution which will turn off motors
+  if(g_batteryMonitor.getGauge() < 5)
+    activate(&g_pausedRunView);
 }
 
 void RunView::onActivate(View *pPrevActive)
@@ -909,16 +906,12 @@ bool PausedRunView::onKeyUp(uint8_t vk)
     case VK_SOFTA:
       DEBUG_PRINTLN("PausedRunView::onKeyUp(VK_SOFTA): switch to Run view");
       // resume program execution here!
-      // switch to Run view
       activate(&g_runView);
-      // ....
       break;
     case VK_SOFTB:
       DEBUG_PRINTLN("PausedRunView::onKeyUp(VK_SOFTB): stop and switch to Run view");
       // stop program execution here!
-      // switch to Edit view
       activate(&g_editView);
-      // ....
       break;
     default:
       return false;
