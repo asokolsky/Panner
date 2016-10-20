@@ -943,7 +943,7 @@ void PausedRunView::onActivate(View *pPrevActive)
  *  About View Class Implementation
  */
 const char *aboutViewLines[] = {
-  "Panner v0.1",
+  "Panner v0.5.0",
   "(c) 2015-2016 Alex Sokolsky",
   "",
   "Thank you to:",
