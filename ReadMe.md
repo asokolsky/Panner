@@ -1,14 +1,14 @@
 # Autonomous Video Panner
 
 Panner:
-    * Offers operator direct control over the video camera in real time
-    * Offers operator a rudimentary editor for a 'program'
-    * Executes a program edited in a previous step
+   * Offers operator direct control over the video camera in real time
+   * Offers operator a rudimentary editor for a 'program'
+   * Executes a program edited in a previous step
 
 In the future the Panner MIGHT be able to:
-    * Offer remote control facility
-    * Offer remote program editor with facility to upload the program to the panner.
-    * Control not only pan but also tilt and slide in the same manner.
+   * Offer remote control facility
+   * Offer remote program editor with facility to upload the program to the panner.
+   * Control not only pan but also tilt and slide in the same manner.
 
 
 To learn more about the project, check out this wiki:
