@@ -1,7 +1,8 @@
 # Autonomous Video Panner
 
 Panner:
-   * Offers operator direct control over the video camera in real time
+   * Offers operator direct control over the (pan of) video camera in real time
+   * Allows operator to define waypoints
    * Offers operator a rudimentary editor for a 'program'
    * Executes a program edited in a previous step
 
@@ -19,16 +20,17 @@ https://github.com/asokolsky/Panner/wiki
 ### Software
   * Add tilt and slide steppers
   * Replace AccelStepper with MultiStepper
-  * Add temperature-sensitive fan: LM35 sensor to PWM 12V fan
 
 ### Hardware
   * Add tilt and slide stepper drivers
-  * Add step up DC converter between batteries and stepper drivers
-  * Add temperature-sensitive fan: LM35 sensor to PWM 12V fan
+  * test 0.9° step stepper
+  * Step up DC voltage between batteries and stepper motors?
+  * Add temperature-sensitive fan: LM35 sensor to PWM 12V fan or DS18B20 to SPI?
 
 ## DONE
 
 ### Software
+  * Version 0.5 released
   * Add Settings View to change e.g. max pan speed
   * Add widget to change numerical values for settings - see KeyValueListWidget
 
