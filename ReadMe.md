@@ -20,14 +20,21 @@ https://github.com/asokolsky/Panner/wiki
 ### Software
   * Add tilt and slide steppers
   * Replace AccelStepper with MultiStepper
+  * Settings GUI to control LCD brightness (timeout?) with PWM?
+  * Settings GUI to control LCD display orientation?
 
 ### Hardware
   * Add tilt and slide stepper drivers
   * test 0.9° step stepper
   * Step up DC voltage between batteries and stepper motors?
   * Add temperature-sensitive fan: LM35 sensor to PWM 12V fan or DS18B20 to SPI?
+  * Control LCD brightness with PWM?
 
 ## DONE
+
+## Docs
+  * Moved schematics/PCB to EasyEDA: https://easyeda.com/asokolsky/Panner-OohztL3lD
+    Fritzing is obsolete now.
 
 ### Software
   * Version 0.5 released
