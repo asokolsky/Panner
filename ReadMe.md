@@ -20,7 +20,10 @@ https://github.com/asokolsky/Panner/wiki
 ### Software
   * Add tilt and slide steppers
   * Replace AccelStepper with MultiStepper
-  * Settings GUI to control LCD brightness (timeout?) with PWM?
+  * Keyboard driver to track inactivity, generate keycode upon inactivity timeout
+  * Redesign direct control GUI to be more graphical?
+  * Use the same hardware platform to control camera zoom/focus?
+  * Settings GUI to control LCD brightness (timeout?) with PWM?  Oh yes!
   * Settings GUI to control LCD display orientation?
 
 ### Hardware
