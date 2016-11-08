@@ -38,6 +38,9 @@ class Keypad
   /** delay in ms before the long key is fired */
   static const int s_iLongKeyDelay = 2000;
 
+  /** inactivity timeout in milliseconds */
+  static const unsigned long s_ulInactivityDelay = 1000*90;
+
 public:
   /** keypad is connected to this analog input pin */
   Keypad(uint8_t bPin);
@@ -61,6 +64,8 @@ protected:
   unsigned long m_ulToFireAutoRepeat = 0;
   /** when bouncing subsides */
   unsigned long m_ulBounceSubsided = 0;
+  /** when inactivity timeout will happen */
+  unsigned long m_ulToFireInactivity = 0;
   /** get one of VK_xxx */
   uint8_t getKey();
 
