@@ -249,17 +249,26 @@ void View::drawSoftLabels(bool bEraseBkgnd)
 }
 
 /** dummy defaults, children to overwrite */
-bool View::onKeyDown(uint8_t vk) {
+bool View::onKeyDown(uint8_t vk) 
+{
   return false;
 }
-bool View::onKeyAutoRepeat(uint8_t vk) {
+bool View::onKeyAutoRepeat(uint8_t vk) 
+{
   return false;
 }
-bool View::onLongKeyDown(uint8_t vk) {
+bool View::onLongKeyDown(uint8_t vk) 
+{
   return false;
 }
-bool View::onKeyUp(uint8_t vk) {
+bool View::onKeyUp(uint8_t vk) 
+{
   return false;
+}
+bool View::onKeyInactive()
+{
+  DEBUG_PRINTLN("View::onKeyInactive() => true");
+  return true;
 }
 
 /** updateClient implementation for Run or Paused view */
