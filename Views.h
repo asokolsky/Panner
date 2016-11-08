@@ -74,6 +74,7 @@ public:
   virtual bool onKeyAutoRepeat(uint8_t vk);
   virtual bool onLongKeyDown(uint8_t vk);
   virtual bool onKeyUp(uint8_t vk);
+  virtual bool onKeyInactive();
 
   /** ThumbStick APIs where vk is one of VK_xxx */
   //virtual void onThumbDown() = 0;
