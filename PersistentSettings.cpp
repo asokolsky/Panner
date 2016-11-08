@@ -23,6 +23,7 @@ void PersistentSettings::factoryReset()
   m_uPannerFastSpeed = 3*15;
   m_uPannerMaxSpeed = 50;
   m_uPannerAcceleration = 15;
+  m_uDisplayBacklight = 9;
 }
 
 bool PersistentSettings::save()

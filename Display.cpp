@@ -2,6 +2,7 @@
 
 const uint8_t pinCS = 10;
 const uint8_t pinDC = 9;
+const uint8_t pinBacklight = 23;
 
 /**
  *  RECT Class Implementation
@@ -61,10 +62,22 @@ Display::Display() : ILI9341_t3(pinCS, pinDC /* uint8_t _RST = 255, uint8_t _MOS
  */
 void Display::setup()
 {
+  pinMode(pinBacklight, OUTPUT);
+  setBacklight(m_bl);
   begin();
   fillScreen(ILI9341_BLACK);
   setRotation(1);
   setTextWrap(false);
+}
+
+/** 
+ *  Set backlight intensity
+ *  param: bl 0..10
+ */
+void Display::setBacklight(byte bl)
+{
+  m_bl = (bl >= 10) ? 255 : 25*bl;
+  analogWrite(pinBacklight, m_bl);
 }
 
 void Display::drawButton(const RECT rButton, const ILI9341_t3_font_t *pFont, const char *szLabel, bool bEraseBkgnd)

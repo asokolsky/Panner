@@ -272,7 +272,11 @@ int16_t ListSpinnerWidget::advanceSelection(int16_t iAdv /*= 1*/)
 {
   if(m_selectionMode == smMultiSelection)
   {
-    // this is a number spinner!!
+    // this is a number spinner!!   
+    if((iAdv > 0) && ((m_maxVal - iAdv) <= m_iCurSel))
+      return LB_ERR;
+    if((iAdv < 0) && ((m_minVal - iAdv) >= m_iCurSel))
+      return LB_ERR;
     m_iCurSel += iAdv;  // uninhibited advance!
     return 0;
   }
@@ -386,10 +390,10 @@ void KeyValueListWidget::push_back(const char key[])
 /** 
  * add a Key/NumValue pair to the KeyValueListWidget 
  */
-void KeyValueListWidget::push_back(const char key[], int16_t val)
+void KeyValueListWidget::push_back(const char key[], int16_t val, int16_t minVal, int16_t maxVal)
 {
   m_items.push_back(key);
-  NumberSpinnerWidget w(val);
+  NumberSpinnerWidget w(val, minVal, maxVal);
   m_values.push_back(w);
 }
 

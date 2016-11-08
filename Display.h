@@ -55,9 +55,14 @@ public:
 #endif
 };
 
-
+/**
+ * Extension of ILI9341_t3
+ * New functionality - backlight brightness driven by a PWM pin
+ */
 class Display: public ILI9341_t3 
 {
+  /* backlight intensity 0..10 */
+  byte m_bl = 9;
 public: 
   Display();
 
@@ -106,6 +111,23 @@ public:
   
   uint16_t getTextColor() const {
     return textcolor;
+  }
+  const byte BACKLIGHT_MIN = 0;
+  const byte BACKLIGHT_MAX = 10;
+  /** 
+   *  Set backlight intensity
+   *  param: bl 0..10
+   */  
+  void setBacklight(byte bl);
+  
+  byte getBacklight() {
+    return m_bl;
+  }
+  byte getBacklightMin() {
+    return BACKLIGHT_MIN;
+  }
+  byte getBacklightMax() {
+    return BACKLIGHT_MAX;
   }
 
 #ifdef DEBUG

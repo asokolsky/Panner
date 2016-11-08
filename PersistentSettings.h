@@ -19,6 +19,8 @@ struct PersistentSettings
   uint16_t m_uPannerMaxSpeed;
   /** Panner acceleration */
   uint16_t m_uPannerAcceleration;
+  /** Dsiplay backlight in the range 0..10 */
+  uint16_t m_uDisplayBacklight;
 
   /** reset settings to factory defaults */
   void factoryReset();

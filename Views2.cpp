@@ -52,7 +52,7 @@ static const char szSetAcceleration[] = "Acceleration";
 static const char szPanSlowSpeed[] = "Pan Slow Speed";
 static const char szPanMaxSpeed[] = "Pan Max Speed";
 static const char szPanAcceleration[] = "Pan Acceleration";
-
+static const char szBacklight[] = "Backlight";
 /**
  * 
  */
@@ -129,6 +129,8 @@ bool SettingsView::onKeyUp(uint8_t vk)
       ListSpinnerWidget *p = m_settings.getCurValue();
       if(p != 0)
         p->advanceSelection(1);
+      // immediate settings update!
+      m_lcd.setBacklight(m_settings.getNumericValue(szBacklight));
       break;
     }
     case VK_DOWN: {
@@ -137,6 +139,8 @@ bool SettingsView::onKeyUp(uint8_t vk)
       ListSpinnerWidget *p = m_settings.getCurValue();
       if(p != 0)
         p->advanceSelection(-1);
+      // immediate settings update!
+      m_lcd.setBacklight(m_settings.getNumericValue(szBacklight));
       break;
     }
     case VK_SOFTA:
@@ -150,6 +154,7 @@ bool SettingsView::onKeyUp(uint8_t vk)
       g_settings.m_uPannerFastSpeed = 3 * g_settings.m_uPannerSlowSpeed;
       g_pPanner->setMaxSpeed(g_settings.m_uPannerMaxSpeed = m_settings.getNumericValue(szPanMaxSpeed));
       g_pPanner->setAcceleration(g_settings.m_uPannerAcceleration = m_settings.getNumericValue(szPanAcceleration));
+      m_lcd.setBacklight(g_settings.m_uDisplayBacklight = m_settings.getNumericValue(szBacklight));
       g_settings.save();
       //    
       activate(((g_pPreviousView == &g_aboutView) || (g_pPreviousView == &m_resetConfirmation)) ? 
@@ -185,6 +190,8 @@ void SettingsView::onActivate(View *pPrevActive)
     m_settings.push_back(" Runtime");
     m_settings.push_back(szPanMaxSpeed, (long)g_pPanner->getMaxSpeed());
     m_settings.push_back(szPanAcceleration, (long)g_pPanner->getAcceleration());
+    m_settings.push_back(" Display");
+    m_settings.push_back(szBacklight, (long)m_lcd.getBacklight(), m_lcd.getBacklightMin(), m_lcd.getBacklightMax());
     m_settings.setCurSel(1);
   }
   g_pPanner->enable(false);

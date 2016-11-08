@@ -185,7 +185,10 @@ public:
  *  by value of m_selectionMode.
  */
 class ListSpinnerWidget : public ListWidget
-{ 
+{
+protected:   
+  int16_t m_minVal = INT16_MIN;
+  int16_t m_maxVal = INT16_MAX;
 public:  
   ListSpinnerWidget(const ILI9341_t3_font_t *pFont = 0) : ListWidget(smSingleSelection, pFont) {}
   
@@ -205,10 +208,12 @@ public:
 class NumberSpinnerWidget : public ListSpinnerWidget
 {
 public:  
-  NumberSpinnerWidget(int16_t val) : ListSpinnerWidget() 
+  NumberSpinnerWidget(int16_t val, int16_t minVal, int16_t maxVal) : ListSpinnerWidget() 
   {
     m_selectionMode = smMultiSelection; // this will mark ListSpinnerWidget as a NumberSpinnerWidget
     m_iCurSel = val;
+    m_minVal = minVal;
+    m_maxVal = maxVal;
   }
 };
 
@@ -249,7 +254,8 @@ public:
   /** 
    *  add a Key/Value pair to the KeyValueListWidget 
    */
-  void push_back(const char key[], int16_t val);
+  void push_back(const char key[], int16_t val, int16_t minVal = INT16_MIN, int16_t maxVal = INT16_MAX);
+  
   /** 
    *  add a Key/ListValue pair to the KeyValueListWidget 
    */
