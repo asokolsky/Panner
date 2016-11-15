@@ -23,7 +23,7 @@ typedef signed char schar_t;
 //#define NODEBUG 1
 #include "Trace.h"
 //#include "ThumbStick.h"
-#include "Keypad.h"
+#include "KeypadDuo.h"
 #include "Stepper.h"
 #include "CommandInterpreter.h"
 #include "PersistentSettings.h"

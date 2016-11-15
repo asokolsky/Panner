@@ -30,7 +30,7 @@ BatteryMonitor g_batteryMonitor(A0);
 /** 
  * Globals: simple analog keypad is connected to pin A1
  */
-Keypad g_keyPad(A1);
+KeypadDuo g_keyPad(A1, A2);
 
 /** 
  * Globals: analog ThumbStick pinX, pinY, pinButton 

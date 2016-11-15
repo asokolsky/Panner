@@ -21,16 +21,10 @@ static const char *getKeyName(uint8_t vk) {
 }
 #endif
 
-Keypad::Keypad(uint8_t bPin) : m_bPin(bPin)
-{
-  //analogReadResolution(10);
-  //pinMode(bPin, INPUT_PULLUP); - done in hardware!
-}
-
 /**
  * get one of VK_xxx
  */
-uint8_t Keypad::getKey()
+uint8_t KeypadChannel::getKey()
 {
   int adc_key_in = analogRead(m_bPin);      // read the value from the sensor 
 /*
@@ -40,11 +34,6 @@ uint8_t Keypad::getKey()
   DEBUG_PRINTDEC(adc_key_in);
   DEBUG_PRINTLN("");
 */
-  // Standard shield buttons when read are centered at these valies: 0, 152, 342, 525, 756
-  // we add approx 50 to those values and check to see if we are close
-
-  // My buttons are theoretically centered at these valies: 0, 146, 292, 438, 584, 730, 876
-  // My buttons are in practice centered at these valies: 0, 152, 295, 446, 606, 72, 873
 
   // 1st option for speed reasons since it will be the most likely result
   if(adc_key_in > 950) {
@@ -52,34 +41,22 @@ uint8_t Keypad::getKey()
     return VK_NONE;
   }
   if(adc_key_in < 76) {
-    //DEBUG_PRINTLN("Keypad::getKey() => VK_RIGHT");
-    return VK_RIGHT;  
+    //DEBUG_PRINTLN("Keypad::getKey() => m_vk[0]");
+    return m_vk[0];  
   }  
-  if(adc_key_in < 224) {
-    //DEBUG_PRINTLN("Keypad::getKey() => VK_UP");
-    return VK_UP;
-  }
-  if(adc_key_in < 371) {
-    //DEBUG_PRINTLN("Keypad::getKey() => VK_DOWN");
-    return VK_DOWN;
-  }
   if(adc_key_in < 525) {
-    //DEBUG_PRINTLN("Keypad::getKey() => VK_LEFT");
-    return VK_LEFT;
+    //DEBUG_PRINTLN("Keypad::getKey() => m_vk[1]");
+    return m_vk[1];  
   }
   if(adc_key_in < 675) {
-    //DEBUG_PRINTLN("Keypad::getKey() => VK_SEL");
-    return VK_SEL;
+    //DEBUG_PRINTLN("Keypad::getKey() => m_vk[2]");
+    return m_vk[2];  
   }
-  if(adc_key_in < 805) {
-    //DEBUG_PRINTLN("Keypad::getKey() => VK_SOFTA");
-    return VK_SOFTA;
-  }
-  //DEBUG_PRINTLN("Keypad::getKey() => VK_SOFTB");
-  return VK_SOFTB;
+  //DEBUG_PRINTLN("Keypad::getKey() => m_vk[3]");
+  return m_vk[3];  
 }
 
-bool Keypad::getAndDispatchKey(unsigned long ulNow)
+bool KeypadChannel::getAndDispatchKey(unsigned long ulNow)
 {
   // get out if we are bouncing!
   if(ulNow < m_ulBounceSubsided)
@@ -145,3 +122,25 @@ bool Keypad::getAndDispatchKey(unsigned long ulNow)
 }
 
 
+KeypadDuo::KeypadDuo(uint8_t bPin1, uint8_t bPin2)
+{
+  m_ch[0].m_bPin = bPin1;
+  m_ch[0].m_vk[0] = VK_RIGHT;
+  m_ch[0].m_vk[1] = VK_LEFT;
+  m_ch[0].m_vk[2] = VK_SEL;
+  m_ch[0].m_vk[3] = VK_SOFTA;
+  
+  m_ch[1].m_bPin = bPin2;
+  m_ch[1].m_vk[0] = VK_UP;
+  m_ch[1].m_vk[1] = VK_DOWN;
+  m_ch[1].m_vk[2] = VK_NONE;
+  m_ch[1].m_vk[3] = VK_SOFTB;
+}
+
+bool KeypadDuo::getAndDispatchKey(unsigned long now)
+{
+  static int i = 0;
+  if(i >= sizeof(m_ch)/sizeof(m_ch[0]))
+    i = 0;
+  return m_ch[i++].getAndDispatchKey(now);
+}
