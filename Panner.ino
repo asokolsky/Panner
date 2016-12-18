@@ -27,24 +27,15 @@ extern "C"{
  * Globals: reading battery voltage on A0 (through divider offcourse)
  */
 BatteryMonitor g_batteryMonitor(A0);
-/** 
- * Globals: simple analog keypad is connected to pin A1
- */
-KeypadDuo g_keyPad(A1, A2);
 
-/** 
- * Globals: analog ThumbStick pinX, pinY, pinButton 
- */
-//ThumbStick g_thumbStick(A9, A8, A7);
-
-
-const uint8_t pinPanStep = 3;
-const uint8_t pinPanEnable = 4;
-const uint8_t pinPanDirection = 6;
 
 /**
  * Globals: Main command interpreter
  */
+const uint8_t pinPanStep = 3;
+const uint8_t pinPanEnable = 4;
+const uint8_t pinPanDirection = 6;
+
 CommandInterpreter g_ci(pinPanStep, pinPanDirection, pinPanEnable);  // pan pinStep, pinDirection, pinEnable
 
 /**

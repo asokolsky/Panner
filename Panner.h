@@ -7,15 +7,23 @@
  *   v0.1  6/23/2016                                    *
  *                                                      *
 \********************************************************/
+#include <Arduino.h>
 
 #include <vector>
 #include <string>
 #include <map>
 #include <climits>
 
+inline int16_t min(int16_t a, int16_t b) {
+  return (a < b) ? a : b;
+}
+inline int16_t max(int16_t a, int16_t b) {
+  return (a > b) ? a : b;
+}
+
 #include <ILI9341_t3.h>
-#include <Wire.h>
 #include <AccelStepper.h>
+#include <Wire.h>
 
 /** CHAR is signed on AVR and unsigned on ARM!  WTF! */
 typedef signed char schar_t;

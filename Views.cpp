@@ -265,9 +265,9 @@ bool View::onKeyUp(uint8_t vk)
 {
   return false;
 }
-bool View::onKeyInactive()
+bool View::onKeysInactive()
 {
-  DEBUG_PRINTLN("View::onKeyInactive() => true");
+  DEBUG_PRINTLN("View::onKeysInactive() => true");
   return true;
 }
 

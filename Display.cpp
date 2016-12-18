@@ -207,11 +207,11 @@ void Display::DUMP(const char *szText /* = 0*/) const
 
   //int16_t  origin_x, origin_y;
   
-  r.left = rel_clipx1;
+  /*r.left = rel_clipx1;
   r.right = rel_clipx2;
   r.top = rel_clipy1;
   r.top = rel_clipy2;
-  r.DUMP(" rel_clipRect: ");
+  r.DUMP(" rel_clipRect: ");*/
   
   //uint16_t textcolor, textbgcolor;
   //uint8_t textsize, rotation;  
