@@ -76,8 +76,11 @@ void Display::setup()
  */
 void Display::setBacklight(byte bl)
 {
-  m_bl = (bl >= 10) ? 255 : 25*bl;
-  analogWrite(pinBacklight, m_bl);
+  if(bl > BACKLIGHT_MAX)
+    bl = BACKLIGHT_MAX;
+  m_bl = bl;
+  // now map m_bl into 0..255 for use by analogwrite - invert it!
+  analogWrite(pinBacklight, 25*(10 - bl));
 }
 
 void Display::drawButton(const RECT rButton, const ILI9341_t3_font_t *pFont, const char *szLabel, bool bEraseBkgnd)

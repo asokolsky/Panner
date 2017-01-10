@@ -63,6 +63,7 @@ class Display: public ILI9341_t3
 {
   /* backlight intensity 0..10 */
   byte m_bl = 9;
+  
 public: 
   Display();
 
