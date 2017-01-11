@@ -7,8 +7,8 @@
 /** 
  * Globals: simple analog keypad is connected to pins A1 and A2 so that,e.g. up and left could be pressed simultaneously
  */
-static uint8_t Keys1[] = {VK_UP, VK_DOWN, VK_SEL, VK_SOFTB};
-static uint8_t Keys2[] = {VK_RIGHT, VK_LEFT, VK_SOFTA};
+static uint8_t Keys1[] = {VK_RIGHT, VK_LEFT, VK_SEL, VK_SOFTA};
+static uint8_t Keys2[] = {VK_UP, VK_DOWN, VK_SOFTB};
 
 KeypadDuo g_keyPad(A1, Keys1, (sizeof(Keys1)/sizeof(Keys1[0])), 
                    A2, Keys2, (sizeof(Keys2)/sizeof(Keys2[0])));
@@ -106,24 +106,18 @@ uint8_t KeypadChannel::getKey()
 {
   //analogRead(m_bPin);                     // switch the channel to m_bPin and hold for 104µs
   int adc_key_in = analogRead(m_bPin);    // read the value from the sensor 
-/*
-  DEBUG_PRINT("analogRead(m_bPin=");
-  DEBUG_PRINTDEC(m_bPin);
-  DEBUG_PRINT(") =>");
-  DEBUG_PRINTDEC(adc_key_in);
-  DEBUG_PRINTLN("");
-*/
   // 1st option for speed reasons since it will be the most likely result
   if(adc_key_in > 950) {
     //DEBUG_PRINTLN("Keypad::getKey() => VK_NONE");
     return VK_NONE;
-  }
+  }    
+  //DEBUG_PRINT("analogRead(m_bPin="); DEBUG_PRINTDEC(m_bPin); DEBUG_PRINT(") =>"); DEBUG_PRINTDEC(adc_key_in); DEBUG_PRINTLN("");  
   switch(m_uKeys)
   {
     case 2:
-      return getKey4(adc_key_in);
+      return getKey2(adc_key_in);
     case 3:
-      return getKey4(adc_key_in);
+      return getKey3(adc_key_in);
     case 4:
       return getKey4(adc_key_in);
     default:
