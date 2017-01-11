@@ -37,8 +37,9 @@ static Command cmds[] =
     {chControl, cmdControlWaitForCompletion,  500000},  // wait for the movement to be completed for 50 sec
     {chControl, cmdControlRest,  20000},  // rest for 10 sec
   {chControl, cmdControlEndLoop, 0},
-  {chControl, cmdControlNone,    0}
+  {chControl, cmdControlNone,   0}
 };
+
 
 static const char szRest[] = "Rest";
 static const char szWaitForCompletion[] = "Wait";
@@ -987,7 +988,7 @@ bool AboutView::onKeyUp(uint8_t vk)
       break;
     case VK_SOFTA:
     case VK_SOFTB:
-      DEBUG_PRINTLN("AboutView::onKeyUp(VK_SOFTB): back to control view");
+      DEBUG_PRINTLN("AboutView::onKeyUp(VK_SOFTA|VK_SOFTB): back to control view");
       activate(g_pPreviousView);
       break;      
     default:
