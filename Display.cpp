@@ -66,7 +66,7 @@ void Display::setup()
   setBacklight(m_bl);
   begin();
   fillScreen(ILI9341_BLACK);
-  setRotation(1);
+  setRotation(3); // for PCB v0.9 and later
   setTextWrap(false);
 }
 
