@@ -26,15 +26,12 @@ extern "C"{
 /**
  * Globals: reading battery voltage on A0 (through divider offcourse)
  */
-BatteryMonitor g_batteryMonitor(A0);
+BatteryMonitor g_batteryMonitor(pinBatteryMonitor);
 
 
 /**
  * Globals: Main command interpreter
  */
-const uint8_t pinPanStep = 3;
-const uint8_t pinPanEnable = 4;
-const uint8_t pinPanDirection = 6;
 
 CommandInterpreter g_ci(pinPanStep, pinPanDirection, pinPanEnable);  // pan pinStep, pinDirection, pinEnable
 

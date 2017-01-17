@@ -10,8 +10,8 @@
 static uint8_t Keys1[] = {VK_RIGHT, VK_LEFT, VK_SEL, VK_SOFTA};
 static uint8_t Keys2[] = {VK_UP, VK_DOWN, VK_SOFTB};
 
-KeypadDuo g_keyPad(A1, Keys1, (sizeof(Keys1)/sizeof(Keys1[0])), 
-                   A2, Keys2, (sizeof(Keys2)/sizeof(Keys2[0])));
+KeypadDuo g_keyPad(pinKeyPad1, Keys1, (sizeof(Keys1)/sizeof(Keys1[0])), 
+                   pinKeyPad2, Keys2, (sizeof(Keys2)/sizeof(Keys2[0])));
 
 
 #ifndef  NODEBUG

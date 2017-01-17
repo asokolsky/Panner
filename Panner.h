@@ -37,6 +37,7 @@ typedef signed char schar_t;
 #include "PersistentSettings.h"
 #include "Views.h"
 #include "Views2.h"
+#include "PCB.h"
 //#include "SerialCommand.h"
 
 

@@ -1,9 +1,5 @@
 #include "Panner.h"
 
-const uint8_t pinCS = 10;
-const uint8_t pinDC = 9;
-const uint8_t pinBacklight = 23;
-
 /**
  *  RECT Class Implementation
  */
