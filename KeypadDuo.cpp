@@ -140,7 +140,10 @@ bool KeypadChannel::getAndDispatchKey(unsigned long ulNow)
     {
       if(ulNow < g_keyPad.m_ulToFireInactivity)
         return false;
-      return g_keyPad.onUserInActivity(ulNow);
+      bRes = g_keyPad.onUserInActivity(ulNow);
+      onUserActivity(ulNow);
+      return bRes;
+      
     }
     // fire auto repeat logic here
     if((m_ulToFireAutoRepeat == 0) || (ulNow < m_ulToFireAutoRepeat))

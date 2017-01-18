@@ -29,11 +29,11 @@ const uint8_t VK_SOFTB = 64;
 class KeypadChannel
 {
   /** delay in ms to debounce */
-  static const int s_iDebounceDelay = 50;
+  const int s_iDebounceDelay = 50;
   /** delay in ms to autorepeat */
-  static const int s_iAutoRepeatDelay = 200;
+  const int s_iAutoRepeatDelay = 200;
   /** delay in ms before the long key is fired */
-  static const int s_iLongKeyDelay = 2000;
+  const int s_iLongKeyDelay = 2000;
 
 public:
   KeypadChannel(){}
@@ -81,7 +81,7 @@ protected:
 class KeypadDuo
 {
   /** inactivity timeout in milliseconds */
-  static const unsigned long s_ulInactivityDelay = 10000;
+  const unsigned long s_ulInactivityDelay = 10000;
   
   /** to ensure that multiple keys can be read at the same time... */
   KeypadChannel m_ch[2];
