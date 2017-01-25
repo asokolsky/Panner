@@ -1,14 +1,11 @@
-#ifndef KeypadDuo_h
-#define KeypadDuo_h
+#ifndef AnalogNavigationKeypad_h
+#define AnalogNavigationKeypad_h
 
 /********************************************************************************************/
-/* Library for an analog keyboard as used in a common LCD & keypad Arduino shield.          */
-/* Such a keyboard is just a voltage divider connected to a single analog inpup pin.        */
-/* Provides for debounce which is important on fast muCPUs, e.g. Teensy                     */
 /*                                                                                          */
 /* To ensure that two keys can be used simultaneously, two analog inputs are used.          */
 /*                                                                                          */
-/* Alex Sokolsky, May 2015                                                                  */
+/* Alex Sokolsky, 5/2015-1/2017                                                             */
 /*                                                                                          */
 /********************************************************************************************/
 
@@ -25,7 +22,9 @@ const uint8_t VK_SEL   = 16;
 const uint8_t VK_SOFTA = 32;
 const uint8_t VK_SOFTB = 64;
 
+class AnalogNavigationKeypad;
 
+/** Low level class important for implementation only - ignore it but do not modify it. */
 class KeypadChannel
 {
   /** delay in ms to debounce */
@@ -53,6 +52,7 @@ public:
    *  or [Right, Left, Sel, A] [Up, Down, None, B]
    */
   uint8_t *m_vk;
+  /** size of the array pointed to by m_vk */
   uint8_t m_uKeys = 0;
 
   /** get one of VK_xxx */
@@ -60,7 +60,7 @@ public:
 
   uint8_t m_bOldKey = VK_NONE;
 
-  bool getAndDispatchKey(unsigned long ulNow);
+  bool getAndDispatchKey(unsigned long ulNow, AnalogNavigationKeypad *p, uint8_t uKeyOtherChannel);
 
 protected:
   /** get one of VK_xxx */
@@ -76,47 +76,61 @@ protected:
  * Main interface class for an analog keyboard as used in a common LCD & keypad Arduino shield.
  * Such a keyboard is just a voltage divider connected to a single analog inpup pin.
  * Provides for debounce which is important on fast muCPUs, e.g. Teensy.
+ * Now also with provision to handle simultaneous button presses 
+ * as long as those buttons sit on separate channels conencted to different analog pins.
  * 
  */
-class KeypadDuo
+class AnalogNavigationKeypad
 {
+public:
+  /** keypad is connected to thees analog input pins */
+  AnalogNavigationKeypad(uint8_t bPin1, uint8_t bPin2);
+
+  /** call backs.  derive a class and overwrite those */
+  virtual bool onUserInActivity(unsigned long ulNow) = 0;
+  virtual bool onKeyAutoRepeat(uint8_t vks) = 0;
+  virtual bool onKeyDown(uint8_t vks) = 0;
+  virtual bool onLongKeyDown(uint8_t vks) = 0;
+  virtual bool onKeyUp(uint8_t vks) = 0;
+  
+
+  /**
+   *  Call this from the main loop passing to it the result of millis();
+   *  It will call
+   *         onKeyDown(uint8_t vk);
+   *         onKeyAutoRepeat(uint8_t vk);
+   *         onLongKeyDown(uint8_t vk);
+   *         onKeyUp(uint8_t vk);
+   *  Returns: true if key was dispatched and processed (then screen redraw is needed!), false otherwise.
+   */
+  bool getAndDispatchKey(unsigned long ulNow);
+
+  bool isUserLongInactive(unsigned long ulNow) 
+  {
+    return (ulNow > m_ulToFireInactivity);
+  }
+
+  /** 
+   * Delay inactivity notification.  This one is called by KeypadChannel.  
+   * User does NOT have to call it. 
+   */
+  void onUserActivity(unsigned long ulNow) 
+  {
+    m_ulToFireInactivity = ulNow + s_ulInactivityDelay;
+  }
+  
+protected:
+  /** get readable names of the keyes pressed */
+  const char *getKeyNames(uint8_t vks);
+
+  /** when inactivity timeout will happen */
+  unsigned long m_ulToFireInactivity = 0;
   /** inactivity timeout in milliseconds */
   const unsigned long s_ulInactivityDelay = 10000;
   
   /** to ensure that multiple keys can be read at the same time... */
   KeypadChannel m_ch[2];
-
-public:
-  /** when inactivity timeout will happen */
-  unsigned long m_ulToFireInactivity = 0;
-
-  
-  /** keypad is connected to this analog input pin */
-  KeypadDuo(uint8_t bPin1, uint8_t Keys1[], uint8_t uKeys1,
-            uint8_t bPin2, uint8_t Keys2[], uint8_t uKeys2);
-
-  /**
-   *  Call this from the main loop passing to it the result of millis();
-   *  It will call
-   *         pView->onKeyDown(uint8_t vk);
-   *         pView->onKeyAutoRepeat(uint8_t vk);
-   *         pView->onLongKeyDown(uint8_t vk);
-   *         pView->onKeyUp(uint8_t vk);
-   *  Returns: true if key wasdispatched and processed (then screen redraw is needed!), false otherwise.
-   */
-  bool getAndDispatchKey(unsigned long ulNow);
-
-  /** Delay inactivity notification */
-  void onUserActivity(unsigned long ulNow) 
-  {
-    m_ulToFireInactivity = ulNow + s_ulInactivityDelay;
-  }
-  /** act on user inactivity, reset counters */
-  bool onUserInActivity(unsigned long now);
-
 };
 
-extern KeypadDuo g_keyPad;
-
-
 #endif
+

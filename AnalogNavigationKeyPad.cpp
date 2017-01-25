@@ -1,21 +1,35 @@
 //#define NODEBUG 1
-
-#include "Panner.h"
-//#include "Trace.h"
-//#include "Views.h"
+#include <Arduino.h>
+#include "AnalogNavigationKeypad.h"
+#include "Trace.h"
 
 /** 
  * Globals: simple analog keypad is connected to pins A1 and A2 so that,e.g. up and left could be pressed simultaneously
  */
-static uint8_t Keys1[] = {VK_RIGHT, VK_LEFT, VK_SEL, VK_SOFTA};
-static uint8_t Keys2[] = {VK_UP, VK_DOWN, VK_SOFTB};
 
-KeypadDuo g_keyPad(pinKeyPad1, Keys1, (sizeof(Keys1)/sizeof(Keys1[0])), 
-                   pinKeyPad2, Keys2, (sizeof(Keys2)/sizeof(Keys2[0])));
+static const char *getKeyNames(uint8_t vks)
+{
+  static char buf[40];
+  buf[0] = '\0';
+  if(vks & VK_UP)
+    strcat(buf, "VK_UP ");
+  if(vks & VK_DOWN)
+    strcat(buf, "VK_DOWN ");
+  if(vks & VK_LEFT)
+    strcat(buf, "VK_LEFT ");
+  if(vks & VK_RIGHT)
+    strcat(buf, "VK_RIGHT ");
+  if(vks & VK_SEL)
+    strcat(buf, "VK_SEL ");
+  if(vks & VK_SOFTA)
+    strcat(buf, "VK_SOFTA ");
+  if(vks & VK_SOFTB)
+    strcat(buf, "VK_SOFTB ");
+  return buf;
+}
 
 
-#ifndef  NODEBUG
-/** debug/trace helper */
+/*#ifndef  NODEBUG
 static const char *getKeyName(uint8_t vk) {
   switch(vk) {
     case VK_NONE: return "VK_NONE";
@@ -29,7 +43,7 @@ static const char *getKeyName(uint8_t vk) {
   }
   return "VK_???";
 }
-#endif
+#endif*/
 
 /**
  *  KeypadChannel class implementation 
@@ -56,46 +70,52 @@ uint8_t KeypadChannel::getKey2(int16_t iReading)
 /** 
  * get one of VK_xxx 
  * Values are 0, 341, 682
+ * e.g. VK_UP, VK_DOWN, VK_SOFTB
  */
 uint8_t KeypadChannel::getKey3(int16_t iReading)
 {
+  //DEBUG_PRINT("KeypadChannel::getKey3, iReading=0x"); DEBUG_PRINTHEX(iReading);
   // 1st option for speed reasons since it will be the most likely result
   if(iReading > 852) { // 682 + 341/2
-    //DEBUG_PRINTLN("Keypad::getKey3() => VK_NONE");
+    //DEBUG_PRINTLN(" => VK_NONE");
     return VK_NONE;
   }
   if(iReading < 170) { // 341/2
-    //DEBUG_PRINTLN("Keypad::getKey3() => m_vk[0]");
+    //DEBUG_PRINTLN(" => m_vk[0]"); // 1
     return m_vk[0];  
   }  
   if(iReading < 511) { // 341 + 341/2
-    //DEBUG_PRINTLN("Keypad::getKey3() => m_vk[1]");
+    //DEBUG_PRINTLN(" => m_vk[1]"); // 355
     return m_vk[1];  
   }
-  //DEBUG_PRINTLN("Keypad::getKey3() => m_vk[2]");
+  //DEBUG_PRINTLN(" => m_vk[2]"); // 680
   return m_vk[2];  
 }
-/** get one of VK_xxx */
+/** 
+ *  get one of VK_xxx 
+ *  e.g. VK_RIGHT, VK_LEFT, VK_SEL, VK_SOFTA
+ */
 uint8_t KeypadChannel::getKey4(int16_t iReading)
 {
+  //DEBUG_PRINT("KeypadChannel::getKey4, iReading=0x"); DEBUG_PRINTHEX(iReading);
   // 1st option for speed reasons since it will be the most likely result
   if(iReading > 950) {
-    //DEBUG_PRINTLN("Keypad::getKey4() => VK_NONE");
+    //DEBUG_PRINTLN(" => VK_NONE");
     return VK_NONE;
   }
   if(iReading < 76) {
-    //DEBUG_PRINTLN("Keypad::getKey4() => m_vk[0]");
+    //DEBUG_PRINTLN(" => m_vk[0]"); // 0
     return m_vk[0];  
   }  
-  if(iReading < 525) {
-    //DEBUG_PRINTLN("Keypad::getKey4() => m_vk[1]");
+  if(iReading < 352) { // (223+481)/2 = 352
+    //DEBUG_PRINTLN(" => m_vk[1]"); // 223
     return m_vk[1];  
   }
-  if(iReading < 675) {
-    //DEBUG_PRINTLN("Keypad::getKey4() => m_vk[2]");
+  if(iReading < 618) { // (481+755)/2 = 618
+    //DEBUG_PRINTLN(" => m_vk[2]"); // 481
     return m_vk[2];  
   }
-  //DEBUG_PRINTLN("Keypad::getKey4() => m_vk[3]");
+  //DEBUG_PRINTLN(" => m_vk[3]"); // 755
   return m_vk[3];  
 }
 
@@ -126,7 +146,7 @@ uint8_t KeypadChannel::getKey()
   return VK_NONE;
 }
 
-bool KeypadChannel::getAndDispatchKey(unsigned long ulNow)
+bool KeypadChannel::getAndDispatchKey(unsigned long ulNow, AnalogNavigationKeypad *p, uint8_t uKeyOtherChannel)
 {
   // get out if we are bouncing!
   if(ulNow < m_ulBounceSubsided)
@@ -138,10 +158,10 @@ bool KeypadChannel::getAndDispatchKey(unsigned long ulNow)
   {
     if(vk == VK_NONE)
     {
-      if(ulNow < g_keyPad.m_ulToFireInactivity)
+      if(!p->isUserLongInactive(ulNow))
         return false;
-      bRes = g_keyPad.onUserInActivity(ulNow);
-      onUserActivity(ulNow);
+      bRes = p->onUserInActivity(ulNow);
+      p->onUserActivity(ulNow);
       return bRes;
       
     }
@@ -154,14 +174,14 @@ bool KeypadChannel::getAndDispatchKey(unsigned long ulNow)
     {
       m_ulToFireAutoRepeat = ulNow + s_iAutoRepeatDelay;
       //DEBUG_PRINT("onKeyAutoRepeat vk="); DEBUG_PRINT(getKeyName(vk)); DEBUG_PRINTLN("");
-      bRes = View::g_pActiveView->onKeyAutoRepeat(vk);      
+      bRes = p->onKeyAutoRepeat(vk|uKeyOtherChannel);      
     }      
     // fire long key logic here
     if((m_ulToFireLongKey == 0) || (ulNow < m_ulToFireLongKey))
       return bRes;
     m_ulToFireLongKey = 0;
-    DEBUG_PRINT("onLongKeyDown vk="); DEBUG_PRINT(getKeyName(vk)); DEBUG_PRINTLN("");
-    return View::g_pActiveView->onLongKeyDown(vk) || bRes;
+    DEBUG_PRINT("onLongKeyDown vk="); DEBUG_PRINT(getKeyNames(vk)); DEBUG_PRINTLN("");
+    return p->onLongKeyDown(vk|uKeyOtherChannel) || bRes;
   }
   // vk != m_cOldKey
   if(m_ulBounceSubsided == 0) {
@@ -173,9 +193,9 @@ bool KeypadChannel::getAndDispatchKey(unsigned long ulNow)
     m_ulToFireLongKey = ulNow + s_iLongKeyDelay;
     m_ulToFireAutoRepeat = ulNow + s_iAutoRepeatDelay;
     m_ulBounceSubsided = 0;
-    DEBUG_PRINT("onKeyDown vk="); DEBUG_PRINT(getKeyName(vk)); DEBUG_PRINT(" m_bOldKey="); DEBUG_PRINT(getKeyName(m_bOldKey)); DEBUG_PRINTLN("");
-    bRes = View::g_pActiveView->onKeyDown(vk);
-    g_keyPad.onUserActivity(ulNow);
+    DEBUG_PRINT("onKeyDown vk="); DEBUG_PRINT(getKeyNames(vk)); DEBUG_PRINT(" m_bOldKey="); DEBUG_PRINT(getKeyNames(m_bOldKey)); DEBUG_PRINTLN("");
+    bRes = p->onKeyDown(vk|uKeyOtherChannel);
+    p->onUserActivity(ulNow);
   }
   else if(vk != VK_NONE)
   {
@@ -185,41 +205,45 @@ bool KeypadChannel::getAndDispatchKey(unsigned long ulNow)
   else
   {
     m_ulToFireAutoRepeat = m_ulToFireLongKey = m_ulBounceSubsided = 0;
-    DEBUG_PRINT("onKeyUp vk="); DEBUG_PRINT(getKeyName(vk)); DEBUG_PRINT(" m_bOldKey="); DEBUG_PRINT(getKeyName(m_bOldKey)); DEBUG_PRINTLN("");
-    bRes = View::g_pActiveView->onKeyUp(m_bOldKey);
-    g_keyPad.onUserActivity(ulNow);
+    DEBUG_PRINT("onKeyUp vk="); DEBUG_PRINT(getKeyNames(vk)); DEBUG_PRINT(" m_bOldKey="); DEBUG_PRINT(getKeyNames(m_bOldKey)); DEBUG_PRINTLN("");
+    bRes = p->onKeyUp(m_bOldKey|uKeyOtherChannel);
+    p->onUserActivity(ulNow);
   }
   m_bOldKey = vk;
   return bRes;
 }
 
 /**
- *  KeypadDuo class implementation 
+ *  AnalogNavigationKeypad class implementation 
  */
-KeypadDuo::KeypadDuo(uint8_t bPin1, uint8_t Keys1[], uint8_t uKeys1,
-                     uint8_t bPin2, uint8_t Keys2[], uint8_t uKeys2):
+AnalogNavigationKeypad::AnalogNavigationKeypad(uint8_t bPin1, uint8_t bPin2) :
   m_ulToFireInactivity(s_ulInactivityDelay)
 {
+  static uint8_t Keys1[] = {VK_RIGHT, VK_LEFT, VK_SEL, VK_SOFTA}; // this reflects PCB connections
+  static uint8_t Keys2[] = {VK_UP, VK_DOWN, VK_SOFTB};            // this reflects PCB connections
+
   m_ch[0].m_bPin = bPin1;
   m_ch[0].m_vk = Keys1;
-  m_ch[0].m_uKeys = uKeys1;
+  m_ch[0].m_uKeys = sizeof(Keys1)/sizeof(Keys1[0]);
   m_ch[1].m_bPin = bPin2;
   m_ch[1].m_vk = Keys2;
-  m_ch[1].m_uKeys = uKeys2;
+  m_ch[1].m_uKeys = sizeof(Keys2)/sizeof(Keys2[0]);
 }
 
-bool KeypadDuo::getAndDispatchKey(unsigned long now)
+bool AnalogNavigationKeypad::getAndDispatchKey(unsigned long now)
 {
   static uint16_t i = 0;
   if(i >= sizeof(m_ch)/sizeof(m_ch[0]))
     i = 0;
-  return m_ch[i++].getAndDispatchKey(now);
+  uint8_t uKeyOtherChannel = (i == 0) ? m_ch[1].m_bOldKey : m_ch[0].m_bOldKey;
+  return m_ch[i++].getAndDispatchKey(now, this, uKeyOtherChannel);
 }
 
-bool KeypadDuo::onUserInActivity(unsigned long now)
+/**
+ *  For visualization only
+ */
+const char *AnalogNavigationKeypad::getKeyNames(uint8_t vks)
 {
-  onUserActivity(now);
-  return View::g_pActiveView->onKeysInactive();
+  return ::getKeyNames(vks);
 }
-
 
