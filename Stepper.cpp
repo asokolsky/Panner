@@ -14,7 +14,7 @@ Stepper::Stepper(uint8_t pinStep, uint8_t pinDirection, uint8_t pinEnable) :
 void Stepper::enable(bool bEnable)
 {
   DEBUG_PRINT("Stepper::enable(");  DEBUG_PRINTDEC(bEnable);  DEBUG_PRINTLN(")");
-  digitalWrite(_enablePin, bEnable ? (HIGH ^ _enableInverted) : (LOW ^ _enableInverted));
+  digitalWriteFast(_enablePin, bEnable ? (HIGH ^ _enableInverted) : (LOW ^ _enableInverted));
   m_bEnabled = bEnable;
 }
 
