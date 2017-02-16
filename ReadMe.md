@@ -27,6 +27,8 @@ https://github.com/asokolsky/Panner/wiki
   * Settings GUI to control LCD display orientation?
 
 ### Hardware
+  * Add JST connector for the battery, use barrel connector for AC power supply, recharger?
+  * Use DC motors?  With encoders?
   * Add tilt and slide stepper drivers
   * test 0.9° step stepper
   * Step up DC voltage between batteries and stepper motors?
